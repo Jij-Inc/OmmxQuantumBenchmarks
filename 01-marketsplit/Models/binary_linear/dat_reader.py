@@ -77,6 +77,7 @@ class QOBLIBReader:
         self.A = np.array(self.A)
         self.b = np.array(self.b)
 
+        #return the instance
         return {
             'I': np.arange(self.m),
             'J': np.arange(self.n),
