@@ -38,9 +38,9 @@ def parse_sol_to_ordered_dict(file_path: str, constraint_count: int) -> dict:
                         var_type = match.group(1)
                         var_index = int(match.group(2))
                         
-                        if var_type == 's':
-                            s_vars[var_index] = var_value
-                        elif var_type == 'x':
+                        # if var_type == 's':
+                        #     s_vars[var_index] = var_value
+                        if var_type == 'x':
                             x_vars[var_index] = var_value
                             
                 except ValueError:
