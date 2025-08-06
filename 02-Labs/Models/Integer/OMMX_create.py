@@ -68,7 +68,7 @@ def batch_process_files(dat_directory: str = "../../instances",
             solution = None
             try:
                 energy_dict, entries_dict, solution_dict = parse_sol_file(sol_file, n)
-                print(type(energy_dict), energy_dict)
+                
                 for i in range(0, n-1):
                     solution_dict[i]=solve_c(ommx_instance.constraints[i], solution_dict, target_var_id=i)
                 solution = ommx_instance.evaluate(solution_dict)
