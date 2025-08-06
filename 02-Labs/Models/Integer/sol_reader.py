@@ -1,7 +1,7 @@
 import re
 from typing import Tuple, Dict, Any
 
-def parse_sol_file(file_path: str) -> Tuple[Dict[str, Any], Dict[str, int], Dict[int, float]]:
+def parse_sol_file(file_path: str, n:int) -> Tuple[Dict[str, Any], Dict[str, int], Dict[int, float]]:
     """
     Parse a .sol-style file with headers and a sequence of values.
 
@@ -38,7 +38,7 @@ def parse_sol_file(file_path: str) -> Tuple[Dict[str, Any], Dict[str, int], Dict
                     continue
 
                 # match entries
-                m = re.match(r"#\s*entries\s*:\s*(\d+)", line, re.IGNORECASE)
+                m = re.match(r"#\s*Consecutive entries\s*:\s*(\d+)", line, re.IGNORECASE)
                 if m:
                     entries = int(m.group(1))
                     continue
@@ -53,6 +53,6 @@ def parse_sol_file(file_path: str) -> Tuple[Dict[str, Any], Dict[str, int], Dict
     # Build dicts
     energy_dict   = {"Energy": energy}
     entries_dict  = {"entries": entries}
-    solution_dict = {i: val for i, val in enumerate(sequence)}
+    solution_dict = {i+n-1: val for i, val in enumerate(sequence)}
 
     return energy_dict, entries_dict, solution_dict

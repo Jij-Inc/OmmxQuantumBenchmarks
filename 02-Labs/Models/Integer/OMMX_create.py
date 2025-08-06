@@ -6,8 +6,9 @@ import ommx.v1
 import numpy as np
 from typing import Dict, List, Tuple, Any
 from ommx.artifact import ArtifactBuilder
-from sol_reader import parse_sol_to_ordered_dict
+from sol_reader import parse_sol_file
 from model import create_problem
+from solve_c_from_x import solve_c
 
 def create_instanc(n):
     instance_data = {
@@ -66,9 +67,15 @@ def batch_process_files(dat_directory: str = "../../instances",
             # Read and evaluate the solution
             solution = None
             try:
-                energy_dict, entries_dict, solution_dict = parse_sol_to_ordered_dict(sol_file)
+                energy_dict, entries_dict, solution_dict = parse_sol_file(sol_file, n)
+                print(type(energy_dict), energy_dict)
+                for i in range(0, n-1):
+                    solution_dict[i]=solve_c(ommx_instance.constraints[i], solution_dict, target_var_id=i)
                 solution = ommx_instance.evaluate(solution_dict)
-                print(f"  → objective={solution.objective}, feasible={solution.feasible}")
+                if energy_dict['Energy']==solution.objective and solution.feasible:
+                    print(f"  → objective={solution.objective}, feasible={solution.feasible}")
+                else:
+                    print("Objective or feasible Error")
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
                 print("    Skipping solution evaluation and only saving the instance...")
