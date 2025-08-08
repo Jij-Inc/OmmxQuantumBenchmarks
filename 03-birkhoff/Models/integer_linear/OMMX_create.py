@@ -194,7 +194,7 @@ if __name__ == "__main__":
         output_directory="./ommx_output"
     )
 
-    # To process 06_sparse (→ bhD-4-***), uncomment:
+    # To process 06_sparse (→ bhS-6-***), uncomment:
     batch_process_from_qbench_json(
         json_path="../../solutions/qbench_06_sparse.json",
         sol_subdir="06_sparse",
