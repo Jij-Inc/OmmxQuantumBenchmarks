@@ -3,7 +3,7 @@ import math
 
 def permutation_to_matrix(perm):
     n = len(perm)
-    matrix =[[0]*n for _ in range(n)]
+    matrix = [[0]*n for _ in range(n)]
     for i in range(n):
         matrix[i][perm[i]-1]=1
     return matrix
