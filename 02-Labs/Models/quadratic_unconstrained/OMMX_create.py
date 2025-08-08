@@ -9,7 +9,7 @@ from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
 from model import create_problem
 
-def create_instanc(n):
+def create_instance(n):
     instance_data = {
         'I': np.arange(n),                 
         'K': np.arange(n-1),
