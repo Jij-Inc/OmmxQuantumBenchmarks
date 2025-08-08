@@ -6,18 +6,16 @@ Maximum auxiliary variable reduction while maintaining strict ZPL mathematical e
 import jijmodeling as jm
 
 
-def create_steiner_tree_packing_model():
-    """
-    Create mathematically correct optimized Steiner Tree Packing model
+def create_steiner_tree_packing_model() -> jm.Problem:
+    """Create Steiner Tree Packing optimization model.
 
-    Fixes from previous optimization:
-    1. Constraint 1 (root_flow_out): ✅ KEEP - Direct jm.abs() implementation works perfectly
-    2. Constraint 5 (terms_flow_bal_same): 🔧 FIX - Add diagonal exclusion for s != t condition
-    3. Constraint 6 (terms_flow_bal_diff): 🔧 FIX - Use proper Big-M with exact constraint activation
-    4. Constraint 8 (bind_x_y): 🔧 FIX - Use max(0, 1-abs) to prevent negative multipliers
-    5. Constraint 9 (disjoint_nonroot): ✅ KEEP - Auxiliary variable approach is correct
+    Implements the node-disjoint Steiner tree packing problem using multicommodity
+    flow formulation. Mathematically equivalent to the ZPL formulation in
+    stp_node_disjoint.zpl.
 
-    Expected result: ~60-70% auxiliary variable reduction with 100% mathematical equivalence
+    Returns:
+        jm.Problem: JijModeling problem instance with all constraints and variables
+            defined for the Steiner tree packing problem.
     """
 
     # === Data placeholders ===
@@ -78,13 +76,8 @@ def create_steiner_tree_packing_model():
     bigM_net = num_nets
     bigM_flow = num_arcs
 
-    print("Creating mathematically correct optimized constraints...")
-
-    # === CONSTRAINT 1: ROOT FLOW OUT (OPTIMIZED - PROVEN CORRECT) ===
+    # === CONSTRAINT 1: ROOT FLOW OUT ===
     # ZPL: sum <r,j> in A : x[r,j,t] == if innet[r] == innet[t] then 1 else 0 end;
-    # ✅ NO AUXILIARY VARIABLES - Direct jm.abs() implementation is mathematically perfect
-
-    print("✅ Constraint 1: root_flow_out (OPTIMIZED - mathematically proven)")
     problem += jm.Constraint(
         "root_flow_out_opt1",
         jm.sum([(a, A[a, 0] == R[r])], x[a, t]) - 1
@@ -98,8 +91,7 @@ def create_steiner_tree_packing_model():
         forall=[t, r],
     )
 
-    # === CONSTRAINTS 2-4: SIMPLE DIRECT TRANSLATIONS ===
-    print("✅ Constraints 2-4: Direct translations (no auxiliary needed)")
+    # === CONSTRAINTS 2-4: DIRECT TRANSLATIONS ===
 
     # 2. ROOT FLOW IN
     problem += jm.Constraint(
@@ -116,11 +108,8 @@ def create_steiner_tree_packing_model():
         "terms_flow_in", jm.sum([(a, A[a, 1] == T[t])], x[a, t]) == 1, forall=[t]
     )
 
-    # === CONSTRAINT 5: TERMINAL FLOW BALANCE SAME NET (CORRECTED OPTIMIZED) ===
+    # === CONSTRAINT 5: TERMINAL FLOW BALANCE SAME NET ===
     # ZPL: forall <s> in T with s != t and innet[s] == innet[t] do
-    # 🔧 FIXED - Adding diagonal exclusion to handle s != t condition correctly
-
-    print("🔧 Constraint 5: terms_flow_bal_same (CORRECTED - diagonal exclusion)")
 
     flow_balance = jm.sum([(a, A[a, 1] == T[s_idx])], x[a, t]) - jm.sum(
         [(a, A[a, 0] == T[s_idx])], x[a, t]
@@ -165,11 +154,8 @@ def create_steiner_tree_packing_model():
         forall=[t, s_idx],
     )
 
-    # === CONSTRAINT 6: TERMINAL FLOW BALANCE DIFFERENT NET (CORRECTED OPTIMIZED) ===
+    # === CONSTRAINT 6: TERMINAL FLOW BALANCE DIFFERENT NET ===
     # ZPL: forall <s> in T with innet[s] != innet[t] do
-    # 🔧 FIXED - Using proper Big-M method for exact constraint activation
-
-    print("🔧 Constraint 6: terms_flow_bal_diff (CORRECTED - exact activation)")
 
     flow_sum = jm.sum([(a, A[a, 1] == T[s_idx])], x[a, t]) + jm.sum(
         [(a, A[a, 0] == T[s_idx])], x[a, t]
@@ -216,9 +202,7 @@ def create_steiner_tree_packing_model():
         forall=[t, s_idx],
     )
 
-    # === CONSTRAINT 7: NORMAL NODES FLOW BALANCE (NO AUXILIARY NEEDED) ===
-
-    print("✅ Constraint 7: nodes_flow_bal (direct)")
+    # === CONSTRAINT 7: NORMAL NODES FLOW BALANCE ===
     problem += jm.Constraint(
         "nodes_flow_bal",
         jm.sum([(a, A[a, 0] == N[n_idx])], x[a, t])
@@ -227,11 +211,8 @@ def create_steiner_tree_packing_model():
         forall=[t, n_idx],
     )
 
-    # === CONSTRAINT 8: BIND X TO Y (CORRECTED OPTIMIZED) ===
+    # === CONSTRAINT 8: BIND X TO Y ===
     # ZPL: sum <t> in T with innet[t] == k : x[i,j,t] <= nets[k] * y[i,j,k]
-    # 🔧 FIXED - Using auxiliary variable to avoid negative multiplier error
-
-    print("🔧 Constraint 8: bind_x_y (CORRECTED - auxiliary variable for safety)")
 
     # Use auxiliary variable to ensure mathematical correctness
     z_terminal_in_net = jm.BinaryVar(
@@ -269,11 +250,8 @@ def create_steiner_tree_packing_model():
         forall=[a, k],
     )
 
-    # === CONSTRAINT 9: NODE DISJOINTNESS NON-ROOT (AUXILIARY REQUIRED) ===
+    # === CONSTRAINT 9: NODE DISJOINTNESS NON-ROOT ===
     # ZPL: forall <j> in V without R do
-    # ✅ KEEP - This auxiliary variable is mathematically necessary
-
-    print("✅ Constraint 9: disjoint_nonroot (auxiliary required for set operations)")
 
     z_is_nonroot = jm.BinaryVar("z_is_nonroot", shape=(num_vertices,))
 
@@ -292,41 +270,25 @@ def create_steiner_tree_packing_model():
         forall=[v_idx],
     )
 
-    # === CONSTRAINT 10: ROOT NODE DISJOINTNESS (NO AUXILIARY NEEDED) ===
-
-    print("✅ Constraint 10: disjoint_root (direct)")
+    # === CONSTRAINT 10: ROOT NODE DISJOINTNESS ===
     problem += jm.Constraint(
         "disjoint_root", jm.sum([(a, A[a, 1] == R[r]), k], y[a, k]) <= 0, forall=[r]
     )
-
-    # === SUMMARY ===
-    auxiliary_vars = [
-        "z_same_net_diff_terminal",  # Constraint 5: (s != t) AND (same network)
-        "z_diff_network",  # Constraint 6: network difference detection
-        "z_terminal_in_net",  # Constraint 8: terminal-net membership
-        "z_is_nonroot",  # Constraint 9: non-root vertex detection
-    ]
-
-    print("✅ Mathematically correct optimized model created!")
-    print(
-        f"🎯 Auxiliary variables: {len(auxiliary_vars)} types (down from 5+ in original)"
-    )
-    print(f"📊 Constraints with eliminated auxiliaries: 3/10 (30%)")
-    print(f"✅ Mathematical equivalence: GUARANTEED")
-    print(f"🔧 All mathematical errors from previous optimization: FIXED")
 
     return problem
 
 
 def solve_steiner_tree_packing(graph_data):
-    """
-    Solve the Steiner Tree Packing problem using JijModeling.
+    """Solve the Steiner Tree Packing problem using JijModeling.
 
     Args:
-        graph_data: Dictionary containing the problem instance data
+        graph_data (dict): Dictionary containing the problem instance data including
+            vertices, arcs, terminals, roots, and network assignments.
 
     Returns:
-        tuple: (problem, compiled_problem) for further processing
+        tuple: A tuple containing:
+            - problem (jm.Problem): The JijModeling problem definition.
+            - compiled_problem: The compiled problem ready for optimization.
     """
 
     # Create the problem
@@ -342,28 +304,5 @@ def solve_steiner_tree_packing(graph_data):
 
 
 if __name__ == "__main__":
-    print("=" * 90)
-    print("MATHEMATICALLY CORRECT OPTIMIZED STEINER TREE PACKING MODEL")
-    print("=" * 90)
-
     model = create_steiner_tree_packing_model()
-
-    print(f"\n✅ Model created: {model.name}")
-    print(
-        f"🎯 OPTIMIZATION BALANCE: Maximum auxiliary reduction with guaranteed mathematical correctness"
-    )
-
-    print(f"\n📊 OPTIMIZATION SUMMARY:")
-    print(f"   • Mathematical equivalence: ✅ 100% guaranteed")
-    print(f"   • Auxiliary variable reduction: Moderate (safe optimization)")
-    print(f"   • Constraints with direct implementation: 3/10")
-    print(
-        f"   • Constraints requiring auxiliaries: 7/10 (for mathematical correctness)"
-    )
-
-    print(f"\n🎉 KEY IMPROVEMENTS:")
-    print(f"   ✅ Constraint 1: Perfect jm.abs() implementation (no auxiliary)")
-    print(f"   🔧 Constraint 5: Fixed diagonal exclusion (minimal auxiliary)")
-    print(f"   🔧 Constraint 6: Fixed exact activation (minimal auxiliary)")
-    print(f"   🔧 Constraint 8: Fixed negative multiplier (safe auxiliary)")
-    print(f"   ✅ Mathematical errors: All fixed")
+    print(f"Model created: {model.name}")
