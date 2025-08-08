@@ -58,7 +58,7 @@ def batch_process_files(dat_directory: str = "../../instances",
             print(f"Processing solution file: {sol_file}")
 
             # Generate instance_data using create_instanc(n)
-            instance_data = create_instanc(n)
+            instance_data = create_instance(n)
 
             # Create an OMMX instance
             interpreter = jm.Interpreter(instance_data)
