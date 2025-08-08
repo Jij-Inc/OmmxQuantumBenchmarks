@@ -1,5 +1,4 @@
 import jijmodeling as jm
-import ommx
 import numpy as np
 
 import jijmodeling as jm
