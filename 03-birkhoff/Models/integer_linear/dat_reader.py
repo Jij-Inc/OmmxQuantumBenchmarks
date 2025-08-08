@@ -26,21 +26,11 @@ def process_entry(entry):
     scale = entry["scale"]
 
     A = np.array(entry["scaled_doubly_stochastic_matrix"]).reshape((n, n))
-    if n == 3:
-        perm_list = read_permutation_dat_file("p3.dat")
+    if 3 <= n <= 7:
+        perm_list = read_permutation_dat_file(f"p{n}.dat")
         P = convert_all_permutations(perm_list)
-    elif n == 4:
-        perm_list = read_permutation_dat_file("p4.dat")
-        P = convert_all_permutations(perm_list)
-    elif n == 5:
-        perm_list = read_permutation_dat_file("p5.dat")
-        P = convert_all_permutations(perm_list)
-    elif n == 6:
-        perm_list = read_permutation_dat_file("p6.dat")
-        P = convert_all_permutations(perm_list)
-    elif n == 7:
-        perm_list = read_permutation_dat_file("p7.dat")
-        P = convert_all_permutations(perm_list)
+    else:
+        raise ValueError(f"Unsupported value of n: {n}. Only n=3..7 are supported.")
 
     return {
         "msize": n,
