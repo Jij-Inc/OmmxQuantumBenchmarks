@@ -186,7 +186,7 @@ if __name__ == "__main__":
         sol_root="../../solutions",
         output_directory="./ommx_output"
     )
-    # To process 06_dense (→ bhD-4-***), uncomment:
+    # To process 06_dense (→ bhD-6-***), uncomment:
     batch_process_from_qbench_json(
         json_path="../../solutions/qbench_06_dense.json",
         sol_subdir="06_dense",
