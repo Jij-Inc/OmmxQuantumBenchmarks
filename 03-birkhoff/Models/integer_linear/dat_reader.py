@@ -9,7 +9,7 @@ def permutation_to_matrix(perm):
     return matrix
     
 def convert_all_permutations(perms):
-    return[permutation_to_matrix(p) for p in perms]
+    return [permutation_to_matrix(p) for p in perms]
 
 def read_permutation_dat_file(filepath):
     result = []
