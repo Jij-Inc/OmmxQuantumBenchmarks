@@ -10,7 +10,7 @@ from sol_reader import parse_sol_file
 from model import create_problem
 from solve_c_from_x import solve_c
 
-def create_instanc(n):
+def create_instance(n):
     instance_data = {
         'I': np.arange(n),                    # [0, 1, 2, ..., n-1]
         'K': np.arange(n-1),                  # [0, 1, 2, ..., n-2]
