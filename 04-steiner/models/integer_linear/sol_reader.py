@@ -1,24 +1,14 @@
-"""
-Solution reader for Steiner Tree Packing Problem
-Read solution files and convert them to dictionary format for JijModeling evaluation
-"""
+"""Solution reader for Steiner Tree Packing Problem."""
 
 import re
 from typing import Dict, Any
-from collections import defaultdict
 
 
 def parse_steiner_sol_file(sol_file_path: str) -> Dict[str, Any]:
-    """
-    Parse a Steiner Tree Packing solution file (sol.txt format).
-    
-    The solution file contains information about:
-    - Objective value 
-    - Variables (both x and y variables)
-    - Additional solution information
+    """Parse a Steiner Tree Packing solution file.
     
     Args:
-        sol_file_path: Path to the solution file (sol.txt)
+        sol_file_path (str): Path to the solution file
         
     Returns:
         dict: Dictionary containing solution variables and metadata

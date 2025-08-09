@@ -1,19 +1,16 @@
-"""
-Data loader for Steiner Tree Packing instances
-"""
+"""Data loader for Steiner Tree Packing instances."""
 
 from pathlib import Path
 
 
 def load_steiner_instance(instance_path):
-    """
-    Load a Steiner Tree Packing instance from the given directory.
+    """Load a Steiner Tree Packing instance from the given directory.
     
     Args:
-        instance_path: Path to the instance directory
+        instance_path (str): Path to the instance directory
     
     Returns:
-        Dictionary containing all the data needed for JijModeling
+        dict: Dictionary containing all the data needed for JijModeling
     """
     instance_path = Path(instance_path)
     
