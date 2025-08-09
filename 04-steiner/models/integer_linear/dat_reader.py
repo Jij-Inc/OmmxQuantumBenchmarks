@@ -123,7 +123,7 @@ def load_steiner_instance(instance_path):
 
 if __name__ == "__main__":
     # Test the loader
-    instance_path = "/Users/keisukesato/dev/git/OMMX-OBLIB/04-steiner/instances/stp_s020_l2_t3_h2_rs24098"
+    instance_path = "../../instances/stp_s020_l2_t3_h2_rs24098"
     data = load_steiner_instance(instance_path)
     
     print(f"Nodes: {data['nodes']}")

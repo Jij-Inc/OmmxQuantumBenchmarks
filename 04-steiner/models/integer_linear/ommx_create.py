@@ -142,7 +142,7 @@ def main():
     print("=" * 60)
     
     try:
-        instances_dir = "/Users/keisukesato/dev/git/OMMX-OBLIB/04-steiner/instances"
+        instances_dir = "../../instances"
         output_dir = "./ommx_output"
         batch_process_instances(instances_dir, output_dir)
     except Exception as e:
