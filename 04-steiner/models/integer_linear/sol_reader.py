@@ -1,10 +1,9 @@
 """Solution reader for Steiner Tree Packing Problem."""
 
 import re
-from typing import Dict, Any
 
 
-def parse_steiner_sol_file(sol_file_path: str) -> Dict[str, Any]:
+def parse_steiner_sol_file(sol_file_path: str) -> dict[str, object]:
     """Parse a Steiner Tree Packing solution file.
     
     Args:
@@ -66,8 +65,8 @@ def parse_steiner_sol_file(sol_file_path: str) -> Dict[str, Any]:
     return solution_data
 
 
-def convert_steiner_solution_to_jijmodeling_format(solution_data: Dict[str, Any], 
-                                                   instance_data: Dict[str, Any]) -> Dict[str, Any]:
+def convert_steiner_solution_to_jijmodeling_format(solution_data: dict[str, object], 
+                                                   instance_data: dict[str, object]) -> dict[str, object]:
     """
     Convert parsed Steiner solution data to JijModeling variable format.
     
@@ -107,7 +106,7 @@ def convert_steiner_solution_to_jijmodeling_format(solution_data: Dict[str, Any]
     return jm_solution
 
 
-def read_steiner_solution_file(sol_file_path: str, instance_data: Dict[str, Any]) -> Dict[str, Any]:
+def read_steiner_solution_file(sol_file_path: str, instance_data: dict[str, object]) -> dict[str, object]:
     """
     Complete solution reading pipeline for Steiner Tree Packing problems.
     
