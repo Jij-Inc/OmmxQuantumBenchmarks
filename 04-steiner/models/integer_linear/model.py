@@ -77,7 +77,11 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     bigM_flow = num_arcs
 
     # === CONSTRAINT 1: ROOT FLOW OUT ===
-    # ZPL: sum <r,j> in A : x[r,j,t] == if innet[r] == innet[t] then 1 else 0 end;
+    # ZPL:
+    # subto root_flow_out: 
+    #    forall <t> in T do
+    #       forall <r> in R do
+    #          sum <r,j> in A : x[r,j,t] == if innet[r] == innet[t] then 1 else 0 end;
     problem += jm.Constraint(
         "root_flow_out_opt1",
         jm.sum([(a, A[a, 0] == R[r])], x[a, t]) - 1
@@ -94,22 +98,39 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     # === CONSTRAINTS 2-4: DIRECT TRANSLATIONS ===
 
     # 2. ROOT FLOW IN
+    # ZPL:
+    # subto root_flow_in:
+    #    forall <t> in T do
+    #       forall <r> in R do
+    #          sum <i,r> in A : x[i,r,t] == 0;
     problem += jm.Constraint(
         "root_flow_in", jm.sum([(a, A[a, 1] == R[r])], x[a, t]) == 0, forall=[t, r]
     )
 
     # 3. TERMINAL FLOW OUT
+    # ZPL:
+    # subto terms_flow_out:
+    #    forall <t> in T do
+    #       sum <t,j> in A : x[t,j,t] == 0;
     problem += jm.Constraint(
         "terms_flow_out", jm.sum([(a, A[a, 0] == T[t])], x[a, t]) == 0, forall=[t]
     )
 
     # 4. TERMINAL FLOW IN
+    # ZPL:
+    # subto terms_flow_in:
+    #    forall <t> in T do
+    #       sum <i,t> in A : x[i,t,t] == 1;
     problem += jm.Constraint(
         "terms_flow_in", jm.sum([(a, A[a, 1] == T[t])], x[a, t]) == 1, forall=[t]
     )
 
     # === CONSTRAINT 5: TERMINAL FLOW BALANCE SAME NET ===
-    # ZPL: forall <s> in T with s != t and innet[s] == innet[t] do
+    # ZPL:
+    # subto terms_flow_bal_same:
+    #    forall <t> in T do
+    #       forall <s> in T with s != t and innet[s] == innet[t] do
+    #          sum <i,s> in A : x[i,s,t] - sum <s,j> in A : x[s,j,t] == 0;
 
     flow_balance = jm.sum([(a, A[a, 1] == T[s_idx])], x[a, t]) - jm.sum(
         [(a, A[a, 0] == T[s_idx])], x[a, t]
@@ -155,7 +176,11 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
 
     # === CONSTRAINT 6: TERMINAL FLOW BALANCE DIFFERENT NET ===
-    # ZPL: forall <s> in T with innet[s] != innet[t] do
+    # ZPL:
+    # subto terms_flow_bal_diff:
+    #    forall <t> in T do
+    #       forall <s> in T with innet[s] != innet[t] do
+    #          sum <i,s> in A : x[i,s,t] + sum <s,j> in A : x[s,j,t] == 0;
 
     flow_sum = jm.sum([(a, A[a, 1] == T[s_idx])], x[a, t]) + jm.sum(
         [(a, A[a, 0] == T[s_idx])], x[a, t]
@@ -203,6 +228,11 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
 
     # === CONSTRAINT 7: NORMAL NODES FLOW BALANCE ===
+    # ZPL:
+    # subto nodes_flow_bal:
+    #    forall <t> in T do
+    #       forall <n> in N do
+    #          sum <n,j> in A : x[n,j,t] - sum <i,n> in A : x[i,n,t] == 0;
     problem += jm.Constraint(
         "nodes_flow_bal",
         jm.sum([(a, A[a, 0] == N[n_idx])], x[a, t])
@@ -212,7 +242,11 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
 
     # === CONSTRAINT 8: BIND X TO Y ===
-    # ZPL: sum <t> in T with innet[t] == k : x[i,j,t] <= nets[k] * y[i,j,k]
+    # ZPL:
+    # subto bind_x_y:
+    #    forall <i,j> in A do
+    #       forall <k> in L do
+    #          sum <t> in T with innet[t] == k : x[i,j,t] <= nets[k] * y[i,j,k];
 
     # Use auxiliary variable to ensure mathematical correctness
     z_terminal_in_net = jm.BinaryVar(
@@ -251,7 +285,10 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
 
     # === CONSTRAINT 9: NODE DISJOINTNESS NON-ROOT ===
-    # ZPL: forall <j> in V without R do
+    # ZPL:
+    # subto disjoint_nonroot:
+    #    forall <j> in V without R do
+    #       sum <i,j> in A, <k> in L : y[i,j,k] <= 1;
 
     z_is_nonroot = jm.BinaryVar("z_is_nonroot", shape=(num_vertices,))
 
@@ -271,6 +308,10 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
 
     # === CONSTRAINT 10: ROOT NODE DISJOINTNESS ===
+    # ZPL:
+    # subto disjoint_root:
+    #    forall <r> in R do
+    #       sum <i,r> in A, <k> in L : y[i,r,k] <= 0;
     problem += jm.Constraint(
         "disjoint_root", jm.sum([(a, A[a, 1] == R[r]), k], y[a, k]) <= 0, forall=[r]
     )
@@ -305,4 +346,3 @@ def solve_steiner_tree_packing(graph_data):
 
 if __name__ == "__main__":
     model = create_steiner_tree_packing_model()
-    print(f"Model created: {model.name}")
