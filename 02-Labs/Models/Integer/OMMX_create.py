@@ -72,7 +72,7 @@ def batch_process_files(dat_directory: str = "../../instances",
                 for i in range(0, n-1):
                     solution_dict[i]=solve_c(ommx_instance.constraints[i], solution_dict, target_var_id=i)
                 solution = ommx_instance.evaluate(solution_dict)
-                if energy_dict['Energy']==solution.objective and solution.feasible:
+                if math.isclose(energy_dict['Energy'], solution.objective, rel_tol=1e-6) and solution.feasible:
                     print(f"  → objective={solution.objective}, feasible={solution.feasible}")
                 else:
                     print("Objective or feasible Error")
