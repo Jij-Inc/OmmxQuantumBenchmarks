@@ -2,6 +2,7 @@ import jijmodeling as jm
 import ommx
 import numpy as np
 
+
 def create_problem():
     # Define sets
     I_set = jm.Placeholder("I", ndim=1)  # Placeholder for set I
@@ -10,14 +11,22 @@ def create_problem():
 
     # Define decision variables
     x = jm.BinaryVar("x", shape=I_set.shape, description="Variable x")
-    c = jm.IntegerVar("c", shape=K_set.shape, lower_bound=-(n-1), upper_bound=n-1, description="Variable c")
+    c = jm.IntegerVar(
+        "c",
+        shape=K_set.shape,
+        lower_bound=-(n - 1),
+        upper_bound=n - 1,
+        description="Variable c",
+    )
 
     # Define elements
     k = jm.Element("k", belong_to=K_set)
-    t = jm.Element("i", belong_to=(0,n-k-1))
+    t = jm.Element("i", belong_to=(0, n - k - 1))
 
     # Define the problem
-    problem = jm.Problem("Low Autocorrelation Binary Sequences (LABS)", sense=jm.ProblemSense.MINIMIZE)
+    problem = jm.Problem(
+        "Low Autocorrelation Binary Sequences (LABS)", sense=jm.ProblemSense.MINIMIZE
+    )
 
     # Define the objective function
     problem += jm.sum(k, c[k] * c[k])

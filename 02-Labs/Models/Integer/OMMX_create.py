@@ -1,43 +1,43 @@
 import os
-import glob
-from pathlib import Path
 import jijmodeling as jm
-import ommx.v1
 import numpy as np
-from typing import Dict, List, Tuple, Any
 from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
 from model import create_problem
 from solve_c_from_x import solve_c
 
+
 def create_instance(n):
     instance_data = {
-        'I': np.arange(n),                    # [0, 1, 2, ..., n-1]
-        'K': np.arange(n-1),                  # [0, 1, 2, ..., n-2]
+        "I": np.arange(n),  # [0, 1, 2, ..., n-1]
+        "K": np.arange(n - 1),  # [0, 1, 2, ..., n-2]
     }
     return instance_data
 
-def batch_process_files(dat_directory: str = "../../instances", 
-                        sol_directory: str = "../../solutions", 
-                        output_directory: str = "./ommx_output"):
+
+def batch_process_files(
+    dat_directory: str = "../../instances",
+    sol_directory: str = "../../solutions",
+    output_directory: str = "./ommx_output",
+):
     """
     Batch process .dat and .sol files from different directories and convert them into .ommx files.
-    
+
     Parameters:
     - dat_directory: Path to the directory containing .dat files
     - sol_directory: Path to the directory containing .sol files
     - output_directory: Path to the directory where .ommx files will be saved
     """
-    
+
     # Create the output directory if it does not already exist
     os.makedirs(output_directory, exist_ok=True)
-    
+
     # Build the problem definition (shared by all instances)
     problem = create_problem()
-           
+
     processed_count = 0
     error_count = 0
-    
+
     # Generate instance_data directly for n from 2 to 100
     for n in range(2, 101):
         try:
@@ -48,11 +48,13 @@ def batch_process_files(dat_directory: str = "../../instances",
             possible_sol_files = [
                 os.path.join(sol_directory, f"{base_name}.opt.sol"),
                 os.path.join(sol_directory, f"{base_name}.bst.sol"),
-                os.path.join(sol_directory, f"{base_name}.sol")
+                os.path.join(sol_directory, f"{base_name}.sol"),
             ]
             sol_file = next((p for p in possible_sol_files if os.path.exists(p)), None)
             if sol_file is None:
-                print(f"Warning: Corresponding solution file for {base_name} not found.")
+                print(
+                    f"Warning: Corresponding solution file for {base_name} not found."
+                )
                 continue
 
             print(f"Processing solution file: {sol_file}")
@@ -68,17 +70,28 @@ def batch_process_files(dat_directory: str = "../../instances",
             solution = None
             try:
                 energy_dict, entries_dict, solution_dict = parse_sol_file(sol_file, n)
-                
-                for i in range(0, n-1):
-                    solution_dict[i]=solve_c(ommx_instance.constraints[i], solution_dict, target_var_id=i)
+
+                for i in range(0, n - 1):
+                    solution_dict[i] = solve_c(
+                        ommx_instance.constraints[i], solution_dict, target_var_id=i
+                    )
                 solution = ommx_instance.evaluate(solution_dict)
-                if math.isclose(energy_dict['Energy'], solution.objective, rel_tol=1e-6) and solution.feasible:
-                    print(f"  → objective={solution.objective}, feasible={solution.feasible}")
+                if (
+                    math.isclose(
+                        energy_dict["Energy"], solution.objective, rel_tol=1e-6
+                    )
+                    and solution.feasible
+                ):
+                    print(
+                        f"  → objective={solution.objective}, feasible={solution.feasible}"
+                    )
                 else:
                     print("Objective or feasible Error")
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
-                print("    Skipping solution evaluation and only saving the instance...")
+                print(
+                    "    Skipping solution evaluation and only saving the instance..."
+                )
 
             # Write out the .ommx artifact
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
@@ -104,6 +117,7 @@ def batch_process_files(dat_directory: str = "../../instances",
     print(f"Number of errors: {error_count} files")
     print(f"OMMX files saved in: {output_directory}")
     print("-" * 50)
+
 
 if __name__ == "__main__":
     batch_process_files()
