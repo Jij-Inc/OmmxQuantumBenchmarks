@@ -24,9 +24,9 @@ def solve_c(constraint, known_vals, target_var_id):
     fn = constraint.function
 
     # Retrieve linear, quadratic, and constant components
-    linear    = fn.linear_terms()    if callable(fn.linear_terms)    else fn.linear_terms
-    quadratic = fn.quadratic_terms() if callable(fn.quadratic_terms) else fn.quadratic_terms
-    constant  = fn.constant_term()   if callable(fn.constant_term)   else fn.constant_term
+    linear    = _get_value(fn, 'linear_terms')
+    quadratic = _get_value(fn, 'quadratic_terms')
+    constant  = _get_value(fn, 'constant_term')
 
     # Sum contributions from known linear terms (skip the target variable)
     sum_lin = 0.0
