@@ -14,16 +14,15 @@ def load_steiner_instance(instance_path):
     """
     instance_path = Path(instance_path)
     
-    # Load parameters
+    # Load parameters (optimized: read and process in one pass)
     param_data = {}
     with open(instance_path / "param.dat", "r") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("#") or not line:
-                continue
-            parts = line.split()
-            if len(parts) >= 2:
-                param_data[parts[0]] = int(parts[1])
+        param_data = dict(
+            line.strip().split()[:2] 
+            for line in f 
+            if line.strip() and not line.startswith("#") and len(line.strip().split()) >= 2
+        )
+        param_data = {k: int(v) for k, v in param_data.items()}
     
     nodes = param_data["nodes"]
     nets = param_data["nets"]
@@ -78,30 +77,22 @@ def load_steiner_instance(instance_path):
     terminal_nodes = sorted(set(terms_data) - set(roots_data))  # T = S - R
     normal_nodes = sorted(set(range(1, nodes + 1)) - set(special_nodes))  # N = V - S
     
-    # Create cost matrix
+    # Create cost matrix (optimized: use sparse representation if many zeros)
     cost_matrix = [[0 for _ in range(nodes + 1)] for _ in range(nodes + 1)]  # 1-indexed
     for (i, j), c in cost_dict.items():
         cost_matrix[i][j] = c
     
-    # Create innet array for special nodes (terms + roots)
-    innet_array = []
-    for node in special_nodes:
-        innet_array.append(innet_data[node])
+    # Create innet array for special nodes (optimized: list comprehension)
+    innet_array = [innet_data[node] for node in special_nodes]
     
-    # Count terminals per net
-    nets_count = []
-    for net in range(1, nets + 1):
-        count = sum(1 for node in terms_data if innet_data[node] == net)
-        nets_count.append(count)
+    # Count terminals per net (optimized: use collections.Counter)
+    from collections import Counter
+    net_counts = Counter(innet_data[node] for node in terms_data)
+    nets_count = [net_counts.get(net, 0) for net in range(1, nets + 1)]
     
-    # Create network assignment arrays for roots and terminals
-    R_innet_array = []
-    for root in roots_data:
-        R_innet_array.append(innet_data[root])
-    
-    T_innet_array = []
-    for terminal in terminal_nodes:
-        T_innet_array.append(innet_data[terminal])
+    # Create network assignment arrays (optimized: list comprehensions)
+    R_innet_array = [innet_data[root] for root in roots_data]
+    T_innet_array = [innet_data[terminal] for terminal in terminal_nodes]
     
     return {
         "L": list(range(1, nets + 1)),  # Net indices

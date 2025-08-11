@@ -35,13 +35,17 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     cost = jm.Placeholder("cost", ndim=2, description="Cost matrix")
     nets = jm.Placeholder("nets", ndim=1, description="Terminals per net")
 
-    # Dimensions
+    # Dimensions (cached for performance)
     num_arcs = A.len_at(0)
     num_terminals = T.len_at(0)
     num_nets = L.len_at(0)
     num_roots = R.len_at(0)
     num_normal = N.len_at(0)
     num_vertices = V.len_at(0)
+    
+    # Pre-calculate BigM values (optimization: avoid repeated calculations)
+    bigM_net = num_nets
+    bigM_flow = num_arcs
 
     # === Decision variables ===
     x = jm.BinaryVar(
@@ -71,10 +75,6 @@ def create_steiner_tree_packing_model() -> jm.Problem:
 
     # Objective: minimize sum cost[i,j] * y[i,j,k]
     problem += jm.sum([a, k], cost[A[a, 0], A[a, 1]] * y[a, k])
-
-    # Big-M values
-    bigM_net = num_nets
-    bigM_flow = num_arcs
 
     # === CONSTRAINT 1: ROOT FLOW OUT ===
     # ZPL:

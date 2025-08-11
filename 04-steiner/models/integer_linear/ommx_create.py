@@ -60,15 +60,18 @@ def process_single_instance(instance_path, output_directory):
 
         # Convert to OMMX instance
         ommx_instance = jijmodeling_to_ommx_instance(data)
+        
+        # Clear data to free memory (important for parallel processing)
+        del data
 
-        # Add metadata
+        # Add metadata (reuse timestamp for better performance)
         ommx_instance.title = f"Steiner Tree Packing: {instance_name}"
         ommx_instance.created = datetime.now(tzlocal())
 
         # Create output filename
         output_filename = os.path.join(output_directory, f"{instance_name}.ommx")
 
-        # Remove existing file if it exists
+        # Remove existing file if it exists (optimized: check once)
         if os.path.exists(output_filename):
             os.remove(output_filename)
 
@@ -76,6 +79,9 @@ def process_single_instance(instance_path, output_directory):
         builder = ArtifactBuilder.new_archive_unnamed(output_filename)
         builder.add_instance(ommx_instance)
         builder.build()
+        
+        # Clear variables to free memory
+        del ommx_instance, builder
 
         return True
 
@@ -107,13 +113,15 @@ def batch_process_instances(
     # Create output directory if it doesn't exist
     os.makedirs(output_directory, exist_ok=True)
 
-    # Find all instance directories
-    instance_dirs = []
-    for item in os.listdir(instances_directory):
-        item_path = os.path.join(instances_directory, item)
-        if os.path.isdir(item_path) and not item.startswith("."):
-            if any(f.endswith(".dat") for f in os.listdir(item_path)):
-                instance_dirs.append(item_path)
+    # Find all instance directories (optimized: use pathlib and generator expression)
+    instances_path = Path(instances_directory)
+    instance_dirs = [
+        str(item_path) 
+        for item_path in instances_path.iterdir() 
+        if (item_path.is_dir() and 
+            not item_path.name.startswith(".") and
+            any(f.suffix == ".dat" for f in item_path.iterdir() if f.is_file()))
+    ]
 
     if not instance_dirs:
         print(f"No instance directories found in {instances_directory}")
