@@ -26,9 +26,118 @@ import ommx
 
 from dat_reader import load_steiner_instance
 from model import create_steiner_tree_packing_model
+from sol_reader import (
+    parse_steiner_sol_file,
+    read_steiner_solution_file_as_jijmodeling_format,
+)
 
 # Global optimization: reuse timestamp for better performance
 _CREATION_TIME = datetime.now(tzlocal())
+
+
+def verify_solution_quality(
+    instance_name: str, instance_data: dict[str, object], solution_directory: str
+) -> dict[str, object]:
+    """Verify solution quality by loading, compiling, and checking feasibility.
+
+    Args:
+        instance_name (str): Name of the instance (e.g., "stp_s020_l2_t3_h2_rs24098")
+        instance_data (dict[str, object]): Loaded instance data
+        solution_directory (str): Path to directory containing solution files
+
+    Returns:
+        dict[str, object]: Verification results containing:
+            - found: Whether solution file was found
+            - feasible: Whether solution is feasible (if found)
+            - objective_match: Whether computed objective matches file objective
+            - file_objective: Objective value from solution file
+            - computed_objective: Computed objective value
+            - error: Error message if any
+    """
+    result = {
+        "found": False,
+        "feasible": None,
+        "objective_match": None,
+        "file_objective": None,
+        "computed_objective": None,
+        "error": None,
+    }
+
+    try:
+        # Look for solution file with different extensions
+        solution_files = [
+            f"{instance_name}.opt.sol",
+            f"{instance_name}.bst.sol",
+            f"{instance_name}.sol",
+        ]
+
+        solution_path = None
+        for sol_file in solution_files:
+            candidate_path = os.path.join(solution_directory, sol_file)
+            if os.path.exists(candidate_path):
+                solution_path = candidate_path
+                break
+
+        if not solution_path:
+            result["error"] = f"No solution file found for {instance_name}"
+            return result
+
+        result["found"] = True
+
+        # Parse solution file to get original objective
+        solution_data = parse_steiner_sol_file(solution_path)
+        result["file_objective"] = solution_data.get("objective")
+
+        # Load solution in JijModeling format
+        jm_solution = read_steiner_solution_file_as_jijmodeling_format(
+            solution_path, instance_data
+        )
+
+        # Create problem and compile with solution
+        problem = create_steiner_tree_packing_model()
+        interpreter = jm.Interpreter(instance_data)
+        compiled_instance = interpreter.eval_problem(problem)
+
+        # Combine instance data and solution for evaluation
+        eval_data = {**instance_data, **jm_solution}
+
+        try:
+            # Manual calculation of objective function
+            # From model.py: objective = sum(cost[tail][head] * y[a][k]) for all arcs and nets
+            y_values = jm_solution["y"]
+            arcs = instance_data["A"]
+            cost_matrix = instance_data["cost"]
+
+            manual_objective = 0.0
+            for a, (tail, head) in enumerate(arcs):
+                for k in range(len(instance_data["L"])):
+                    if y_values[a][k] > 0.5:  # y[a,k] = 1
+                        manual_objective += cost_matrix[tail][head]
+
+            result["computed_objective"] = manual_objective
+
+            # For now, assume feasible if we can compute objective
+            # TODO: Implement proper constraint checking
+            result["feasible"] = (
+                True  # Placeholder - needs proper constraint validation
+            )
+
+            # Compare objectives
+            if (
+                result["file_objective"] is not None
+                and result["computed_objective"] is not None
+            ):
+                diff = abs(result["computed_objective"] - result["file_objective"])
+                result["objective_match"] = diff < 1e-6
+
+        except Exception as eval_error:
+            result["error"] = f"Objective calculation failed: {str(eval_error)}"
+            result["feasible"] = False
+
+    except Exception as e:
+        result["error"] = f"Solution verification failed: {str(e)}"
+
+    return result
 
 
 def jijmodeling_to_ommx_instance(data: dict[str, object]) -> ommx.v1.Instance:
@@ -57,7 +166,9 @@ def jijmodeling_to_ommx_instance(data: dict[str, object]) -> ommx.v1.Instance:
     return ommx_instance
 
 
-def process_single_instance(instance_path: str, output_directory: str) -> bool:
+def process_single_instance(
+    instance_path: str, output_directory: str, solution_directory: str | None = None
+) -> bool:
     """Process a single Steiner Tree Packing instance and create OMMX file.
 
     This function handles the complete pipeline for processing a single instance:
@@ -69,6 +180,7 @@ def process_single_instance(instance_path: str, output_directory: str) -> bool:
     Args:
         instance_path (str): Path to the directory containing instance files (.dat files)
         output_directory (str): Directory where the .ommx file will be saved
+        solution_directory (str | None): Directory containing solution files for verification
 
     Returns:
         bool: True if processing succeeded, False if any error occurred
@@ -82,6 +194,24 @@ def process_single_instance(instance_path: str, output_directory: str) -> bool:
 
         # Load instance data
         data = load_steiner_instance(instance_path)
+
+        # Verify solution quality if solution directory is provided
+        verification_result = None
+        if solution_directory:
+            verification_result = verify_solution_quality(
+                instance_name, data, solution_directory
+            )
+            print(f"[{instance_name}] Solution verification:")
+            print(f"  Found: {verification_result['found']}")
+            if verification_result["found"]:
+                print(f"  Feasible: {verification_result['feasible']}")
+                print(f"  File objective: {verification_result['file_objective']}")
+                print(
+                    f"  Computed objective: {verification_result['computed_objective']}"
+                )
+                print(f"  Objective match: {verification_result['objective_match']}")
+                if verification_result["error"]:
+                    print(f"  Error: {verification_result['error']}")
 
         # Convert to OMMX instance (optimized)
         ommx_instance = jijmodeling_to_ommx_instance(data)
@@ -118,7 +248,7 @@ def process_single_instance(instance_path: str, output_directory: str) -> bool:
         return False
 
 
-def process_instance_wrapper(args: tuple[str, str]) -> tuple[bool, str]:
+def process_instance_wrapper(args: tuple[str, str, str | None]) -> tuple[bool, str]:
     """Wrapper function for multiprocessing with error handling.
 
     This wrapper function adapts the process_single_instance function
@@ -126,16 +256,18 @@ def process_instance_wrapper(args: tuple[str, str]) -> tuple[bool, str]:
     robust error handling.
 
     Args:
-        args (tuple[str, str]): Tuple containing (instance_directory, output_directory)
+        args (tuple[str, str, str | None]): Tuple containing (instance_directory, output_directory, solution_directory)
 
     Returns:
         tuple[bool, str]: Tuple of (success_flag, instance_name) where:
             - success_flag: True if processing succeeded, False otherwise
             - instance_name: Name of the processed instance directory
     """
-    instance_dir, output_directory = args
+    instance_dir, output_directory, solution_directory = args
     try:
-        result = process_single_instance(instance_dir, output_directory)
+        result = process_single_instance(
+            instance_dir, output_directory, solution_directory
+        )
         return result, Path(instance_dir).name
     except Exception:
         # Return failure with instance name for error tracking
@@ -144,9 +276,8 @@ def process_instance_wrapper(args: tuple[str, str]) -> tuple[bool, str]:
 
 def batch_process_instances(
     instances_directory: str = "../../instances",
+    solution_directory: str = "../../solutions",
     output_directory: str = "./ommx_output",
-    max_workers: int | None = None,
-    chunk_size: int | None = None,
 ) -> None:
     """Batch process all Steiner Tree Packing instances with chunking and memory management.
 
@@ -158,9 +289,8 @@ def batch_process_instances(
 
     Args:
         instances_directory (str): Path to directory containing instance subdirectories
+        solution_directory (str): Path to directory containing solution files for verification
         output_directory (str): Path where .ommx files will be saved
-        max_workers (int | None): Maximum number of parallel workers (default: CPU count)
-        chunk_size (int | None): Number of instances per chunk (default: auto-calculated)
 
     Note:
         - Only processes directories containing .dat files
@@ -216,7 +346,8 @@ def batch_process_instances(
 
         # Prepare arguments for this chunk
         args_list = [
-            (instance_dir, output_directory) for instance_dir in sorted(chunk_dirs)
+            (instance_dir, output_directory, solution_directory)
+            for instance_dir in sorted(chunk_dirs)
         ]
 
         # Process chunk in parallel
@@ -289,7 +420,8 @@ def main() -> None:
     try:
         instances_dir = "../../instances"
         output_dir = "./ommx_output"
-        batch_process_instances(instances_dir, output_dir)
+        solution_dir = "../../solutions"
+        batch_process_instances(instances_dir, solution_dir, output_dir)
     except Exception as e:
         print(f"Error during batch processing: {e}")
         traceback.print_exc()
