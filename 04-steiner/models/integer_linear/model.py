@@ -42,7 +42,7 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     num_roots = R.len_at(0)
     num_normal = N.len_at(0)
     num_vertices = V.len_at(0)
-    
+
     # Pre-calculate BigM values (optimization: avoid repeated calculations)
     bigM_net = num_nets
     bigM_flow = num_arcs
@@ -78,7 +78,7 @@ def create_steiner_tree_packing_model() -> jm.Problem:
 
     # === CONSTRAINT 1: ROOT FLOW OUT ===
     # ZPL:
-    # subto root_flow_out: 
+    # subto root_flow_out:
     #    forall <t> in T do
     #       forall <r> in R do
     #          sum <r,j> in A : x[r,j,t] == if innet[r] == innet[t] then 1 else 0 end;
@@ -317,32 +317,3 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
 
     return problem
-
-
-def solve_steiner_tree_packing(graph_data: dict[str, object]) -> tuple[jm.Problem, object]:
-    """Solve the Steiner Tree Packing problem using JijModeling.
-
-    Args:
-        graph_data: Dictionary containing the problem instance data including
-            vertices, arcs, terminals, roots, and network assignments.
-
-    Returns:
-        A tuple containing:
-        - problem: The JijModeling problem definition.
-        - compiled_problem: The compiled problem ready for optimization.
-    """
-
-    # Create the problem
-    problem = create_steiner_tree_packing_model()
-
-    # Create interpreter with the data
-    interpreter = jm.Interpreter(graph_data)
-
-    # Compile the problem
-    compiled_problem = interpreter.eval_problem(problem)
-
-    return problem, compiled_problem
-
-
-if __name__ == "__main__":
-    model = create_steiner_tree_packing_model()
