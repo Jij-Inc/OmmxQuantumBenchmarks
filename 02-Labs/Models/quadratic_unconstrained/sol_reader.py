@@ -1,26 +1,30 @@
 import re
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict
 
 
 def parse_sol_file(
     file_path: str, n: int
-) -> Tuple[Dict[str, Any], Dict[str, int], Dict[int, float]]:
+) -> Tuple[Dict[str, float], Dict[str, int], Dict[int, float]]:
     """
-    Parse a .sol-style file with headers and a sequence of values.
+    Parses a `.sol` solution file to extract the optimization result energy,
+    the number of consecutive entries, and the variable assignment sequence.
 
-    Expected format:
-      # Energy: 7
-      # entries: 1113
-      1
-      0
-      1
-      0
-      ...
+    Args:
+        file_path (str): 
+            Path to the `.sol` solution file containing header metadata and
+            numeric variable assignments.
+        n (int): 
+            Starting index offset for variable IDs. The variable IDs in the
+            output `solution_dict` will start from `n - 1`.
 
     Returns:
-      energy_dict   {"Energy": <float>}
-      entries_dict  {"entries": <int>}
-      sequence_dict {0: <float>, 1: <float>, …}
+        Tuple[Dict[str, float], Dict[str, int], Dict[int, float]]:
+            - energy_dict: A dictionary with the key `"Energy"` mapped to the 
+              parsed energy value from the file.
+            - entries_dict: A dictionary with the key `"entries"` mapped to 
+              the parsed number of consecutive entries.
+            - solution_dict: A mapping from variable ID (starting at `n - 1`) 
+              to its assigned float value, based on the sequence in the file.
     """
     energy = None
     entries = None
