@@ -48,12 +48,9 @@ def solve_c(
     for (i, j), coeff in quadratic.items():
         sum_quad += coeff * known_vals.get(i, 0.0) * known_vals.get(j, 0.0)
 
-    # The constant term of the function
-    const = constant
-
     # Coefficient of the target variable in the linear terms
     a = linear[target_var_id]
 
     # Solve for x in: a * x + (sum_lin + sum_quad + const) == 0
-    x = -(const + sum_lin + sum_quad) / a
+    x = -(constant + sum_lin + sum_quad) / a
     return x
