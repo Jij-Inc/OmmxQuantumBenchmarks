@@ -10,42 +10,73 @@ Features:
 - Chunked parallel processing
 """
 
+import gc
 import os
-import logging
-import traceback
 import time
-from datetime import datetime
-from pathlib import Path
+import traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
 from multiprocessing import cpu_count
-import gc  # Garbage collection for memory management
+from pathlib import Path
 
 from dateutil.tz import tzlocal
 from ommx.artifact import ArtifactBuilder
 import jijmodeling as jm
+import ommx
 
 from dat_reader import load_steiner_instance
 from model import create_steiner_tree_packing_model
-
-logging.basicConfig(level=logging.INFO)
 
 # Global optimization: reuse timestamp for better performance
 _CREATION_TIME = datetime.now(tzlocal())
 
 
-def jijmodeling_to_ommx_instance(data: dict[str, object]) -> object:
-    """Convert Steiner Tree Packing problem data to OMMX Instance with memory management."""
+def jijmodeling_to_ommx_instance(data: dict[str, object]) -> ommx.v1.Instance:
+    """Convert Steiner Tree Packing problem data to OMMX Instance with memory management.
+
+    This function creates a JijModeling problem representation from the input data
+    and uses the JijModeling interpreter to evaluate and compile it into an OMMX instance.
+    Memory cleanup is performed to optimize resource usage in batch processing scenarios.
+
+    Args:
+        data (dict[str, object]): Dictionary containing all instance data including:
+
+    Returns:
+        ommx.v1.Instance: Compiled OMMX instance ready for optimization solvers
+
+    Note:
+        This function performs memory cleanup by deleting intermediate objects
+        to reduce memory usage during batch processing.
+    """
     problem = create_steiner_tree_packing_model()
     interpreter = jm.Interpreter(data)
     ommx_instance = interpreter.eval_problem(problem)
-    
+
     # Clear interpreter to free memory
     del interpreter, problem
     return ommx_instance
 
 
 def process_single_instance(instance_path: str, output_directory: str) -> bool:
-    """Process a single Steiner Tree Packing instance and create OMMX file."""
+    """Process a single Steiner Tree Packing instance and create OMMX file.
+
+    This function handles the complete pipeline for processing a single instance:
+    1. Load instance data from the specified directory
+    2. Convert to OMMX format using JijModeling
+    3. Add metadata (title, creation timestamp)
+    4. Save as .ommx file with proper cleanup
+
+    Args:
+        instance_path (str): Path to the directory containing instance files (.dat files)
+        output_directory (str): Directory where the .ommx file will be saved
+
+    Returns:
+        bool: True if processing succeeded, False if any error occurred
+
+    Note:
+        Performs aggressive memory cleanup including garbage collection
+        to optimize memory usage in parallel processing scenarios.
+    """
     try:
         instance_name = Path(instance_path).name
 
@@ -54,7 +85,7 @@ def process_single_instance(instance_path: str, output_directory: str) -> bool:
 
         # Convert to OMMX instance (optimized)
         ommx_instance = jijmodeling_to_ommx_instance(data)
-        
+
         # Immediately free data memory
         del data
         gc.collect()  # Force garbage collection
@@ -74,26 +105,40 @@ def process_single_instance(instance_path: str, output_directory: str) -> bool:
         builder = ArtifactBuilder.new_archive_unnamed(output_filename)
         builder.add_instance(ommx_instance)
         builder.build()
-        
+
         # Aggressive memory cleanup
         del ommx_instance, builder
         gc.collect()
 
         return True
 
-    except Exception as e:
-        # Cleanup on error too
+    except Exception:
+        # Ensure memory cleanup even on failure
         gc.collect()
         return False
 
 
 def process_instance_wrapper(args: tuple[str, str]) -> tuple[bool, str]:
-    """Wrapper function for multiprocessing."""
+    """Wrapper function for multiprocessing with error handling.
+
+    This wrapper function adapts the process_single_instance function
+    for use with multiprocessing by unpacking arguments and providing
+    robust error handling.
+
+    Args:
+        args (tuple[str, str]): Tuple containing (instance_directory, output_directory)
+
+    Returns:
+        tuple[bool, str]: Tuple of (success_flag, instance_name) where:
+            - success_flag: True if processing succeeded, False otherwise
+            - instance_name: Name of the processed instance directory
+    """
     instance_dir, output_directory = args
     try:
         result = process_single_instance(instance_dir, output_directory)
         return result, Path(instance_dir).name
-    except Exception as e:
+    except Exception:
+        # Return failure with instance name for error tracking
         return False, Path(instance_dir).name
 
 
@@ -101,20 +146,41 @@ def batch_process_instances(
     instances_directory: str = "../../instances",
     output_directory: str = "./ommx_output",
     max_workers: int | None = None,
-    chunk_size: int | None = None
+    chunk_size: int | None = None,
 ) -> None:
-    """Batch process all Steiner Tree Packing instances with chunking and memory management."""
+    """Batch process all Steiner Tree Packing instances with chunking and memory management.
+
+    This function efficiently processes multiple instances in parallel with optimizations:
+    - Chunked processing to manage memory usage
+    - Parallel execution using ProcessPoolExecutor
+    - Progress tracking and error reporting
+    - Memory cleanup between chunks
+
+    Args:
+        instances_directory (str): Path to directory containing instance subdirectories
+        output_directory (str): Path where .ommx files will be saved
+        max_workers (int | None): Maximum number of parallel workers (default: CPU count)
+        chunk_size (int | None): Number of instances per chunk (default: auto-calculated)
+
+    Note:
+        - Only processes directories containing .dat files
+        - Skips hidden directories (starting with '.')
+        - Performs garbage collection between chunks for memory optimization
+        - Provides detailed progress reporting and timing statistics
+    """
     # Create output directory
     os.makedirs(output_directory, exist_ok=True)
 
     # Optimized directory scanning
     instances_path = Path(instances_directory)
     instance_dirs = [
-        str(item_path) 
-        for item_path in instances_path.iterdir() 
-        if (item_path.is_dir() and 
-            not item_path.name.startswith(".") and
-            any(f.suffix == ".dat" for f in item_path.iterdir() if f.is_file()))
+        str(item_path)
+        for item_path in instances_path.iterdir()
+        if (
+            item_path.is_dir()
+            and not item_path.name.startswith(".")
+            and any(f.suffix == ".dat" for f in item_path.iterdir() if f.is_file())
+        )
     ]
 
     if not instance_dirs:
@@ -124,7 +190,7 @@ def batch_process_instances(
     # Optimized worker allocation
     if max_workers is None:
         max_workers = min(cpu_count(), len(instance_dirs))
-    
+
     # Chunking for better memory management
     if chunk_size is None:
         chunk_size = max(1, len(instance_dirs) // (max_workers * 2))
@@ -143,39 +209,49 @@ def batch_process_instances(
     for chunk_start in range(0, len(instance_dirs), chunk_size * max_workers):
         chunk_end = min(chunk_start + chunk_size * max_workers, len(instance_dirs))
         chunk_dirs = instance_dirs[chunk_start:chunk_end]
-        
-        print(f"Processing chunk {chunk_start//chunk_size + 1}: instances {chunk_start+1}-{chunk_end}")
-        
+
+        print(
+            f"Processing chunk {chunk_start//chunk_size + 1}: instances {chunk_start+1}-{chunk_end}"
+        )
+
         # Prepare arguments for this chunk
-        args_list = [(instance_dir, output_directory) for instance_dir in sorted(chunk_dirs)]
-        
+        args_list = [
+            (instance_dir, output_directory) for instance_dir in sorted(chunk_dirs)
+        ]
+
         # Process chunk in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             future_to_instance = {
-                executor.submit(process_instance_wrapper, args): args[0] 
+                executor.submit(process_instance_wrapper, args): args[0]
                 for args in args_list
             }
-            
+
             for future in as_completed(future_to_instance):
                 instance_dir = future_to_instance[future]
                 try:
                     success, instance_name = future.result()
                     completed = processed_count + error_count + 1
                     progress = (completed / len(instance_dirs)) * 100
-                    
+
                     if success:
                         processed_count += 1
-                        print(f"✓ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}")
+                        print(
+                            f"✓ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}"
+                        )
                     else:
                         error_count += 1
-                        print(f"✗ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}")
+                        print(
+                            f"✗ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}"
+                        )
                 except Exception as e:
                     error_count += 1
                     completed = processed_count + error_count
                     progress = (completed / len(instance_dirs)) * 100
                     instance_name = Path(instance_dir).name
-                    print(f"✗ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name} - Exception: {e}")
-        
+                    print(
+                        f"✗ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name} - Exception: {e}"
+                    )
+
         # Force garbage collection between chunks
         gc.collect()
         print(f"Completed chunk {chunk_start//chunk_size + 1} - Memory cleanup done")
@@ -195,10 +271,21 @@ def batch_process_instances(
 
 
 def main() -> None:
-    """Main function with optimization flags."""
+    """Main function to execute batch processing of Steiner Tree instances.
+
+    Entry point for the OMMX conversion script. Configures default paths
+    and executes the batch processing pipeline with error handling.
+
+    Default configuration:
+    - Input: ../../instances (relative to script location)
+    - Output: ./ommx_output (relative to script location)
+
+    Raises:
+        Exception: Any errors during batch processing are caught and reported
+    """
     print("Batch Processing Steiner Tree Packing Instances to OMMX")
     print("=" * 60)
-    
+
     try:
         instances_dir = "../../instances"
         output_dir = "./ommx_output"
