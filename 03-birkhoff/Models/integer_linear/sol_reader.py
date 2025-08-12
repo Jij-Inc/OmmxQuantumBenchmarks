@@ -1,20 +1,25 @@
 import re
 from typing import Tuple, Dict, Any
 
-def parse_sol_file(file_path: str, n: int) -> Tuple[Dict[str, Any], Dict[str, int], Dict[int, float]]:
+
+def parse_sol_file(
+    file_path: str, n: int
+) -> Tuple[Dict[str, Any], Dict[str, int], Dict[int, float]]:
 
     energy = None
     z_vars = {}
     x_vars = {}
 
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
 
             # Objective value
-            m = re.match(r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+)", line, re.IGNORECASE)
+            m = re.match(
+                r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+)", line, re.IGNORECASE
+            )
             if m:
                 energy = float(m.group(1))
                 continue

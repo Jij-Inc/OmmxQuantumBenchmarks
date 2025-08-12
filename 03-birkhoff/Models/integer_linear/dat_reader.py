@@ -1,25 +1,29 @@
 import numpy as np
 import math
 
+
 def permutation_to_matrix(perm):
     n = len(perm)
-    matrix = [[0]*n for _ in range(n)]
+    matrix = [[0] * n for _ in range(n)]
     for i in range(n):
-        matrix[i][perm[i]-1] = 1
+        matrix[i][perm[i] - 1] = 1
     return matrix
-    
+
+
 def convert_all_permutations(perms):
     return [permutation_to_matrix(p) for p in perms]
 
+
 def read_permutation_dat_file(filepath):
     result = []
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         for line in f:
             stripped = line.strip()
             if stripped:
                 numbers = list(map(int, stripped.split()))
                 result.append(numbers)
     return result
+
 
 def process_entry(entry):
     n = entry["n"]
@@ -40,6 +44,7 @@ def process_entry(entry):
         "P": P,
         "I": np.arange(math.factorial(n)),
     }
+
 
 def load_and_process_all(json_data):
     result = {}

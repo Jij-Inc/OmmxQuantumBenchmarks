@@ -108,13 +108,20 @@ def batch_process_from_qbench_json(
                     sol_file, math.factorial(n)
                 )
                 solution = ommx_instance.evaluate(solution_dict)
-                if energy_dict.get("Energy") == solution.objective and solution.feasible:
-                    print(f"  → objective={solution.objective}, feasible={solution.feasible}")
+                if (
+                    energy_dict.get("Energy") == solution.objective
+                    and solution.feasible
+                ):
+                    print(
+                        f"  → objective={solution.objective}, feasible={solution.feasible}"
+                    )
                 else:
                     print("  ! Objective or feasible mismatch")
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
-                print("    Skipping solution evaluation and only saving the instance...")
+                print(
+                    "    Skipping solution evaluation and only saving the instance..."
+                )
 
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
             if os.path.exists(output_filename):
@@ -144,7 +151,7 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_03_dense.json",
         sol_subdir="03_dense",  # → bhD-3-***
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
 
     # To process 03_sparse (→ bhS-3-***), uncomment:
@@ -152,7 +159,7 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_03_sparse.json",
         sol_subdir="03_sparse",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
 
     # To process 04_dense (→ bhD-4-***), uncomment:
@@ -160,7 +167,7 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_04_dense.json",
         sol_subdir="04_dense",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
 
     # To process 04_sparse (→ bhS-4-***), uncomment:
@@ -168,7 +175,7 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_04_sparse.json",
         sol_subdir="04_sparse",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
 
     # To process 05_dense (→ bhD-5-***), uncomment:
@@ -176,7 +183,7 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_05_dense.json",
         sol_subdir="05_dense",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
 
     # To process 05_sparse (→ bhS-5-***), uncomment:
@@ -184,14 +191,14 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_05_sparse.json",
         sol_subdir="05_sparse",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
     # To process 06_dense (→ bhD-6-***), uncomment:
     batch_process_from_qbench_json(
         json_path="../../solutions/qbench_06_dense.json",
         sol_subdir="06_dense",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )
 
     # To process 06_sparse (→ bhS-6-***), uncomment:
@@ -199,5 +206,5 @@ if __name__ == "__main__":
         json_path="../../solutions/qbench_06_sparse.json",
         sol_subdir="06_sparse",
         sol_root="../../solutions",
-        output_directory="./ommx_output"
+        output_directory="./ommx_output",
     )

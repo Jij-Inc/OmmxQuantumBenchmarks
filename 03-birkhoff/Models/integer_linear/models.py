@@ -3,6 +3,7 @@ import numpy as np
 
 import jijmodeling as jm
 
+
 def create_problem():
     """
     Create the JijModeling problem definition.
@@ -13,18 +14,32 @@ def create_problem():
 
     # Define sets and parameter placeholders
     J = jm.Placeholder("J", ndim=1, description="Index set for matrix rows and columns")
-    A_mn = jm.Placeholder("A", ndim=2, description="Target matrix to decompose (scaled doubly stochastic)")
-    P_i = jm.Placeholder("P", ndim=3, description="Set of 3D permutation matrices (|I| x msize x msize)")
+    A_mn = jm.Placeholder(
+        "A", ndim=2, description="Target matrix to decompose (scaled doubly stochastic)"
+    )
+    P_i = jm.Placeholder(
+        "P", ndim=3, description="Set of 3D permutation matrices (|I| x msize x msize)"
+    )
     I = jm.Placeholder("I", ndim=1, description="Index set for permutations")
 
     # Define decision variables
-    x = jm.IntegerVar("x", shape=(I.shape[0],), lower_bound=0, upper_bound=scale,
-                    description="Integer weights for each permutation matrix")
-    z = jm.BinaryVar("z", shape=(I.shape[0],),
-                    description="Binary activation variable for each permutation matrix")
+    x = jm.IntegerVar(
+        "x",
+        shape=(I.shape[0],),
+        lower_bound=0,
+        upper_bound=scale,
+        description="Integer weights for each permutation matrix",
+    )
+    z = jm.BinaryVar(
+        "z",
+        shape=(I.shape[0],),
+        description="Binary activation variable for each permutation matrix",
+    )
 
     # Create the optimization problem
-    problem = jm.Problem("Birkhoff Integer Decomposition", sense=jm.ProblemSense.MINIMIZE)
+    problem = jm.Problem(
+        "Birkhoff Integer Decomposition", sense=jm.ProblemSense.MINIMIZE
+    )
 
     # Define index element i
     i = jm.Element("i", belong_to=I)
@@ -39,7 +54,9 @@ def create_problem():
     # This enforces A = sum_i x[i] * P_i[i]
     m = jm.Element("m", belong_to=J)
     n = jm.Element("n", belong_to=J)
-    problem += jm.Constraint("c2", jm.sum(i, x[i] * P_i[i, m, n]) == A_mn[m, n], forall=[m, n])
+    problem += jm.Constraint(
+        "c2", jm.sum(i, x[i] * P_i[i, m, n]) == A_mn[m, n], forall=[m, n]
+    )
 
     # Constraint c3: x[i] > 0 implies z[i] = 1 (linking integer variable with binary)
     # Enforces: x[i] <= scale * z[i]
