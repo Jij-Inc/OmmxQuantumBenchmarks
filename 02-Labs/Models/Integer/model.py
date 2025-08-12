@@ -1,5 +1,6 @@
 import jijmodeling as jm
 
+
 def create_problem():
     # Define sets
     I_set = jm.Placeholder("I", ndim=1)  # Placeholder for set I

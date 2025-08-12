@@ -22,7 +22,7 @@ def solve_c(constraint, known_vals, target_var_id):
 
     def _get_value(obj, attr):
         value = getattr(obj, attr)
-        return value() if callable(value) else value       
+        return value() if callable(value) else value
 
     # Retrieve linear, quadratic, and constant components
     linear = _get_value(fn, "linear_terms")
