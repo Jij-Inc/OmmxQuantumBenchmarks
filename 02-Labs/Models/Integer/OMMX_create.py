@@ -1,6 +1,8 @@
 import os
 import jijmodeling as jm
 import numpy as np
+import math
+import glob
 from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
 from model import create_problem
@@ -44,11 +46,12 @@ def batch_process_files(
             base_name = f"labs{n:03d}"
 
             # Look for labsXXX.opt.sol or labsXXX.sol in the solutions directory
-            possible_sol_files = [
-                os.path.join(sol_directory, f"{base_name}.opt.sol"),
-                os.path.join(sol_directory, f"{base_name}.bst.sol"),
-                os.path.join(sol_directory, f"{base_name}.sol"),
-            ]
+            # possible_sol_files = [
+            #     os.path.join(sol_directory, f"{base_name}.opt.sol"),
+            #     os.path.join(sol_directory, f"{base_name}.bst.sol"),
+            #     os.path.join(sol_directory, f"{base_name}.sol"),
+            # ]
+            possible_sol_files = glob.glob(os.path.join(sol_directory, f"{base_name}*.sol"))
             sol_file = next((p for p in possible_sol_files if os.path.exists(p)), None)
             if sol_file is None:
                 print(

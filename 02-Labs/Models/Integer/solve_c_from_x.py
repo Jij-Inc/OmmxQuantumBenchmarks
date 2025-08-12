@@ -20,6 +20,10 @@ def solve_c(constraint, known_vals, target_var_id):
     """
     fn = constraint.function
 
+    def _get_value(obj, attr):
+        value = getattr(obj, attr)
+        return value() if callable(value) else value       
+
     # Retrieve linear, quadratic, and constant components
     linear = _get_value(fn, "linear_terms")
     quadratic = _get_value(fn, "quadratic_terms")
