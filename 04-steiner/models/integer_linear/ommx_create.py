@@ -34,12 +34,16 @@ _CREATION_TIME = datetime.now(tzlocal())
 
 
 def verify_solution_quality(
-    instance_name: str, instance_data: dict[str, object], solution_directory: str
+    instance_name: str,
+    ommx_instance: ommx.v1.Instance,
+    instance_data: dict[str, object],
+    solution_directory: str,
 ) -> dict[str, object]:
-    """Verify solution quality by loading, compiling, and checking feasibility.
+    """Verify solution quality using OMMX Instance.evaluate() method.
 
     Args:
         instance_name (str): Name of the instance (e.g., "stp_s020_l2_t3_h2_rs24098")
+        ommx_instance (ommx.v1.Instance): OMMX instance for evaluation
         instance_data (dict[str, object]): Loaded instance data
         solution_directory (str): Path to directory containing solution files
 
@@ -83,6 +87,7 @@ def verify_solution_quality(
         result["found"] = True
 
         # Parse solution file to get original objective
+        print(f"Parsing solution file...")
         solution_data = parse_steiner_sol_file(solution_path)
         result["file_objective"] = solution_data.get("objective")
 
@@ -91,34 +96,37 @@ def verify_solution_quality(
             solution_path, instance_data
         )
 
-        # Create problem and compile with solution
-        problem = create_steiner_tree_packing_model()
-        interpreter = jm.Interpreter(instance_data)
-        compiled_instance = interpreter.eval_problem(problem)
-
-        # Combine instance data and solution for evaluation
-        eval_data = {**instance_data, **jm_solution}
-
         try:
-            # Manual calculation of objective function
-            # From model.py: objective = sum(cost[tail][head] * y[a][k]) for all arcs and nets
-            y_values = jm_solution["y"]
-            arcs = instance_data["A"]
-            cost_matrix = instance_data["cost"]
+            # Create solution dictionary with simple index-based variable mapping
+            solution_dict = {}
+            var_idx = 0
+            print("Mapping solution variables...")
+            # Map y variables
+            if "y" in jm_solution:
+                for a in range(len(jm_solution["y"])):
+                    for k in range(len(jm_solution["y"][a])):
+                        solution_dict[var_idx] = int(jm_solution["y"][a][k])
+                        var_idx += 1
 
-            manual_objective = 0.0
-            for a, (tail, head) in enumerate(arcs):
-                for k in range(len(instance_data["L"])):
-                    if y_values[a][k] > 0.5:  # y[a,k] = 1
-                        manual_objective += cost_matrix[tail][head]
+            # Map x variables
+            if "x" in jm_solution:
+                for tail in range(len(jm_solution["x"])):
+                    for head in range(len(jm_solution["x"][tail])):
+                        solution_dict[var_idx] = int(jm_solution["x"][tail][head])
+                        var_idx += 1
 
-            result["computed_objective"] = manual_objective
+            # Evaluate solution using OMMX Instance.evaluate() method
+            print("Evaluating solution...")
+            ommx_solution = ommx_instance.evaluate(solution_dict)
 
-            # For now, assume feasible if we can compute objective
-            # TODO: Implement proper constraint checking
-            result["feasible"] = (
-                True  # Placeholder - needs proper constraint validation
-            )
+            # Check if solution is feasible
+            result["feasible"] = ommx_solution.is_feasible()
+
+            # Get computed objective value
+            if ommx_solution.is_feasible():
+                result["computed_objective"] = ommx_solution.objective_value()
+            else:
+                result["computed_objective"] = None
 
             # Compare objectives
             if (
@@ -129,43 +137,13 @@ def verify_solution_quality(
                 result["objective_match"] = diff < 1e-6
 
         except Exception as eval_error:
-            result["error"] = f"Objective calculation failed: {str(eval_error)}"
+            result["error"] = f"OMMX evaluation failed: {str(eval_error)}"
             result["feasible"] = False
 
     except Exception as e:
         result["error"] = f"Solution verification failed: {str(e)}"
 
     return result
-
-
-def jijmodeling_to_ommx_instance(data: dict[str, object]) -> ommx.v1.Instance:
-    """Convert Steiner Tree Packing problem data to OMMX Instance with memory management.
-
-    This function creates a JijModeling problem representation from the input data
-    and uses the JijModeling interpreter to evaluate and compile it into an OMMX instance.
-    Memory cleanup is performed to optimize resource usage in batch processing scenarios.
-
-    Args:
-        data (dict[str, object]): Dictionary containing all instance data including:
-
-    Returns:
-        ommx.v1.Instance: Compiled OMMX instance ready for optimization solvers
-
-    Note:
-        This function performs memory cleanup by deleting intermediate objects
-        to reduce memory usage during batch processing.
-    """
-    print("  Creating JijModeling problem...")
-    problem = create_steiner_tree_packing_model()
-    print("  Creating interpreter...")
-    interpreter = jm.Interpreter(data)
-    print("  Evaluating problem (this may take a while for large instances)...")
-    ommx_instance = interpreter.eval_problem(problem)
-    print("  Problem evaluation completed.")
-
-    # Clear interpreter to free memory
-    del interpreter, problem
-    return ommx_instance
 
 
 def process_single_instance(
@@ -197,26 +175,30 @@ def process_single_instance(
         # Load instance data
         data = load_steiner_instance(instance_path)
 
-        # Verify solution quality if solution directory is provided
-        # verification_result = None
-        # if solution_directory:
-        #     verification_result = verify_solution_quality(
-        #         instance_name, data, solution_directory
-        #     )
-        #     print(f"[{instance_name}] Solution verification:")
-        #     print(f"  Found: {verification_result['found']}")
-        #     if verification_result["found"]:
-        #         print(f"  Feasible: {verification_result['feasible']}")
-        #         print(f"  File objective: {verification_result['file_objective']}")
-        #         print(
-        #             f"  Computed objective: {verification_result['computed_objective']}"
-        #         )
-        #         print(f"  Objective match: {verification_result['objective_match']}")
-        #         if verification_result["error"]:
-        #             print(f"  Error: {verification_result['error']}")
+        # Convert to OMMX instance
+        print("Creating OMMX instance...")
+        problem = create_steiner_tree_packing_model()
+        interpreter = jm.Interpreter(data)
+        print("Evaluating problem...")
+        ommx_instance = interpreter.eval_problem(problem)
 
-        # Convert to OMMX instance (optimized)
-        ommx_instance = jijmodeling_to_ommx_instance(data)
+        # Verify solution quality if solution directory is provided
+        verification_result = None
+        if solution_directory:
+            verification_result = verify_solution_quality(
+                instance_name, ommx_instance, data, solution_directory
+            )
+            print(f"[{instance_name}] Solution verification:")
+            print(f"  Found: {verification_result['found']}")
+            if verification_result["found"]:
+                print(f"  Feasible: {verification_result['feasible']}")
+                print(f"  File objective: {verification_result['file_objective']}")
+                print(
+                    f"  Computed objective: {verification_result['computed_objective']}"
+                )
+                print(f"  Objective match: {verification_result['objective_match']}")
+                if verification_result["error"]:
+                    print(f"  Error: {verification_result['error']}")
 
         # Immediately free data memory
         del data
@@ -281,6 +263,7 @@ def batch_process_instances(
             and any(f.suffix == ".dat" for f in item_path.iterdir() if f.is_file())
         )
     ]
+    instance_dirs = instance_dirs[:1]
 
     if not instance_dirs:
         print(f"No instance directories found in {instances_directory}")
