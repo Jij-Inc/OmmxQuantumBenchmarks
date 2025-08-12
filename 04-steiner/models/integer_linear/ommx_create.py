@@ -1,22 +1,20 @@
 """
 Create OMMX Artifacts for Steiner Tree Packing Problem
-Batch process all instances from the instances directory
+Process all instances from the instances directory sequentially
 
 Features:
 - Memory management optimizations
 - Efficient data structures
 - Reduced object creation overhead
 - Optimized file I/O
-- Chunked parallel processing
+- Sequential processing
 """
 
 import gc
 import os
 import time
 import traceback
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
-from multiprocessing import cpu_count
 from pathlib import Path
 
 from dateutil.tz import tzlocal
@@ -157,9 +155,13 @@ def jijmodeling_to_ommx_instance(data: dict[str, object]) -> ommx.v1.Instance:
         This function performs memory cleanup by deleting intermediate objects
         to reduce memory usage during batch processing.
     """
+    print("  Creating JijModeling problem...")
     problem = create_steiner_tree_packing_model()
+    print("  Creating interpreter...")
     interpreter = jm.Interpreter(data)
+    print("  Evaluating problem (this may take a while for large instances)...")
     ommx_instance = interpreter.eval_problem(problem)
+    print("  Problem evaluation completed.")
 
     # Clear interpreter to free memory
     del interpreter, problem
@@ -196,22 +198,22 @@ def process_single_instance(
         data = load_steiner_instance(instance_path)
 
         # Verify solution quality if solution directory is provided
-        verification_result = None
-        if solution_directory:
-            verification_result = verify_solution_quality(
-                instance_name, data, solution_directory
-            )
-            print(f"[{instance_name}] Solution verification:")
-            print(f"  Found: {verification_result['found']}")
-            if verification_result["found"]:
-                print(f"  Feasible: {verification_result['feasible']}")
-                print(f"  File objective: {verification_result['file_objective']}")
-                print(
-                    f"  Computed objective: {verification_result['computed_objective']}"
-                )
-                print(f"  Objective match: {verification_result['objective_match']}")
-                if verification_result["error"]:
-                    print(f"  Error: {verification_result['error']}")
+        # verification_result = None
+        # if solution_directory:
+        #     verification_result = verify_solution_quality(
+        #         instance_name, data, solution_directory
+        #     )
+        #     print(f"[{instance_name}] Solution verification:")
+        #     print(f"  Found: {verification_result['found']}")
+        #     if verification_result["found"]:
+        #         print(f"  Feasible: {verification_result['feasible']}")
+        #         print(f"  File objective: {verification_result['file_objective']}")
+        #         print(
+        #             f"  Computed objective: {verification_result['computed_objective']}"
+        #         )
+        #         print(f"  Objective match: {verification_result['objective_match']}")
+        #         if verification_result["error"]:
+        #             print(f"  Error: {verification_result['error']}")
 
         # Convert to OMMX instance (optimized)
         ommx_instance = jijmodeling_to_ommx_instance(data)
@@ -248,44 +250,12 @@ def process_single_instance(
         return False
 
 
-def process_instance_wrapper(args: tuple[str, str, str | None]) -> tuple[bool, str]:
-    """Wrapper function for multiprocessing with error handling.
-
-    This wrapper function adapts the process_single_instance function
-    for use with multiprocessing by unpacking arguments and providing
-    robust error handling.
-
-    Args:
-        args (tuple[str, str, str | None]): Tuple containing (instance_directory, output_directory, solution_directory)
-
-    Returns:
-        tuple[bool, str]: Tuple of (success_flag, instance_name) where:
-            - success_flag: True if processing succeeded, False otherwise
-            - instance_name: Name of the processed instance directory
-    """
-    instance_dir, output_directory, solution_directory = args
-    try:
-        result = process_single_instance(
-            instance_dir, output_directory, solution_directory
-        )
-        return result, Path(instance_dir).name
-    except Exception:
-        # Return failure with instance name for error tracking
-        return False, Path(instance_dir).name
-
-
 def batch_process_instances(
     instances_directory: str = "../../instances",
     solution_directory: str = "../../solutions",
     output_directory: str = "./ommx_output",
 ) -> None:
-    """Batch process all Steiner Tree Packing instances with chunking and memory management.
-
-    This function efficiently processes multiple instances in parallel with optimizations:
-    - Chunked processing to manage memory usage
-    - Parallel execution using ProcessPoolExecutor
-    - Progress tracking and error reporting
-    - Memory cleanup between chunks
+    """Process all Steiner Tree Packing instances sequentially.
 
     Args:
         instances_directory (str): Path to directory containing instance subdirectories
@@ -295,13 +265,12 @@ def batch_process_instances(
     Note:
         - Only processes directories containing .dat files
         - Skips hidden directories (starting with '.')
-        - Performs garbage collection between chunks for memory optimization
-        - Provides detailed progress reporting and timing statistics
+        - Provides progress reporting and timing statistics
     """
     # Create output directory
     os.makedirs(output_directory, exist_ok=True)
 
-    # Optimized directory scanning
+    # Directory scanning
     instances_path = Path(instances_directory)
     instance_dirs = [
         str(item_path)
@@ -317,76 +286,43 @@ def batch_process_instances(
         print(f"No instance directories found in {instances_directory}")
         return
 
-    # Optimized worker allocation
-    if max_workers is None:
-        max_workers = min(cpu_count(), len(instance_dirs))
-
-    # Chunking for better memory management
-    if chunk_size is None:
-        chunk_size = max(1, len(instance_dirs) // (max_workers * 2))
-
     print(f"Found {len(instance_dirs)} instance directories")
     print(f"Output directory: {output_directory}")
-    print(f"Using {max_workers} parallel workers")
-    print(f"Chunk size: {chunk_size}")
     print("=" * 80)
 
     processed_count = 0
     error_count = 0
     start_time = time.time()
 
-    # Process in chunks to manage memory better
-    for chunk_start in range(0, len(instance_dirs), chunk_size * max_workers):
-        chunk_end = min(chunk_start + chunk_size * max_workers, len(instance_dirs))
-        chunk_dirs = instance_dirs[chunk_start:chunk_end]
+    # Process instances sequentially
+    for i, instance_dir in enumerate(sorted(instance_dirs)):
+        instance_name = Path(instance_dir).name
+        progress = ((i + 1) / len(instance_dirs)) * 100
 
-        print(
-            f"Processing chunk {chunk_start//chunk_size + 1}: instances {chunk_start+1}-{chunk_end}"
-        )
+        try:
+            success = process_single_instance(
+                instance_dir, output_directory, solution_directory
+            )
 
-        # Prepare arguments for this chunk
-        args_list = [
-            (instance_dir, output_directory, solution_directory)
-            for instance_dir in sorted(chunk_dirs)
-        ]
+            if success:
+                processed_count += 1
+                print(
+                    f"✓ [{i+1:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}"
+                )
+            else:
+                error_count += 1
+                print(
+                    f"✗ [{i+1:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}"
+                )
 
-        # Process chunk in parallel
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            future_to_instance = {
-                executor.submit(process_instance_wrapper, args): args[0]
-                for args in args_list
-            }
+        except Exception as e:
+            error_count += 1
+            print(
+                f"✗ [{i+1:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name} - Exception: {e}"
+            )
 
-            for future in as_completed(future_to_instance):
-                instance_dir = future_to_instance[future]
-                try:
-                    success, instance_name = future.result()
-                    completed = processed_count + error_count + 1
-                    progress = (completed / len(instance_dirs)) * 100
-
-                    if success:
-                        processed_count += 1
-                        print(
-                            f"✓ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}"
-                        )
-                    else:
-                        error_count += 1
-                        print(
-                            f"✗ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name}"
-                        )
-                except Exception as e:
-                    error_count += 1
-                    completed = processed_count + error_count
-                    progress = (completed / len(instance_dirs)) * 100
-                    instance_name = Path(instance_dir).name
-                    print(
-                        f"✗ [{completed:3d}/{len(instance_dirs)}] ({progress:5.1f}%) {instance_name} - Exception: {e}"
-                    )
-
-        # Force garbage collection between chunks
+        # Force garbage collection after each instance
         gc.collect()
-        print(f"Completed chunk {chunk_start//chunk_size + 1} - Memory cleanup done")
-        print("-" * 40)
 
     elapsed_time = time.time() - start_time
 
