@@ -1,10 +1,7 @@
 import os
-import glob
-from pathlib import Path
 import jijmodeling as jm
-import ommx.v1
 import numpy as np
-from typing import Dict, List, Tuple, Any
+import glob
 from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
 from model import create_problem
@@ -20,7 +17,6 @@ def create_instance(n):
 
 
 def batch_process_files(
-    dat_directory: str = "../../instances",
     sol_directory: str = "../../solutions",
     output_directory: str = "./ommx_output",
 ):
@@ -49,18 +45,11 @@ def batch_process_files(
             base_name = f"labs{n:03d}"
 
             # Look for labsXXX.opt.sol or labsXXX.sol in the solutions directory
-            possible_sol_files = [
-                os.path.join(sol_directory, f"{base_name}.opt.sol"),
-                os.path.join(sol_directory, f"{base_name}.bst.sol"),
-                os.path.join(sol_directory, f"{base_name}.sol"),
-            ]
-            sol_file = next((p for p in possible_sol_files if os.path.exists(p)), None)
-            if sol_file is None:
-                print(
-                    f"Warning: Corresponding solution file for {base_name} not found."
-                )
+            sol_files = glob.glob(os.path.join(sol_directory, f"{base_name}*.sol"))
+            if not sol_files:
+                print(f"Warning: Corresponding solution file for {base_name} not found.")
                 continue
-
+            sol_file = sol_files[0]
             print(f"Processing solution file: {sol_file}")
 
             # Generate instance_data using create_instance(n)
@@ -90,12 +79,7 @@ def batch_process_files(
                     solution_dict[i] = v
 
                 solution = ommx_instance.evaluate(solution_dict)
-                if (
-                    math.isclose(
-                        energy_dict["Energy"], solution.objective, rel_tol=1e-9
-                    )
-                    and solution.feasible
-                ):
+                if energy_dict["Energy"] == solution.objective and solution.feasible:
                     print(
                         f"  → objective={solution.objective}, feasible={solution.feasible}"
                     )
