@@ -3,17 +3,17 @@ import jijmodeling as jm
 
 def create_problem():
     # Define sets
-    I_set = jm.Placeholder("I", ndim=1)
-    K_set = jm.Placeholder("K", ndim=1)
-    n = I_set.len_at(0, latex="n")
+    i_set = jm.Placeholder("I", ndim=1)
+    k_set = jm.Placeholder("K", ndim=1)
+    n = i_set.len_at(0, latex="n")
 
     # Define parameters
     P = jm.Placeholder("P", ndim=0)
 
     # Define decision variables
-    x = jm.BinaryVar("x", shape=I_set.shape, description="Binary variable x")
+    x = jm.BinaryVar("x", shape=i_set.shape, description="Binary variable x")
     z = jm.BinaryVar(
-        "z", shape=(I_set.shape[0], K_set.shape[0]), description="Binary variable z"
+        "z", shape=(k_set.shape[0], k_set.shape[0]), description="Binary variable z"
     )
 
     # Define elements
