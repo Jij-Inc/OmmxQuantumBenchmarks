@@ -3,30 +3,32 @@
 from pathlib import Path
 
 
-def load_steiner_instance(instance_path):
+def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
     """Load a Steiner Tree Packing instance from the given directory.
-    
+
     Args:
-        instance_path (str): Path to the instance directory
-    
+        instance_path: Path to the instance directory
+
     Returns:
-        dict: Dictionary containing all the data needed for JijModeling
+        Dictionary containing all the data needed for JijModeling
     """
     instance_path = Path(instance_path)
-    
+
     # Load parameters (optimized: read and process in one pass)
     param_data = {}
     with open(instance_path / "param.dat", "r") as f:
         param_data = dict(
-            line.strip().split()[:2] 
-            for line in f 
-            if line.strip() and not line.startswith("#") and len(line.strip().split()) >= 2
+            line.strip().split()[:2]
+            for line in f
+            if line.strip()
+            and not line.startswith("#")
+            and len(line.strip().split()) >= 2
         )
         param_data = {k: int(v) for k, v in param_data.items()}
-    
+
     nodes = param_data["nodes"]
     nets = param_data["nets"]
-    
+
     # Load terminals and their net assignments
     terms_data = []
     innet_data = {}
@@ -41,7 +43,7 @@ def load_steiner_instance(instance_path):
                 net = int(parts[1])
                 terms_data.append(node)
                 innet_data[node] = net
-    
+
     # Load roots and their net assignments
     roots_data = []
     with open(instance_path / "roots.dat", "r") as f:
@@ -55,7 +57,7 @@ def load_steiner_instance(instance_path):
                 net = int(parts[1])
                 roots_data.append(node)
                 innet_data[node] = net
-    
+
     # Load arcs
     arcs_data = []
     cost_dict = {}
@@ -67,33 +69,34 @@ def load_steiner_instance(instance_path):
             parts = line.split()
             if len(parts) >= 3:
                 tail = int(parts[0])
-                head = int(parts[1]) 
+                head = int(parts[1])
                 cost = int(parts[2])
                 arcs_data.append((tail, head))
                 cost_dict[(tail, head)] = cost
-    
+
     # Create derived sets
     special_nodes = sorted(set(terms_data + roots_data))
     terminal_nodes = sorted(set(terms_data) - set(roots_data))  # T = S - R
     normal_nodes = sorted(set(range(1, nodes + 1)) - set(special_nodes))  # N = V - S
-    
+
     # Create cost matrix (optimized: use sparse representation if many zeros)
     cost_matrix = [[0 for _ in range(nodes + 1)] for _ in range(nodes + 1)]  # 1-indexed
     for (i, j), c in cost_dict.items():
         cost_matrix[i][j] = c
-    
+
     # Create innet array for special nodes (optimized: list comprehension)
     innet_array = [innet_data[node] for node in special_nodes]
-    
+
     # Count terminals per net (optimized: use collections.Counter)
     from collections import Counter
+
     net_counts = Counter(innet_data[node] for node in terms_data)
     nets_count = [net_counts.get(net, 0) for net in range(1, nets + 1)]
-    
+
     # Create network assignment arrays (optimized: list comprehensions)
     R_innet_array = [innet_data[root] for root in roots_data]
     T_innet_array = [innet_data[terminal] for terminal in terminal_nodes]
-    
+
     return {
         "L": list(range(1, nets + 1)),  # Net indices
         "V": list(range(1, nodes + 1)),  # Vertex indices
@@ -108,7 +111,7 @@ def load_steiner_instance(instance_path):
         "cost": cost_matrix,  # Cost matrix
         "nets": nets_count,  # Number of terminals per net
         "nodes": nodes,
-        "num_nets": nets
+        "num_nets": nets,
     }
 
 
@@ -116,7 +119,7 @@ if __name__ == "__main__":
     # Test the loader
     instance_path = "../../instances/stp_s020_l2_t3_h2_rs24098"
     data = load_steiner_instance(instance_path)
-    
+
     print(f"Nodes: {data['nodes']}")
     print(f"Nets: {data['num_nets']}")
     print(f"Special nodes (S): {len(data['S'])}")

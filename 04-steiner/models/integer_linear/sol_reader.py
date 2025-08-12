@@ -65,17 +65,18 @@ def parse_steiner_sol_file(sol_file_path: str) -> dict[str, object]:
     return solution_data
 
 
-def convert_steiner_solution_to_jijmodeling_format(solution_data: dict[str, object], 
-                                                   instance_data: dict[str, object]) -> dict[str, object]:
-    """
-    Convert parsed Steiner solution data to JijModeling variable format.
+def convert_steiner_solution_to_jijmodeling_format(
+    solution_data: dict[str, object], 
+    instance_data: dict[str, object]
+) -> dict[str, object]:
+    """Convert parsed Steiner solution data to JijModeling variable format.
     
     Args:
         solution_data: Parsed solution data from parse_steiner_sol_file
         instance_data: Instance data containing problem structure
         
     Returns:
-        dict: Dictionary in JijModeling format for solution evaluation
+        Dictionary in JijModeling format for solution evaluation
     """
     
     jm_solution = {}
@@ -106,16 +107,18 @@ def convert_steiner_solution_to_jijmodeling_format(solution_data: dict[str, obje
     return jm_solution
 
 
-def read_steiner_solution_file(sol_file_path: str, instance_data: dict[str, object]) -> dict[str, object]:
-    """
-    Complete solution reading pipeline for Steiner Tree Packing problems.
+def read_steiner_solution_file(
+    sol_file_path: str, 
+    instance_data: dict[str, object]
+) -> dict[str, object]:
+    """Complete solution reading pipeline for Steiner Tree Packing problems.
     
     Args:
         sol_file_path: Path to the solution file
         instance_data: Instance data from dat_reader
         
     Returns:
-        dict: Solution in JijModeling format ready for evaluation
+        Solution in JijModeling format ready for evaluation
     """
     
     # Parse the solution file

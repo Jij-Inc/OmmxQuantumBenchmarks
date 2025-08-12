@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 _CREATION_TIME = datetime.now(tzlocal())
 
 
-def jijmodeling_to_ommx_instance_optimized(data):
+def jijmodeling_to_ommx_instance_optimized(data: dict[str, object]) -> object:
     """Optimized conversion with memory management."""
     problem = create_steiner_tree_packing_model()
     interpreter = jm.Interpreter(data)
@@ -40,7 +40,7 @@ def jijmodeling_to_ommx_instance_optimized(data):
     return ommx_instance
 
 
-def process_single_instance_optimized(instance_path, output_directory):
+def process_single_instance_optimized(instance_path: str, output_directory: str) -> bool:
     """Optimized instance processing with memory management."""
     try:
         instance_name = Path(instance_path).name
@@ -83,7 +83,7 @@ def process_single_instance_optimized(instance_path, output_directory):
         return False
 
 
-def process_instance_wrapper_optimized(args):
+def process_instance_wrapper_optimized(args: tuple[str, str]) -> tuple[bool, str]:
     """Optimized wrapper with error handling."""
     instance_dir, output_directory = args
     try:
@@ -94,11 +94,11 @@ def process_instance_wrapper_optimized(args):
 
 
 def batch_process_instances_optimized(
-    instances_directory="../../instances",
-    output_directory="./ommx_output_optimized",
-    max_workers=None,
-    chunk_size=None
-):
+    instances_directory: str = "../../instances",
+    output_directory: str = "./ommx_output_optimized",
+    max_workers: int | None = None,
+    chunk_size: int | None = None
+) -> None:
     """Optimized batch processing with chunking and memory management."""
     # Create output directory
     os.makedirs(output_directory, exist_ok=True)
@@ -190,7 +190,7 @@ def batch_process_instances_optimized(
     print(f"  Output files saved to: {os.path.abspath(output_directory)}")
 
 
-def main():
+def main() -> None:
     """Main function with optimization flags."""
     print("Batch Processing Steiner Tree Packing Instances to OMMX (OPTIMIZED)")
     print("=" * 70)

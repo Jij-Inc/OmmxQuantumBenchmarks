@@ -28,29 +28,29 @@ from model import create_steiner_tree_packing_model
 logging.basicConfig(level=logging.INFO)
 
 
-def jijmodeling_to_ommx_instance(data):
+def jijmodeling_to_ommx_instance(data: dict[str, object]) -> object:
     """Convert Steiner Tree Packing problem data to OMMX Instance.
 
     Args:
-        data (dict): Dictionary containing the loaded Steiner instance data
+        data: Dictionary containing the loaded Steiner instance data
 
     Returns:
-        OMMX instance: The converted OMMX instance
+        The converted OMMX instance
     """
     problem = create_steiner_tree_packing_model()
     interpreter = jm.Interpreter(data)
     return interpreter.eval_problem(problem)
 
 
-def process_single_instance(instance_path, output_directory):
+def process_single_instance(instance_path: str, output_directory: str) -> bool:
     """Process a single Steiner Tree Packing instance and create OMMX file.
 
     Args:
-        instance_path (str): Path to the Steiner instance directory
-        output_directory (str): Path to save the .ommx file
+        instance_path: Path to the Steiner instance directory
+        output_directory: Path to save the .ommx file
 
     Returns:
-        bool: True if successful, False if error occurred
+        True if successful, False if error occurred
     """
     try:
         instance_name = Path(instance_path).name
@@ -89,7 +89,7 @@ def process_single_instance(instance_path, output_directory):
         return False
 
 
-def process_instance_wrapper(args):
+def process_instance_wrapper(args: tuple[str, str]) -> tuple[bool, str]:
     """Wrapper function for multiprocessing."""
     instance_dir, output_directory = args
     return (
@@ -99,16 +99,16 @@ def process_instance_wrapper(args):
 
 
 def batch_process_instances(
-    instances_directory="../../instances",
-    output_directory="./ommx_output",
-    max_workers=None,
-):
+    instances_directory: str = "../../instances",
+    output_directory: str = "./ommx_output",
+    max_workers: int | None = None,
+) -> None:
     """Batch process all Steiner Tree Packing instances and convert them to OMMX files.
 
     Args:
-        instances_directory (str): Path to the directory containing instance subdirectories
-        output_directory (str): Path to save the .ommx files
-        max_workers (int): Maximum number of parallel workers (default: CPU count)
+        instances_directory: Path to the directory containing instance subdirectories
+        output_directory: Path to save the .ommx files
+        max_workers: Maximum number of parallel workers (default: CPU count)
     """
     # Create output directory if it doesn't exist
     os.makedirs(output_directory, exist_ok=True)
@@ -191,7 +191,7 @@ def batch_process_instances(
     print(f"  Output files saved to: {os.path.abspath(output_directory)}")
 
 
-def main():
+def main() -> None:
     """Main function to batch process all instances."""
     print("Batch Processing Steiner Tree Packing Instances to OMMX")
     print("=" * 60)

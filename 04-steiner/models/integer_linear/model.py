@@ -14,8 +14,8 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     stp_node_disjoint.zpl.
 
     Returns:
-        jm.Problem: JijModeling problem instance with all constraints and variables
-            defined for the Steiner tree packing problem.
+        JijModeling problem instance with all constraints and variables
+        defined for the Steiner tree packing problem.
     """
 
     # === Data placeholders ===
@@ -319,17 +319,17 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     return problem
 
 
-def solve_steiner_tree_packing(graph_data):
+def solve_steiner_tree_packing(graph_data: dict[str, object]) -> tuple[jm.Problem, object]:
     """Solve the Steiner Tree Packing problem using JijModeling.
 
     Args:
-        graph_data (dict): Dictionary containing the problem instance data including
+        graph_data: Dictionary containing the problem instance data including
             vertices, arcs, terminals, roots, and network assignments.
 
     Returns:
-        tuple: A tuple containing:
-            - problem (jm.Problem): The JijModeling problem definition.
-            - compiled_problem: The compiled problem ready for optimization.
+        A tuple containing:
+        - problem: The JijModeling problem definition.
+        - compiled_problem: The compiled problem ready for optimization.
     """
 
     # Create the problem
