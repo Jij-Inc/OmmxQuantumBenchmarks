@@ -22,12 +22,29 @@ def batch_process_files(
     output_directory: str = "./ommx_output",
 ):
     """
-    Batch process .dat and .sol files from different directories and convert them into .ommx files.
+    Batch process solution files, convert them to OMMX instances, 
+    and optionally attach evaluated solutions.
 
-    Parameters:
-    - dat_directory: Path to the directory containing .dat files
-    - sol_directory: Path to the directory containing .sol files
-    - output_directory: Path to the directory where .ommx files will be saved
+    This function iterates over problem instances `labs002` to `labs100`,
+    searches for corresponding `.sol` files in the provided solutions directory,
+    evaluates each solution against a shared problem definition, and saves
+    the result as an `.ommx` file in the output directory.
+
+    Args:
+        sol_directory (str, optional): 
+            Path to the directory containing `.sol` solution files.
+            Defaults to `"../../solutions"`.
+        output_directory (str, optional): 
+            Path to the directory where `.ommx` files will be saved.
+            Defaults to `"./ommx_output"`.
+
+    Returns:
+        None
+
+    Raises:
+        Exception: 
+            If there is an unexpected error during problem creation, 
+            solution parsing, or file writing.
     """
 
     # Create the output directory if it does not already exist
