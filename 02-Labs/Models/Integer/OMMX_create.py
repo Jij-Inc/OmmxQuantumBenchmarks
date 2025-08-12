@@ -16,7 +16,6 @@ def create_instance(n):
 
 
 def batch_process_files(
-    dat_directory: str = "../../instances",
     sol_directory: str = "../../solutions",
     output_directory: str = "./ommx_output",
 ):
