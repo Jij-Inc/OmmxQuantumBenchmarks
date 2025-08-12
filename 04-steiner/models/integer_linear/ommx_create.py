@@ -75,33 +75,154 @@ def verify_solution_quality(
         solution_path, instance_data
     )
 
-    # Create solution dictionary with simple index-based variable mapping
-    # read_steiner_solution_file_as_jijmodeling_format returns a dict with "x" and "y" keys.
-    solution_dict = {}
-    var_idx = 0
-    print("Mapping solution variables...")
-    # Map y variables
-    for a in range(len(jm_solution["y"])):
-        for k in range(len(jm_solution["y"][a])):
-            solution_dict[var_idx] = int(jm_solution["y"][a][k])
-            var_idx += 1
+    # Get decision variables from OMMX instance using the correct API
+    print("Getting OMMX decision variables...")
 
-    # Map x variables
-    for tail in range(len(jm_solution["x"])):
-        for head in range(len(jm_solution["x"][tail])):
-            solution_dict[var_idx] = int(jm_solution["x"][tail][head])
-            var_idx += 1
+    # Use decision_variables_df to get pandas DataFrame with variable IDs as index
+    decision_vars_df = ommx_instance.decision_variables_df
+    print(f"decision_variables_df type: {type(decision_vars_df)}")
+    print(f"decision_variables_df shape: {decision_vars_df.shape}")
+    print(f"decision_variables_df index: {decision_vars_df.index}")
+
+    var_ids = decision_vars_df.index.tolist()  # Variable IDs are the index
+    print(decision_vars_df)
+    # print(var_ids)
+    print(f"Found {len(var_ids)} OMMX decision variables")
+
+    # Create solution dictionary by matching variable names and subscripts
+    solution_dict = {}
+
+    print("Mapping JijModeling solution to OMMX variables by name/subscripts...")
+
+    # Iterate through each OMMX variable and find corresponding JijModeling value
+    for var_id in decision_vars_df.index:
+        var_info = decision_vars_df.loc[var_id]
+        var_name = var_info.get("name", "")
+        subscripts = var_info.get("subscripts", [])
+
+        print(f"Variable ID {var_id}: name='{var_name}', subscripts={subscripts}")
+
+        # Match y variables: y[a,k] format
+        if var_name == "y" and len(subscripts) == 2:
+            a, k = subscripts[0], subscripts[1]
+            if a < len(jm_solution["y"]) and k < len(jm_solution["y"][a]):
+                solution_dict[var_id] = int(jm_solution["y"][a][k])
+                print(f"  Mapped y[{a},{k}] = {jm_solution['y'][a][k]}")
+            else:
+                solution_dict[var_id] = 0
+                print(f"  y[{a},{k}] out of bounds, set to 0")
+
+        # Match x variables: x[tail,head] format
+        elif var_name == "x" and len(subscripts) == 2:
+            tail, head = subscripts[0], subscripts[1]
+            if tail < len(jm_solution["x"]) and head < len(jm_solution["x"][tail]):
+                solution_dict[var_id] = int(jm_solution["x"][tail][head])
+                print(f"  Mapped x[{tail},{head}] = {jm_solution['x'][tail][head]}")
+            else:
+                solution_dict[var_id] = 0
+                print(f"  x[{tail},{head}] out of bounds, set to 0")
+
+        # Match z_same_net_diff_terminal variables: shape=(num_terminals, num_terminals)
+        elif var_name == "z_same_net_diff_terminal" and len(subscripts) == 2:
+            t_idx, s_idx = subscripts[0], subscripts[1]
+            if "z_same_net_diff_terminal" in jm_solution:
+                if t_idx < len(jm_solution["z_same_net_diff_terminal"]) and s_idx < len(
+                    jm_solution["z_same_net_diff_terminal"][t_idx]
+                ):
+                    solution_dict[var_id] = int(
+                        jm_solution["z_same_net_diff_terminal"][t_idx][s_idx]
+                    )
+                    print(
+                        f"  Mapped z_same_net_diff_terminal[{t_idx},{s_idx}] = {jm_solution['z_same_net_diff_terminal'][t_idx][s_idx]}"
+                    )
+                else:
+                    solution_dict[var_id] = 0
+                    print(
+                        f"  z_same_net_diff_terminal[{t_idx},{s_idx}] out of bounds, set to 0"
+                    )
+            else:
+                solution_dict[var_id] = 0
+                print(f"  z_same_net_diff_terminal not in solution, set to 0")
+
+        # Match z_diff_network variables: shape=(num_terminals, num_terminals)
+        elif var_name == "z_diff_network" and len(subscripts) == 2:
+            t_idx, s_idx = subscripts[0], subscripts[1]
+            if "z_diff_network" in jm_solution:
+                if t_idx < len(jm_solution["z_diff_network"]) and s_idx < len(
+                    jm_solution["z_diff_network"][t_idx]
+                ):
+                    solution_dict[var_id] = int(
+                        jm_solution["z_diff_network"][t_idx][s_idx]
+                    )
+                    print(
+                        f"  Mapped z_diff_network[{t_idx},{s_idx}] = {jm_solution['z_diff_network'][t_idx][s_idx]}"
+                    )
+                else:
+                    solution_dict[var_id] = 0
+                    print(f"  z_diff_network[{t_idx},{s_idx}] out of bounds, set to 0")
+            else:
+                solution_dict[var_id] = 0
+                print(f"  z_diff_network not in solution, set to 0")
+
+        # Match z_terminal_in_net variables: shape=(num_terminals, num_nets)
+        elif var_name == "z_terminal_in_net" and len(subscripts) == 2:
+            t_idx, k_idx = subscripts[0], subscripts[1]
+            if "z_terminal_in_net" in jm_solution:
+                if t_idx < len(jm_solution["z_terminal_in_net"]) and k_idx < len(
+                    jm_solution["z_terminal_in_net"][t_idx]
+                ):
+                    solution_dict[var_id] = int(
+                        jm_solution["z_terminal_in_net"][t_idx][k_idx]
+                    )
+                    print(
+                        f"  Mapped z_terminal_in_net[{t_idx},{k_idx}] = {jm_solution['z_terminal_in_net'][t_idx][k_idx]}"
+                    )
+                else:
+                    solution_dict[var_id] = 0
+                    print(
+                        f"  z_terminal_in_net[{t_idx},{k_idx}] out of bounds, set to 0"
+                    )
+            else:
+                solution_dict[var_id] = 0
+                print(f"  z_terminal_in_net not in solution, set to 0")
+
+        # Match z_is_nonroot variables: shape=(num_vertices,)
+        elif var_name == "z_is_nonroot" and len(subscripts) == 1:
+            v_idx = subscripts[0]
+            if "z_is_nonroot" in jm_solution:
+                if v_idx < len(jm_solution["z_is_nonroot"]):
+                    solution_dict[var_id] = int(jm_solution["z_is_nonroot"][v_idx])
+                    print(
+                        f"  Mapped z_is_nonroot[{v_idx}] = {jm_solution['z_is_nonroot'][v_idx]}"
+                    )
+                else:
+                    solution_dict[var_id] = 0
+                    print(f"  z_is_nonroot[{v_idx}] out of bounds, set to 0")
+            else:
+                solution_dict[var_id] = 0
+                print(f"  z_is_nonroot not in solution, set to 0")
+
+        else:
+            # Unknown variable or format, set to 0
+            solution_dict[var_id] = 0
+            print(
+                f"  Unknown variable format: name='{var_name}', subscripts={subscripts}, set to 0"
+            )
+
+    # Ensure all OMMX variables have values
+    for vid in var_ids:
+        if vid not in solution_dict:
+            solution_dict[vid] = 0
+
+    print(f"Created solution dictionary with {len(solution_dict)} variable assignments")
 
     # Evaluate solution using OMMX Instance.evaluate() method
-    print("Evaluating solution...")
+    print("Evaluating solution with OMMX...")
     ommx_solution = ommx_instance.evaluate(solution_dict)
 
-    # Check if solution is feasible
-    result["feasible"] = ommx_solution.is_feasible()
-    # Get the computed objective value
-    result["computed_objective"] = (
-        ommx_solution.objective if ommx_solution.is_feasible() else None
-    )
+    # Check if solution is feasible and get computed objective value
+    result["feasible"] = ommx_solution.feasible
+    result["computed_objective"] = ommx_solution.objective
 
     # Compute the difference between file objective and computed objective
     # and check if they match.

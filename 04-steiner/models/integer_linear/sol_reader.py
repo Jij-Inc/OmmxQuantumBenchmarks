@@ -58,12 +58,21 @@ def convert_steiner_solution_to_jijmodeling_format(
 ) -> dict[str, object]:
     """Convert parsed Steiner solution data to JijModeling variable format.
 
+    Computes all decision variables from the solution file, including auxiliary variables
+    that are determined by the instance data and primary variables (x, y).
+
     Args:
         solution_data: Parsed solution data from parse_steiner_sol_file
         instance_data: Instance data containing problem structure
 
     Returns:
-        Dictionary in JijModeling format for solution evaluation
+        Dictionary in JijModeling format containing:
+        - x: arc-terminal flow variables
+        - y: arc-net usage variables
+        - z_same_net_diff_terminal: auxiliary variables for same-net different-terminal logic
+        - z_diff_network: auxiliary variables for different-network detection
+        - z_terminal_in_net: auxiliary variables for terminal-in-net membership
+        - z_is_nonroot: auxiliary variables for non-root vertex identification
     """
 
     # Get problem dimensions
@@ -102,7 +111,48 @@ def convert_steiner_solution_to_jijmodeling_format(
             if terminal_to_net[terminal] == net:
                 x_values[arc_idx][t_idx] = 1.0
 
-    jm_solution = {"x": x_values, "y": y_values}
+    # Compute auxiliary variables based on model.py logic
+
+    # 1. z_same_net_diff_terminal[t,s] = 1 iff (s != t) AND (T_innet[s] == T_innet[t])
+    z_same_net_diff_terminal = [
+        [0.0 for _ in range(num_terminals)] for _ in range(num_terminals)
+    ]
+    for t in range(num_terminals):
+        for s in range(num_terminals):
+            if s != t and instance_data["T_innet"][s] == instance_data["T_innet"][t]:
+                z_same_net_diff_terminal[t][s] = 1.0
+
+    # 2. z_diff_network[t,s] = 1 iff T_innet[t] != T_innet[s]
+    z_diff_network = [[0.0 for _ in range(num_terminals)] for _ in range(num_terminals)]
+    for t in range(num_terminals):
+        for s in range(num_terminals):
+            if instance_data["T_innet"][t] != instance_data["T_innet"][s]:
+                z_diff_network[t][s] = 1.0
+
+    # 3. z_terminal_in_net[t,k] = 1 iff T_innet[t] == L[k]
+    z_terminal_in_net = [[0.0 for _ in range(num_nets)] for _ in range(num_terminals)]
+    for t in range(num_terminals):
+        for k in range(num_nets):
+            if instance_data["T_innet"][t] == instance_data["L"][k]:
+                z_terminal_in_net[t][k] = 1.0
+
+    # 4. z_is_nonroot[v] = 1 iff vertex v is not a root
+    vertices = instance_data["V"]
+    roots = instance_data["R"]
+    num_vertices = len(vertices)
+    z_is_nonroot = [0.0 for _ in range(num_vertices)]
+    for v_idx, vertex in enumerate(vertices):
+        if vertex not in roots:
+            z_is_nonroot[v_idx] = 1.0
+
+    jm_solution = {
+        "x": x_values,
+        "y": y_values,
+        "z_same_net_diff_terminal": z_same_net_diff_terminal,
+        "z_diff_network": z_diff_network,
+        "z_terminal_in_net": z_terminal_in_net,
+        "z_is_nonroot": z_is_nonroot,
+    }
 
     return jm_solution
 
