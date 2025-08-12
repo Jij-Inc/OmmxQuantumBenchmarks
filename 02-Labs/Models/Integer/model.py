@@ -1,7 +1,4 @@
 import jijmodeling as jm
-import ommx
-import numpy as np
-
 
 def create_problem():
     # Define sets
