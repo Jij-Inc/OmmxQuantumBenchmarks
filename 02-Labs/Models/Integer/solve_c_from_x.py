@@ -1,4 +1,10 @@
-def solve_c(constraint, known_vals, target_var_id):
+import ommx
+from typing import Dict
+
+
+def solve_c(
+    constraint: ommx.Constraint, known_vals: Dict[int, float], target_var_id: int
+) -> float:
     """
     Given a constraint whose function contains only linear, quadratic, and constant terms,
     and where only target_var_id is unknown, substitute the known values and solve for it.
