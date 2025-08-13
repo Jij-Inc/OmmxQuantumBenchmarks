@@ -5,7 +5,7 @@ def create_problem():
     # Define sets
     i_set = jm.Placeholder("I", ndim=1)  # Placeholder for set I
     k_set = jm.Placeholder("K", ndim=1)  # Placeholder for set K
-    n = I_set.len_at(0, latex="n")
+    n = i_set.len_at(0, latex="n")
 
     # Define decision variables
     x = jm.BinaryVar("x", shape=i_set.shape, description="Variable x")
