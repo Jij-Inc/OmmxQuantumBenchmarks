@@ -37,9 +37,6 @@ def batch_process_files(
             Path to the directory where `.ommx` files will be saved.
             Defaults to `"./ommx_output"`.
 
-    Returns:
-        None
-
     Raises:
         Exception: 
             If there is an unexpected error during problem creation, 
