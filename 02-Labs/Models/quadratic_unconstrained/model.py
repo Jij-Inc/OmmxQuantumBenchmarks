@@ -13,7 +13,7 @@ def create_problem():
     # Define decision variables
     x = jm.BinaryVar("x", shape=i_set.shape, description="Binary variable x")
     z = jm.BinaryVar(
-        "z", shape=(k_set.shape[0], k_set.shape[0]), description="Binary variable z"
+        "z", shape=(i_set.shape[0], k_set.shape[0]), description="Binary variable z"
     )
 
     # Define elements
