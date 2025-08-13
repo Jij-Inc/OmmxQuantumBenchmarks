@@ -40,9 +40,9 @@ def parse_steiner_sol_file(sol_file_path: str) -> dict[str, object]:
             parts = line.split()
             if len(parts) >= 3:
                 try:
-                    tail = int(parts[0])
-                    head = int(parts[1])
-                    net = int(parts[2])
+                    tail = int(parts[0]) - 1
+                    head = int(parts[1]) - 1
+                    net = int(parts[2]) - 1
                     solution_data["used_arcs"].append((tail, head, net))
                 except ValueError:
                     # Skip lines that don't contain valid integers
@@ -69,90 +69,59 @@ def convert_steiner_solution_to_jijmodeling_format(
         Dictionary in JijModeling format containing:
         - x: arc-terminal flow variables
         - y: arc-net usage variables
-        - z_same_net_diff_terminal: auxiliary variables for same-net different-terminal logic
-        - z_diff_network: auxiliary variables for different-network detection
-        - z_terminal_in_net: auxiliary variables for terminal-in-net membership
-        - z_is_nonroot: auxiliary variables for non-root vertex identification
     """
 
     # Get problem dimensions
-    arcs = instance_data["A"]  # List of (tail, head) tuples
+    nodes = instance_data["V"]  # List of nodes
     terminals = instance_data["T"]  # List of terminal nodes
     nets = instance_data["L"]  # List of net indices
+    roots = instance_data["R"]  # List of root nodes
 
     # Build terminal to net mapping
     terminal_to_net = {}  # Map terminal to its net
     for i, terminal in enumerate(terminals):
-        terminal_to_net[terminal] = instance_data["T_innet"][i]
+        terminal_to_net[terminal] = instance_data["innetT"][i]
 
-    num_arcs = len(arcs)
+    # Build root to net mapping
+    root_to_net = {}  # Map root to its net
+    for i, root in enumerate(roots):
+        root_to_net[root] = instance_data["innetR"][i]
+
+    num_nodes = len(nodes)
     num_terminals = len(terminals)
     num_nets = len(nets)
+    num_roots = len(roots)
 
-    # Initialize x and y arrays
-    x_values = [[0.0 for _ in range(num_terminals)] for _ in range(num_arcs)]
-    y_values = [[0.0 for _ in range(num_nets)] for _ in range(num_arcs)]
+    # Initialize x, y, and z arrays to match model.py format
+    x_values = [
+        [[0.0 for _ in range(num_terminals)] for _ in range(num_nodes)]
+        for _ in range(num_nodes)
+    ]
+    y_values = [
+        [[0.0 for _ in range(num_nets)] for _ in range(num_nodes)]
+        for _ in range(num_nodes)
+    ]
+    z_values = [[0.0 for _ in range(num_terminals)] for _ in range(num_roots)]
 
     # Process used arcs from solution
     for tail, head, net in solution_data["used_arcs"]:
-        # Find arc index
-        try:
-            arc_idx = arcs.index((tail, head))
-        except ValueError:
-            # Arc not found in the arc list, skip
-            continue
-
-        # Set y variable: y[arc_idx, net-1] = 1 (net is 1-indexed)
-        if 1 <= net <= num_nets:
-            y_values[arc_idx][net - 1] = 1.0
+        # Set y variable: y[tail, head, net] = 1.0
+        if 0 <= tail < num_nodes and 0 <= head < num_nodes and 0 <= net < num_nets:
+            y_values[tail][head][net] = 1.0
 
         # Set x variables for all terminals in this net
         for t_idx, terminal in enumerate(terminals):
             if terminal_to_net[terminal] == net:
-                x_values[arc_idx][t_idx] = 1.0
+                if 0 <= tail < num_nodes and 0 <= head < num_nodes:
+                    x_values[tail][head][t_idx] = 1.0
 
-    # Compute auxiliary variables based on model.py logic
+    # Calculate z values: z[r, t] = 1 if root_innet[r] == terminal_innet[t]
+    for r_idx, root in enumerate(roots):
+        for t_idx, terminal in enumerate(terminals):
+            if root_to_net[root] == terminal_to_net[terminal]:
+                z_values[r_idx][t_idx] = 1.0
 
-    # 1. z_same_net_diff_terminal[t,s] = 1 iff (s != t) AND (T_innet[s] == T_innet[t])
-    z_same_net_diff_terminal = [
-        [0.0 for _ in range(num_terminals)] for _ in range(num_terminals)
-    ]
-    for t in range(num_terminals):
-        for s in range(num_terminals):
-            if s != t and instance_data["T_innet"][s] == instance_data["T_innet"][t]:
-                z_same_net_diff_terminal[t][s] = 1.0
-
-    # 2. z_diff_network[t,s] = 1 iff T_innet[t] != T_innet[s]
-    z_diff_network = [[0.0 for _ in range(num_terminals)] for _ in range(num_terminals)]
-    for t in range(num_terminals):
-        for s in range(num_terminals):
-            if instance_data["T_innet"][t] != instance_data["T_innet"][s]:
-                z_diff_network[t][s] = 1.0
-
-    # 3. z_terminal_in_net[t,k] = 1 iff T_innet[t] == L[k]
-    z_terminal_in_net = [[0.0 for _ in range(num_nets)] for _ in range(num_terminals)]
-    for t in range(num_terminals):
-        for k in range(num_nets):
-            if instance_data["T_innet"][t] == instance_data["L"][k]:
-                z_terminal_in_net[t][k] = 1.0
-
-    # 4. z_is_nonroot[v] = 1 iff vertex v is not a root
-    vertices = instance_data["V"]
-    roots = instance_data["R"]
-    num_vertices = len(vertices)
-    z_is_nonroot = [0.0 for _ in range(num_vertices)]
-    for v_idx, vertex in enumerate(vertices):
-        if vertex not in roots:
-            z_is_nonroot[v_idx] = 1.0
-
-    jm_solution = {
-        "x": x_values,
-        "y": y_values,
-        "z_same_net_diff_terminal": z_same_net_diff_terminal,
-        "z_diff_network": z_diff_network,
-        "z_terminal_in_net": z_terminal_in_net,
-        "z_is_nonroot": z_is_nonroot,
-    }
+    jm_solution = {"x": x_values, "y": y_values, "z": z_values}
 
     return jm_solution
 

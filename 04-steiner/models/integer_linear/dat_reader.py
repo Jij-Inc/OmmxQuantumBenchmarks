@@ -55,8 +55,8 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
             parts = line.split()
             # Ensure there are at least two parts (node and net).
             if len(parts) >= 2:
-                node = int(parts[0])
-                net = int(parts[1])
+                node = int(parts[0]) - 1
+                net = int(parts[1]) - 1
                 terms_data.append(node)
                 innet_data[node] = net
 
@@ -75,8 +75,8 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
             parts = line.split()
             # Ensure there are at least two parts (node and net).
             if len(parts) >= 2:
-                node = int(parts[0])
-                net = int(parts[1])
+                node = int(parts[0]) - 1
+                net = int(parts[1]) - 1
                 roots_data.append(node)
                 innet_data[node] = net
 
@@ -96,8 +96,8 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
             parts = line.split()
             # Ensure there are at least three parts (tail, head, cost).
             if len(parts) >= 3:
-                tail = int(parts[0])
-                head = int(parts[1])
+                tail = int(parts[0]) - 1
+                head = int(parts[1]) - 1
                 cost = int(parts[2])
                 arcs_data.append((tail, head))
                 cost_dict[(tail, head)] = cost
@@ -109,6 +109,9 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
     normal_nodes = sorted(
         set(range(node_start_index, nodes + 1)) - set(special_nodes)
     )  # N = V - S
+    nodes_without_roots = sorted(
+        set(list(range(net_start_index, nets + 1))) - set(roots_data)
+    )
 
     # Create cost matrix
     cost_matrix = [[0 for _ in range(nodes + 1)] for _ in range(nodes + 1)]
@@ -120,25 +123,28 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
 
     # Create nets count array.
     net_counts = Counter(innet_data[node] for node in terms_data)
-    nets_count = [net_counts.get(net, 0) for net in range(net_start_index, nets + 1)]
+    nets_count = [
+        (net, net_counts.get(net, 0)) for net in range(net_start_index, nets + 1)
+    ]
 
     # Create network assignment arrays (optimized: list comprehensions)
-    R_innet_array = [innet_data[root] for root in roots_data]
-    T_innet_array = [innet_data[terminal] for terminal in terminal_nodes]
+    R_innet_array = [(root, innet_data[root]) for root in roots_data]
+    T_innet_array = [(terminal, innet_data[terminal]) for terminal in terminal_nodes]
 
     return {
         "L": list(range(net_start_index, nets + 1)),  # Net indices
         "V": list(range(node_start_index, nodes + 1)),  # Vertex indices
-        "S": special_nodes,  # Special nodes (terms + roots)
+        # "S": special_nodes,  # Special nodes (terms + roots)
         "R": roots_data,  # Root nodes
         "A": arcs_data,  # Arc pairs
         "T": terminal_nodes,  # Terminal nodes (S - R)
         "N": normal_nodes,  # Normal nodes (V - S)
-        "innet": innet_array,  # Net assignment for special nodes
-        "R_innet": R_innet_array,  # Net assignment for root nodes
-        "T_innet": T_innet_array,  # Net assignment for terminal nodes
+        "VNR": nodes_without_roots,
+        # "innet": innet_array,  # Net assignment for special nodes
+        "innetR": R_innet_array,  # Net assignment for root nodes
+        "innetT": T_innet_array,  # Net assignment for terminal nodes
         "cost": cost_matrix,  # Cost matrix
-        "nets": nets_count,  # Number of terminals per net
-        "nodes": nodes,  # Number of nodes
-        "num_nets": nets,  # Number of nets
+        "netCardinality": nets_count,  # Number of terminals per net
+        # "nodes": nodes,  # Number of nodes
+        # "num_nets": nets,  # Number of nets
     }

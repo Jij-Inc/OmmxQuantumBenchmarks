@@ -80,13 +80,11 @@ def verify_solution_quality(
 
     # Use decision_variables_df to get pandas DataFrame with variable IDs as index
     decision_vars_df = ommx_instance.decision_variables_df
-    print(f"decision_variables_df type: {type(decision_vars_df)}")
-    print(f"decision_variables_df shape: {decision_vars_df.shape}")
-    print(f"decision_variables_df index: {decision_vars_df.index}")
+    # print(f"decision_variables_df type: {type(decision_vars_df)}")
+    # print(f"decision_variables_df shape: {decision_vars_df.shape}")
+    # print(f"decision_variables_df index: {decision_vars_df.index}")
 
     var_ids = decision_vars_df.index.tolist()  # Variable IDs are the index
-    print(decision_vars_df)
-    # print(var_ids)
     print(f"Found {len(var_ids)} OMMX decision variables")
 
     # Create solution dictionary by matching variable names and subscripts
@@ -100,107 +98,49 @@ def verify_solution_quality(
         var_name = var_info.get("name", "")
         subscripts = var_info.get("subscripts", [])
 
-        print(f"Variable ID {var_id}: name='{var_name}', subscripts={subscripts}")
+        # print(f"Variable ID {var_id}: name='{var_name}', subscripts={subscripts}")
 
-        # Match y variables: y[a,k] format
-        if var_name == "y" and len(subscripts) == 2:
-            a, k = subscripts[0], subscripts[1]
-            if a < len(jm_solution["y"]) and k < len(jm_solution["y"][a]):
-                solution_dict[var_id] = int(jm_solution["y"][a][k])
-                print(f"  Mapped y[{a},{k}] = {jm_solution['y'][a][k]}")
+        # Match y variables: y[tail,head,k] format
+        if var_name == "y" and len(subscripts) == 3:
+            tail, head, k = subscripts[0], subscripts[1], subscripts[2]
+            if (
+                tail < len(jm_solution["y"])
+                and head < len(jm_solution["y"][tail])
+                and k < len(jm_solution["y"][tail][head])
+            ):
+                solution_dict[var_id] = int(jm_solution["y"][tail][head][k])
+                # print(
+                #     f"  Mapped y[{tail},{head},{k}] = {jm_solution['y'][tail][head][k]}"
+                # )
             else:
                 solution_dict[var_id] = 0
-                print(f"  y[{a},{k}] out of bounds, set to 0")
+                print(f"  y[{tail},{head},{k}] out of bounds, set to 0")
 
-        # Match x variables: x[tail,head] format
-        elif var_name == "x" and len(subscripts) == 2:
-            tail, head = subscripts[0], subscripts[1]
-            if tail < len(jm_solution["x"]) and head < len(jm_solution["x"][tail]):
-                solution_dict[var_id] = int(jm_solution["x"][tail][head])
-                print(f"  Mapped x[{tail},{head}] = {jm_solution['x'][tail][head]}")
+        # Match x variables: x[tail,head,t] format
+        elif var_name == "x" and len(subscripts) == 3:
+            tail, head, t = subscripts[0], subscripts[1], subscripts[2]
+            if (
+                tail < len(jm_solution["x"])
+                and head < len(jm_solution["x"][tail])
+                and t < len(jm_solution["x"][tail][head])
+            ):
+                solution_dict[var_id] = int(jm_solution["x"][tail][head][t])
+                # print(
+                #     f"  Mapped x[{tail},{head},{t}] = {jm_solution['x'][tail][head][t]}"
+                # )
             else:
                 solution_dict[var_id] = 0
-                print(f"  x[{tail},{head}] out of bounds, set to 0")
+                print(f"  x[{tail},{head},{t}] out of bounds, set to 0")
 
-        # Match z_same_net_diff_terminal variables: shape=(num_terminals, num_terminals)
-        elif var_name == "z_same_net_diff_terminal" and len(subscripts) == 2:
-            t_idx, s_idx = subscripts[0], subscripts[1]
-            if "z_same_net_diff_terminal" in jm_solution:
-                if t_idx < len(jm_solution["z_same_net_diff_terminal"]) and s_idx < len(
-                    jm_solution["z_same_net_diff_terminal"][t_idx]
-                ):
-                    solution_dict[var_id] = int(
-                        jm_solution["z_same_net_diff_terminal"][t_idx][s_idx]
-                    )
-                    print(
-                        f"  Mapped z_same_net_diff_terminal[{t_idx},{s_idx}] = {jm_solution['z_same_net_diff_terminal'][t_idx][s_idx]}"
-                    )
-                else:
-                    solution_dict[var_id] = 0
-                    print(
-                        f"  z_same_net_diff_terminal[{t_idx},{s_idx}] out of bounds, set to 0"
-                    )
+        # Match z variables: z[r,t] format
+        elif var_name == "z" and len(subscripts) == 2:
+            r, t = subscripts[0], subscripts[1]
+            if r < len(jm_solution["z"]) and t < len(jm_solution["z"][r]):
+                solution_dict[var_id] = int(jm_solution["z"][r][t])
+                # print(f"  Mapped z[{r},{t}] = {jm_solution['z'][r][t]}")
             else:
                 solution_dict[var_id] = 0
-                print(f"  z_same_net_diff_terminal not in solution, set to 0")
-
-        # Match z_diff_network variables: shape=(num_terminals, num_terminals)
-        elif var_name == "z_diff_network" and len(subscripts) == 2:
-            t_idx, s_idx = subscripts[0], subscripts[1]
-            if "z_diff_network" in jm_solution:
-                if t_idx < len(jm_solution["z_diff_network"]) and s_idx < len(
-                    jm_solution["z_diff_network"][t_idx]
-                ):
-                    solution_dict[var_id] = int(
-                        jm_solution["z_diff_network"][t_idx][s_idx]
-                    )
-                    print(
-                        f"  Mapped z_diff_network[{t_idx},{s_idx}] = {jm_solution['z_diff_network'][t_idx][s_idx]}"
-                    )
-                else:
-                    solution_dict[var_id] = 0
-                    print(f"  z_diff_network[{t_idx},{s_idx}] out of bounds, set to 0")
-            else:
-                solution_dict[var_id] = 0
-                print(f"  z_diff_network not in solution, set to 0")
-
-        # Match z_terminal_in_net variables: shape=(num_terminals, num_nets)
-        elif var_name == "z_terminal_in_net" and len(subscripts) == 2:
-            t_idx, k_idx = subscripts[0], subscripts[1]
-            if "z_terminal_in_net" in jm_solution:
-                if t_idx < len(jm_solution["z_terminal_in_net"]) and k_idx < len(
-                    jm_solution["z_terminal_in_net"][t_idx]
-                ):
-                    solution_dict[var_id] = int(
-                        jm_solution["z_terminal_in_net"][t_idx][k_idx]
-                    )
-                    print(
-                        f"  Mapped z_terminal_in_net[{t_idx},{k_idx}] = {jm_solution['z_terminal_in_net'][t_idx][k_idx]}"
-                    )
-                else:
-                    solution_dict[var_id] = 0
-                    print(
-                        f"  z_terminal_in_net[{t_idx},{k_idx}] out of bounds, set to 0"
-                    )
-            else:
-                solution_dict[var_id] = 0
-                print(f"  z_terminal_in_net not in solution, set to 0")
-
-        # Match z_is_nonroot variables: shape=(num_vertices,)
-        elif var_name == "z_is_nonroot" and len(subscripts) == 1:
-            v_idx = subscripts[0]
-            if "z_is_nonroot" in jm_solution:
-                if v_idx < len(jm_solution["z_is_nonroot"]):
-                    solution_dict[var_id] = int(jm_solution["z_is_nonroot"][v_idx])
-                    print(
-                        f"  Mapped z_is_nonroot[{v_idx}] = {jm_solution['z_is_nonroot'][v_idx]}"
-                    )
-                else:
-                    solution_dict[var_id] = 0
-                    print(f"  z_is_nonroot[{v_idx}] out of bounds, set to 0")
-            else:
-                solution_dict[var_id] = 0
-                print(f"  z_is_nonroot not in solution, set to 0")
+                print(f"  z[{r},{t}] out of bounds, set to 0")
 
         else:
             # Unknown variable or format, set to 0
