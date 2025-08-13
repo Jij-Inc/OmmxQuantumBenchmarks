@@ -1,10 +1,9 @@
 import ommx
-from typing import Dict
 
 
 def solve_c(
     constraint: ommx.v1.Instance.constraints,
-    known_vals: Dict[int, float],
+    known_vals: dict[int, float],
     target_var_id: int,
 ) -> float:
     """
