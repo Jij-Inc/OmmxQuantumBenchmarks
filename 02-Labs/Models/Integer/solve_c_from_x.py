@@ -3,26 +3,28 @@ from typing import Dict
 
 
 def solve_c(
-    constraint: ommx.v1.Instance.constraints , known_vals: Dict[int, float], target_var_id: int
+    constraint: ommx.v1.Instance.constraints,
+    known_vals: Dict[int, float],
+    target_var_id: int,
 ) -> float:
     """
     Solves for the value of a single unknown binary/continuous variable in a constraint
     when all other variables in the constraint are known.
 
     Args:
-        constraint (ommx.v1.Instance.constraints): 
-            A constraint object from an OMMX instance whose `.function` contains 
+        constraint (ommx.v1.Instance.constraints):
+            A constraint object from an OMMX instance whose `.function` contains
             linear, quadratic, and constant terms defining the equation.
-        known_vals (Dict[int, float]): 
+        known_vals (Dict[int, float]):
             A mapping from variable IDs (excluding the target) to their known values.
             Keys are variable IDs, values are typically 0.0 or 1.0 for binary variables,
             but can be continuous for non-binary problems.
-        target_var_id (int): 
+        target_var_id (int):
             The ID of the single unknown variable to solve for.
 
     Returns:
-        float: 
-            The computed value of the target variable that satisfies the constraint 
+        float:
+            The computed value of the target variable that satisfies the constraint
             equation, assuming its coefficient in the linear terms is non-zero.
     """
     fn = constraint.function

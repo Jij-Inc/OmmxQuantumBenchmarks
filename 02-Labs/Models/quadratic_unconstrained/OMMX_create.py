@@ -21,7 +21,7 @@ def batch_process_files(
     output_directory: str = "./ommx_output",
 ):
     """
-    Batch process solution files, convert them to OMMX instances, 
+    Batch process solution files, convert them to OMMX instances,
     and optionally attach evaluated solutions.
 
     This function iterates over problem instances `labs002` to `labs100`,
@@ -30,16 +30,16 @@ def batch_process_files(
     the result as an `.ommx` file in the output directory.
 
     Args:
-        sol_directory (str, optional): 
+        sol_directory (str, optional):
             Path to the directory containing `.sol` solution files.
             Defaults to `"../../solutions"`.
-        output_directory (str, optional): 
+        output_directory (str, optional):
             Path to the directory where `.ommx` files will be saved.
             Defaults to `"./ommx_output"`.
 
     Raises:
-        Exception: 
-            If there is an unexpected error during problem creation, 
+        Exception:
+            If there is an unexpected error during problem creation,
             solution parsing, or file writing.
     """
 
@@ -61,7 +61,9 @@ def batch_process_files(
             # Look for labsXXX.opt.sol or labsXXX.sol in the solutions directory
             sol_files = glob.glob(os.path.join(sol_directory, f"{base_name}*.sol"))
             if not sol_files:
-                print(f"Warning: Corresponding solution file for {base_name} not found.")
+                print(
+                    f"Warning: Corresponding solution file for {base_name} not found."
+                )
                 continue
             sol_file = sol_files[0]
             print(f"Processing solution file: {sol_file}")

@@ -10,20 +10,20 @@ def parse_sol_file(
     the number of consecutive entries, and the variable assignment sequence.
 
     Args:
-        file_path (str): 
+        file_path (str):
             Path to the `.sol` solution file containing header metadata and
             numeric variable assignments.
-        n (int): 
+        n (int):
             Starting index offset for variable IDs. The variable IDs in the
             output `solution_dict` will start from `n - 1`.
 
     Returns:
         Tuple[Dict[str, float], Dict[str, int], Dict[int, float]]:
-            - energy_dict: A dictionary with the key `"Energy"` mapped to the 
+            - energy_dict: A dictionary with the key `"Energy"` mapped to the
               parsed energy value from the file.
-            - entries_dict: A dictionary with the key `"entries"` mapped to 
+            - entries_dict: A dictionary with the key `"entries"` mapped to
               the parsed number of consecutive entries.
-            - solution_dict: A mapping from variable ID (starting at `n - 1`) 
+            - solution_dict: A mapping from variable ID (starting at `n - 1`)
               to its assigned float value, based on the sequence in the file.
     """
     energy = None
