@@ -100,15 +100,57 @@ def convert_steiner_solution_to_jijmodeling_format(
     ]
     z_values = [[0.0 for _ in range(num_terminals)] for _ in range(num_roots)]
 
+    # Build adjacency lists for each net to determine reachability
+    net_graphs = {}  # net -> {node: [neighbors]}
+    for tail, head, net in solution_data["used_arcs"]:
+        if net not in net_graphs:
+            net_graphs[net] = {}
+        if tail not in net_graphs[net]:
+            net_graphs[net][tail] = []
+        if head not in net_graphs[net]:
+            net_graphs[net][head] = []
+        net_graphs[net][tail].append(head)
+
+    # For each net, determine which terminals each arc serves
+    def find_reachable_terminals_from_arc(net, tail, head):
+        """Find terminals reachable from the head of arc (tail, head) in the given net."""
+        if net not in net_graphs:
+            return []
+        
+        reachable_terminals = []
+        visited = set()
+        stack = [head]
+        
+        while stack:
+            node = stack.pop()
+            if node in visited:
+                continue
+            visited.add(node)
+            
+            # Check if this node is a terminal in the current net
+            if node in terminals and terminal_to_net[node] == net:
+                reachable_terminals.append(node)
+            
+            # Continue traversal
+            if node in net_graphs[net]:
+                for neighbor in net_graphs[net][node]:
+                    if neighbor not in visited:
+                        stack.append(neighbor)
+        
+        return reachable_terminals
+
     # Process used arcs from solution
     for tail, head, net in solution_data["used_arcs"]:
         # Set y variable: y[tail, head, net] = 1.0
         y_values[tail][head][net] = 1.0
 
-        # Set x variables for all terminals in this net
-        for t_idx, terminal in enumerate(terminals):
-            if terminal_to_net[terminal] == net:
-                x_values[tail][head][t_idx] = 1.0
+        # For x variables, determine which terminals this arc actually serves
+        # by finding terminals reachable from the head of this arc
+        reachable_terminals = find_reachable_terminals_from_arc(net, tail, head)
+        
+        for terminal in reachable_terminals:
+            t_idx = terminals.index(terminal)
+            x_values[tail][head][t_idx] = 1.0
 
     # Calculate z values: z[r, t] = 1 if root_innet[r] == terminal_innet[t]
     for r_idx, root in enumerate(roots):

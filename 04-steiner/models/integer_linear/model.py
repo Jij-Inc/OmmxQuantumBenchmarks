@@ -156,16 +156,16 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
     problem += terms_flow_out
 
-    # # 4. TERMINAL FLOW IN
-    # # subto terms_flow_in:
-    # #    forall <t> in T do
-    # #       sum <i,t> in A : x[i,t,t] == 1;
-    # terms_flow_in = jm.Constraint(
-    #     "terms_flow_in",
-    #     jm.sum([(a, arcs[a, 1] == terminals[t])], x[arcs[a, 0], arcs[a, 1], t]) == 1,
-    #     forall=[t],
-    # )
-    # problem += terms_flow_in
+    # 4. TERMINAL FLOW IN
+    # subto terms_flow_in:
+    #    forall <t> in T do
+    #       sum <i,t> in A : x[i,t,t] == 1;
+    terms_flow_in = jm.Constraint(
+        "terms_flow_in",
+        jm.sum([(a, arcs[a, 1] == terminals[t])], x[arcs[a, 0], arcs[a, 1], t]) == 1,
+        forall=[t],
+    )
+    problem += terms_flow_in
 
     # 5. TERMINAL FLOW BALANCE SAME NET
     # subto terms_flow_bal_same:
