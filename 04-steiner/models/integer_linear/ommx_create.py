@@ -48,6 +48,9 @@ def verify_solution_quality(
         instance_data (dict[str, object]): Loaded instance data
         epsilon (float): Tolerance for objective value comparison
 
+    Raises:
+        ValueError: If solution is not feasible or computed objective does not match file objective
+
     Returns:
         dict[str, object]: Verification results containing:
             - feasible: Whether solution is feasible (if found)
@@ -80,9 +83,6 @@ def verify_solution_quality(
 
     # Use decision_variables_df to get pandas DataFrame with variable IDs as index
     decision_vars_df = ommx_instance.decision_variables_df
-    # print(f"decision_variables_df type: {type(decision_vars_df)}")
-    # print(f"decision_variables_df shape: {decision_vars_df.shape}")
-    # print(f"decision_variables_df index: {decision_vars_df.index}")
 
     var_ids = decision_vars_df.index.tolist()  # Variable IDs are the index
     print(f"Found {len(var_ids)} OMMX decision variables")
@@ -92,66 +92,60 @@ def verify_solution_quality(
 
     print("Mapping JijModeling solution to OMMX variables by name/subscripts...")
 
-    # Iterate through each OMMX variable and find corresponding JijModeling value
-    for var_id in decision_vars_df.index:
-        var_info = decision_vars_df.loc[var_id]
-        var_name = var_info.get("name", "")
-        subscripts = var_info.get("subscripts", [])
+    # Pre-extract variable info for vectorized processing
+    var_names = decision_vars_df["name"].values
+    var_subscripts = decision_vars_df["subscripts"].values
+    var_ids = decision_vars_df.index.values
 
-        # print(f"Variable ID {var_id}: name='{var_name}', subscripts={subscripts}")
+    # Process variables in batches by type for better performance
+    y_mask = var_names == "y"
+    x_mask = var_names == "x"
+    z_mask = var_names == "z"
 
-        # Match y variables: y[tail,head,k] format
-        if var_name == "y" and len(subscripts) == 3:
+    # Process y variables
+    y_ids = var_ids[y_mask]
+    y_subscripts = var_subscripts[y_mask]
+    for i, var_id in enumerate(y_ids):
+        subscripts = y_subscripts[i]
+        if len(subscripts) == 3:
             tail, head, k = subscripts[0], subscripts[1], subscripts[2]
-            if (
-                tail < len(jm_solution["y"])
-                and head < len(jm_solution["y"][tail])
-                and k < len(jm_solution["y"][tail][head])
-            ):
-                solution_dict[var_id] = int(jm_solution["y"][tail][head][k])
-                # print(
-                #     f"  Mapped y[{tail},{head},{k}] = {jm_solution['y'][tail][head][k]}"
-                # )
-            else:
-                solution_dict[var_id] = 0
-                print(f"  y[{tail},{head},{k}] out of bounds, set to 0")
-
-        # Match x variables: x[tail,head,t] format
-        elif var_name == "x" and len(subscripts) == 3:
-            tail, head, t = subscripts[0], subscripts[1], subscripts[2]
-            if (
-                tail < len(jm_solution["x"])
-                and head < len(jm_solution["x"][tail])
-                and t < len(jm_solution["x"][tail][head])
-            ):
-                solution_dict[var_id] = int(jm_solution["x"][tail][head][t])
-                # print(
-                #     f"  Mapped x[{tail},{head},{t}] = {jm_solution['x'][tail][head][t]}"
-                # )
-            else:
-                solution_dict[var_id] = 0
-                print(f"  x[{tail},{head},{t}] out of bounds, set to 0")
-
-        # Match z variables: z[r,t] format
-        elif var_name == "z" and len(subscripts) == 2:
-            r, t = subscripts[0], subscripts[1]
-            if r < len(jm_solution["z"]) and t < len(jm_solution["z"][r]):
-                solution_dict[var_id] = int(jm_solution["z"][r][t])
-                # print(f"  Mapped z[{r},{t}] = {jm_solution['z'][r][t]}")
-            else:
-                solution_dict[var_id] = 0
-                print(f"  z[{r},{t}] out of bounds, set to 0")
-
+            solution_dict[var_id] = int(jm_solution["y"][tail][head][k])
         else:
-            # Unknown variable or format, set to 0
-            solution_dict[var_id] = 0
-            print(
-                f"  Unknown variable format: name='{var_name}', subscripts={subscripts}, set to 0"
-            )
+            raise ValueError(f"Invalid y variable subscripts: {subscripts}")
 
-    # Ensure all OMMX variables have values
-    for vid in var_ids:
-        if vid not in solution_dict:
+    # Process x variables
+    x_ids = var_ids[x_mask]
+    x_subscripts = var_subscripts[x_mask]
+    for i, var_id in enumerate(x_ids):
+        subscripts = x_subscripts[i]
+        if len(subscripts) == 3:
+            tail, head, t = subscripts[0], subscripts[1], subscripts[2]
+            solution_dict[var_id] = int(jm_solution["x"][tail][head][t])
+        else:
+            raise ValueError(f"Invalid x variable subscripts: {subscripts}")
+
+    # Process z variables
+    z_ids = var_ids[z_mask]
+    z_subscripts = var_subscripts[z_mask]
+    for i, var_id in enumerate(z_ids):
+        subscripts = z_subscripts[i]
+        if len(subscripts) == 2:
+            r, t = subscripts[0], subscripts[1]
+            solution_dict[var_id] = int(jm_solution["z"][r][t])
+        else:
+            raise ValueError(f"Invalid z variable subscripts: {subscripts}")
+
+    # Check for any unhandled variable types
+    handled_mask = y_mask | x_mask | z_mask
+    if not handled_mask.all():
+        unhandled_vars = var_names[~handled_mask]
+        raise ValueError(f"Unknown variable types: {set(unhandled_vars)}")
+
+    # Ensure all OMMX variables have values (this should not be needed with new implementation)
+    missing_vars = set(var_ids) - set(solution_dict.keys())
+    if missing_vars:
+        print(f"Warning: {len(missing_vars)} variables missing, setting to 0")
+        for vid in missing_vars:
             solution_dict[vid] = 0
 
     print(f"Created solution dictionary with {len(solution_dict)} variable assignments")
@@ -257,8 +251,8 @@ def process_single_instance(
 
     # Verify solution quality if solution directory is provided
     print(f"Verifying solutions qualities...", flush=True)
+    instance_name = Path(instance_path).name
     if solution_directory:
-        instance_name = Path(instance_path).name
         is_feasible, is_objective_match, results = verify_solution_qualities(
             instance_name=instance_name,
             ommx_instance=ommx_instance,
@@ -275,8 +269,7 @@ def process_single_instance(
                 f"Computed objective does not match file objective for instance {instance_name}."
                 f" Results: {results}"
             )
-    parent_dir = Path(instance_path).parent
-    solution_path = os.path.join(parent_dir, "sol.txt")
+    solution_path = os.path.join(instance_path, "sol.txt")
     if os.path.isfile(solution_path):
         result = verify_solution_quality(
             ommx_instance=ommx_instance,
