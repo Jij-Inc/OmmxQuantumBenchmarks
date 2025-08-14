@@ -106,14 +106,12 @@ def convert_steiner_solution_to_jijmodeling_format(
     # Process used arcs from solution
     for tail, head, net in solution_data["used_arcs"]:
         # Set y variable: y[tail, head, net] = 1.0
-        if 0 <= tail < num_nodes and 0 <= head < num_nodes and 0 <= net < num_nets:
-            y_values[tail][head][net] = 1.0
+        y_values[tail][head][net] = 1.0
 
         # Set x variables for all terminals in this net
         for t_idx, terminal in enumerate(terminals):
             if terminal_to_net[terminal] == net:
-                if 0 <= tail < num_nodes and 0 <= head < num_nodes:
-                    x_values[tail][head][t_idx] = 1.0
+                x_values[tail][head][t_idx] = 1.0
 
     # Calculate z values: z[r, t] = 1 if root_innet[r] == terminal_innet[t]
     for r_idx, root in enumerate(roots):
