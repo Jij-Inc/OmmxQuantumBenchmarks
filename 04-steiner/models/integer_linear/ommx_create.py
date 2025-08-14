@@ -10,18 +10,18 @@ Features:
 - Sequential processing
 """
 
+from datetime import datetime
 import gc
 import glob
 import os
+from pathlib import Path
 import time
 import traceback
-from datetime import datetime
-from pathlib import Path
 
 from dateutil.tz import tzlocal
-from ommx.artifact import ArtifactBuilder
 import jijmodeling as jm
 import ommx
+from ommx.artifact import ArtifactBuilder
 
 from dat_reader import load_steiner_instance
 from model import create_steiner_tree_packing_model
@@ -340,7 +340,7 @@ def batch_process_instances(
         )
     ]
     instance_dirs = [
-        r"/Users/keisukesato/dev/git/OMMX-OBLIB/04-steiner/instances/stp_s020_l2_t3_h3_rs97531"
+        r"/Users/keisukesato/dev/git/OMMX-OBLIB/04-steiner/instances/stp_s020_l2_t3_h2_rs24098"
     ]
 
     if not instance_dirs:
