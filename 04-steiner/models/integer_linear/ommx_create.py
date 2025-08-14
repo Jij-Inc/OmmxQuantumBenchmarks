@@ -339,9 +339,6 @@ def batch_process_instances(
             and any(f.suffix == ".dat" for f in item_path.iterdir() if f.is_file())
         )
     ]
-    instance_dirs = [
-        r"/Users/keisukesato/dev/git/OMMX-OBLIB/04-steiner/instances/stp_s020_l2_t3_h2_rs24098"
-    ]
 
     if not instance_dirs:
         print(f"No instance directories found in {instances_directory}", flush=True)
