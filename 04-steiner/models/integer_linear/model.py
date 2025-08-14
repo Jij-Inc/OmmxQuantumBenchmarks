@@ -109,7 +109,7 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     z = jm.BinaryVar(
         "z",
         shape=(roots.len_at(0), terminals.len_at(0)),
-        description="z[r, t] = 1 if root_innet[r] == terminal_innet[t]",
+        description="z[r, t] = 1 if innetR[r] == innetT[t]",
     )
     root_flow_out_big_m_lower = jm.Constraint(
         "root_flow_out_big_m_lower",

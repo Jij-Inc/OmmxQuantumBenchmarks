@@ -77,12 +77,12 @@ def convert_steiner_solution_to_jijmodeling_format(
     # Build terminal to net mapping
     terminal_to_net = {}  # Map terminal to its net
     for i, terminal in enumerate(terminals):
-        terminal_to_net[terminal] = instance_data["innetT"][i]
+        terminal_to_net[terminal] = instance_data["innetT"][i][1]
 
     # Build root to net mapping
     root_to_net = {}  # Map root to its net
     for i, root in enumerate(roots):
-        root_to_net[root] = instance_data["innetR"][i]
+        root_to_net[root] = instance_data["innetR"][i][1]
 
     num_nodes = len(nodes)
     num_terminals = len(terminals)
