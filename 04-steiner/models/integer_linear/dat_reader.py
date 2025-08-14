@@ -15,8 +15,8 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
         dict[str, object]: Dictionary containing all the data needed for JijModeling
     """
     # Define the start indices for nodes and nets.
-    node_start_index = 1
-    net_start_index = 1
+    node_start_index = 0
+    net_start_index = 0
 
     instance_path = Path(instance_path)
 
@@ -132,8 +132,8 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
     T_innet_array = [(terminal, innet_data[terminal]) for terminal in terminal_nodes]
 
     return {
-        "L": list(range(net_start_index, nets + 1)),  # Net indices
-        "V": list(range(node_start_index, nodes + 1)),  # Vertex indices
+        "L": list(range(net_start_index, nets)),  # Net indices
+        "V": list(range(node_start_index, nodes)),  # Vertex indices
         # "S": special_nodes,  # Special nodes (terms + roots)
         "R": roots_data,  # Root nodes
         "A": arcs_data,  # Arc pairs
