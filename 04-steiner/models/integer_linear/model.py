@@ -17,10 +17,10 @@ def create_steiner_tree_packing_model() -> jm.Problem:
         JijModeling problem instance with all constraints and variables
         defined for the Steiner tree packing problem.
     """
-    # nets, [1, 2, ..., |L|]
+    # nets, [0, 1, 2, ..., |L| - 1]
     nets = jm.Placeholder("L", ndim=1, dtype=jm.DataType.INTEGER, description="Nets")
     l = jm.Element("l", belong_to=(0, nets.len_at(0)))
-    # nodes, [1, 2, ..., |V|]
+    # nodes, [0, 1, 2, ..., |V| - 1]
     nodes = jm.Placeholder("V", ndim=1, dtype=jm.DataType.INTEGER, description="Nodes")
     v = jm.Element("v", belong_to=(0, nodes.len_at(0)))
     # root nodes, [r, ...]
@@ -95,7 +95,7 @@ def create_steiner_tree_packing_model() -> jm.Problem:
 
     # Objective: minimize sum cost[i,j] * y[i,j,k]
     objective = jm.sum(
-        [a, l], cost[arcs[a, 0], arcs[a, 1]] * y[arcs[a, 0], arcs[a, 1], l]
+        [a, l], cost[arcs[a, 0], arcs[a, 1]] * y[arcs[a, 0], arcs[a, 1], nets[l]]
     )
     problem += objective
 
@@ -230,7 +230,7 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     bind_x_y = jm.Constraint(
         "bind_x_y",
         jm.sum([(t, terminal_innet[t, 1] == nets[l])], x[arcs[a, 0], arcs[a, 1], t])
-        <= net_cardinality[l, 1] * y[arcs[a, 0], arcs[a, 1], l],
+        <= net_cardinality[l, 1] * y[arcs[a, 0], arcs[a, 1], nets[l]],
         forall=[a, l],
     )
     problem += bind_x_y
@@ -243,7 +243,7 @@ def create_steiner_tree_packing_model() -> jm.Problem:
         "disjoint_nonroot",
         jm.sum(
             [(a, arcs[a, 1] == nodes_without_roots[nwr]), l],
-            y[arcs[a, 0], arcs[a, 1], l],
+            y[arcs[a, 0], arcs[a, 1], nets[l]],
         )
         <= 1,
         forall=[nwr],
@@ -256,7 +256,8 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     #       sum <i,r> in A, <k> in L : y[i,r,k] <= 0;
     disjoint_root = jm.Constraint(
         "disjoint_root",
-        jm.sum([(a, arcs[a, 1] == roots[r]), l], y[arcs[a, 0], arcs[a, 1], l]) <= 0,
+        jm.sum([(a, arcs[a, 1] == roots[r]), l], y[arcs[a, 0], arcs[a, 1], nets[l]])
+        <= 0,
         forall=[r],
     )
     problem += disjoint_root
