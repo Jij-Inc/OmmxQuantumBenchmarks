@@ -16,7 +16,6 @@ def parse_steiner_sol_file(sol_file_path: str) -> dict[str, object]:
     solution_data = {
         "objective": None,
         "used_arcs": [],  # List of (tail, head, net) tuples from solution
-        "total_vars": 0,
     }
 
     with open(sol_file_path, "r") as file:
@@ -47,8 +46,6 @@ def parse_steiner_sol_file(sol_file_path: str) -> dict[str, object]:
                 except ValueError:
                     # Skip lines that don't contain valid integers
                     continue
-        # Count total variables used
-        solution_data["total_vars"] = len(solution_data["used_arcs"])
 
     return solution_data
 
