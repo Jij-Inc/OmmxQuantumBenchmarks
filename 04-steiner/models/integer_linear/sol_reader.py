@@ -1,4 +1,4 @@
-"""Optimized solution reader for Steiner Tree Packing Problem."""
+"""Arc-based optimized solution reader for Steiner Tree Packing Problem."""
 
 from collections import defaultdict
 from io import StringIO
@@ -62,10 +62,10 @@ def parse_steiner_sol_file(sol_file_path: str) -> dict[str, object]:
     return solution_data
 
 
-def convert_steiner_solution_to_jijmodeling_format(
+def convert_steiner_solution_to_jijmodeling_format_arc_based(
     solution_data: dict[str, object], instance_data: dict[str, object]
 ) -> dict[str, object]:
-    """Convert parsed Steiner solution data to JijModeling variable format using optimized operations.
+    """Convert parsed Steiner solution data to arc-based JijModeling variable format.
 
     Args:
         solution_data: Parsed solution data from parse_steiner_sol_file
@@ -73,62 +73,77 @@ def convert_steiner_solution_to_jijmodeling_format(
 
     Returns:
         Dictionary in JijModeling format containing:
-        - x: arc-terminal flow variables
-        - y: arc-net usage variables
+        - x: arc-terminal flow variables (arc_idx, terminal_idx)
+        - y: arc-net usage variables (arc_idx, net_idx)
+        - z: root-terminal auxiliary variables (root_idx, terminal_idx)
     """
 
-    # Get problem dimensions
-    nodes = instance_data["V"]  # List of nodes
+    # Get necessary data from instance data.
+    arcs = instance_data["A"]  # List of arc tuples
     terminals = instance_data["T"]  # List of terminal nodes
     nets = instance_data["L"]  # List of net indices
     roots = instance_data["R"]  # List of root nodes
-
+    arc_to_index = instance_data["arcToIndex"]  # Arc to index mapping
     # Build terminal to net mapping using vectorized operations
     terminal_to_net = dict(zip(terminals, [x[1] for x in instance_data["innetT"]]))
-
     # Build root to net mapping using vectorized operations
     root_to_net = dict(zip(roots, [x[1] for x in instance_data["innetR"]]))
-
-    num_nodes = len(nodes)
+    # Get number of arcs, terminals, nets, and roots.
+    num_arcs = len(arcs)
     num_terminals = len(terminals)
     num_nets = len(nets)
     num_roots = len(roots)
 
-    # Initialize arrays using numpy for better performance
-    x_values = np.zeros((num_nodes, num_nodes, num_terminals), dtype=float)
-    y_values = np.zeros((num_nodes, num_nodes, num_nets), dtype=float)
-    z_values = np.zeros((num_roots, num_terminals), dtype=float)
+    # Initialize arrays using numpy for better performance - ARC-BASED SHAPE
+    x_values = np.zeros((num_arcs, num_terminals), dtype=int)
+    y_values = np.zeros((num_arcs, num_nets), dtype=int)
+    z_values = np.zeros((num_roots, num_terminals), dtype=int)
 
     # Build adjacency lists for each net using defaultdict for efficiency
+    # net_graphs = {net: {node: [neighbours]}}
     net_graphs = defaultdict(lambda: defaultdict(list))
     for tail, head, net in solution_data["used_arcs"]:
         net_graphs[net][tail].append(head)
 
     # For each net, determine which terminals each arc serves
-    def find_reachable_terminals_from_arc(net, tail, head):
-        """Find terminals reachable from the head of arc (tail, head) in the given net."""
+    def find_reachable_terminals_from_arc(net: int, head: int) -> list[int]:
+        """Find terminals reachable from the head of arc (tail, head) in the given net.
+
+        Args:
+            net (int): net
+            head (int): head node of the arc
+
+        Returns:
+            list[int]: reachable terminal nodes in the current net
+        """
+        # Return early if net has no arcs
         if net not in net_graphs:
             return []
 
+        # Initialise variables.
         reachable_terminals = []
         visited = set()
         stack = [head]
 
+        # Find reachable terminals.
         while stack:
+            # Pop a node from the stack.
             node = stack.pop()
+            # Skip if already visited.
             if node in visited:
                 continue
+            # Mark node as visited.
             visited.add(node)
 
             # Check if this node is a terminal in the current net
             if node in terminals and terminal_to_net[node] == net:
                 reachable_terminals.append(node)
-
-            # Continue traversal
+            # Check if node has any neighbours.
             if node in net_graphs[net]:
-                for neighbor in net_graphs[net][node]:
-                    if neighbor not in visited:
-                        stack.append(neighbor)
+                # Add unvisited neighbours to the stack.
+                for neighbour in net_graphs[net][node]:
+                    if neighbour not in visited:
+                        stack.append(neighbour)
 
         return reachable_terminals
 
@@ -137,23 +152,28 @@ def convert_steiner_solution_to_jijmodeling_format(
 
     # Process used arcs from solution
     for tail, head, net in solution_data["used_arcs"]:
-        # Set y variable: y[tail, head, net] = 1.0
-        y_values[tail, head, net] = 1.0
+        # Get arc index
+        arc_idx = arc_to_index.get((tail, head))
+        # used_arcs should always contain valid arcs, so this should not happen.
+        assert arc_idx is not None, f"Arc ({tail}, {head}) not found in instance data."
+
+        # Set y variable: y[arc_idx, net] = 1
+        y_values[arc_idx, net] = 1
 
         # For x variables, determine which terminals this arc actually serves
         # by finding terminals reachable from the head of this arc
-        reachable_terminals = find_reachable_terminals_from_arc(net, tail, head)
+        reachable_terminals = find_reachable_terminals_from_arc(net, head)
 
         for terminal in reachable_terminals:
             t_idx = terminal_to_idx[terminal]
-            x_values[tail, head, t_idx] = 1.0
+            x_values[arc_idx, t_idx] = 1
 
     # Calculate z values using vectorized operations
     root_nets = np.array([root_to_net[root] for root in roots])
     terminal_nets = np.array([terminal_to_net[terminal] for terminal in terminals])
 
     # Use broadcasting to create a matrix comparison
-    z_values = (root_nets[:, np.newaxis] == terminal_nets[np.newaxis, :]).astype(float)
+    z_values = (root_nets[:, np.newaxis] == terminal_nets[np.newaxis, :]).astype(int)
 
     # Convert numpy arrays back to lists for compatibility
     jm_solution = {
@@ -168,21 +188,21 @@ def convert_steiner_solution_to_jijmodeling_format(
 def read_steiner_solution_file_as_jijmodeling_format(
     sol_file_path: str, instance_data: dict[str, object]
 ) -> dict[str, object]:
-    """Complete solution reading pipeline for Steiner Tree Packing problems.
+    """Complete solution reading pipeline for Steiner Tree Packing problems using arc-based format.
 
     Args:
         sol_file_path: Path to the solution file
         instance_data: Instance data from dat_reader
 
     Returns:
-        Solution in JijModeling format ready for evaluation
+        Solution in arc-based JijModeling format ready for evaluation
     """
 
     # Parse the solution file
     solution_data = parse_steiner_sol_file(sol_file_path)
 
-    # Convert to JijModeling format
-    jm_solution = convert_steiner_solution_to_jijmodeling_format(
+    # Convert to arc-based JijModeling format
+    jm_solution = convert_steiner_solution_to_jijmodeling_format_arc_based(
         solution_data, instance_data
     )
 

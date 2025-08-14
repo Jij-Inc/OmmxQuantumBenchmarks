@@ -102,29 +102,52 @@ def verify_solution_quality(
     x_mask = var_names == "x"
     z_mask = var_names == "z"
 
-    # Process y variables
+    # Get arc to index mapping for arc-based variables
+    arc_to_index = {
+        (tail, head): idx for idx, (tail, head) in enumerate(instance_data["A"])
+    }
+
+    # Process y variables - now arc-based: y[arc_idx, net_idx]
     y_ids = var_ids[y_mask]
     y_subscripts = var_subscripts[y_mask]
     for i, var_id in enumerate(y_ids):
         subscripts = y_subscripts[i]
-        if len(subscripts) == 3:
+        if len(subscripts) == 2:
+            # New arc-based format: y[arc_idx, net_idx]
+            arc_idx, k = subscripts[0], subscripts[1]
+            solution_dict[var_id] = int(jm_solution["y"][arc_idx][k])
+        elif len(subscripts) == 3:
+            # Legacy node-based format: y[tail, head, net_idx] -> convert to arc_idx
             tail, head, k = subscripts[0], subscripts[1], subscripts[2]
-            solution_dict[var_id] = int(jm_solution["y"][tail][head][k])
+            arc_idx = arc_to_index.get((tail, head))
+            if arc_idx is not None:
+                solution_dict[var_id] = int(jm_solution["y"][arc_idx][k])
+            else:
+                solution_dict[var_id] = 0  # Arc not found in instance
         else:
             raise ValueError(f"Invalid y variable subscripts: {subscripts}")
 
-    # Process x variables
+    # Process x variables - now arc-based: x[arc_idx, terminal_idx]
     x_ids = var_ids[x_mask]
     x_subscripts = var_subscripts[x_mask]
     for i, var_id in enumerate(x_ids):
         subscripts = x_subscripts[i]
-        if len(subscripts) == 3:
+        if len(subscripts) == 2:
+            # New arc-based format: x[arc_idx, terminal_idx]
+            arc_idx, t = subscripts[0], subscripts[1]
+            solution_dict[var_id] = int(jm_solution["x"][arc_idx][t])
+        elif len(subscripts) == 3:
+            # Legacy node-based format: x[tail, head, terminal_idx] -> convert to arc_idx
             tail, head, t = subscripts[0], subscripts[1], subscripts[2]
-            solution_dict[var_id] = int(jm_solution["x"][tail][head][t])
+            arc_idx = arc_to_index.get((tail, head))
+            if arc_idx is not None:
+                solution_dict[var_id] = int(jm_solution["x"][arc_idx][t])
+            else:
+                solution_dict[var_id] = 0  # Arc not found in instance
         else:
             raise ValueError(f"Invalid x variable subscripts: {subscripts}")
 
-    # Process z variables
+    # Process z variables - unchanged: z[root_idx, terminal_idx]
     z_ids = var_ids[z_mask]
     z_subscripts = var_subscripts[z_mask]
     for i, var_id in enumerate(z_ids):
@@ -245,7 +268,14 @@ def process_single_instance(
     # Convert to OMMX instance
     print("Creating OMMX instance...", flush=True)
     problem = create_steiner_tree_packing_model()
-    interpreter = jm.Interpreter(data)
+
+    # Create instance data mapping for JijModeling Interpreter
+    # This approach is more robust and explicit than passing the full dict
+    used_placeholders = problem.used_placeholders()
+    instance_data = {
+        ph.name: data[ph.name] for ph in used_placeholders if ph.name in data
+    }
+    interpreter = jm.Interpreter(instance_data)
     print("Evaluating problem...", flush=True)
     ommx_instance = interpreter.eval_problem(problem)
 

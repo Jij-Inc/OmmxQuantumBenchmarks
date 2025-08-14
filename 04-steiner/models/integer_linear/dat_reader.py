@@ -79,23 +79,18 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
     arcs_df["tail"] -= 1
     arcs_df["head"] -= 1
 
+    # Get all arcs as tuples.
     arcs = list(zip(arcs_df["tail"], arcs_df["head"]))
-    cost_dict = dict(zip(zip(arcs_df["tail"], arcs_df["head"]), arcs_df["cost"]))
+    # Create arc-based cost array (arc index -> cost)
+    arc_costs = arcs_df["cost"].tolist()
+    # Create arc index mapping for efficient lookup
+    arc_to_index = {(tail, head): idx for idx, (tail, head) in enumerate(arcs)}
 
     # Create derived sets using vectorized operations
     terminals = sorted(set(specials) - set(roots))  # T = S - R
     all_nodes = list(range(node_start_index, num_nodes + node_start_index))  # V
     normals = sorted(set(all_nodes) - set(specials))  # N = V - S
     nodes_without_roots = sorted(set(all_nodes) - set(roots))  # VNR = V - R
-
-    # Create cost matrix using numpy for better performance
-    cost_matrix = np.zeros((num_nodes, num_nodes), dtype=int)
-    if cost_dict:
-        indices = list(cost_dict.keys())
-        values = list(cost_dict.values())
-        rows, cols = zip(*indices)
-        cost_matrix[rows, cols] = values
-    cost_matrix = cost_matrix.tolist()
 
     # Create nets count array using vectorized operations
     nets = list(range(net_start_index, num_nets + net_start_index))
@@ -116,6 +111,7 @@ def load_steiner_instance(instance_path: str | Path) -> dict[str, object]:
         "VNR": nodes_without_roots,
         "innetR": root_to_net,  # Net assignment for root nodes
         "innetT": terminal_to_net,  # Net assignment for terminal nodes
-        "cost": cost_matrix,  # Cost matrix
+        "arcCosts": arc_costs,  # Arc-based costs array
+        "arcToIndex": arc_to_index,  # Arc to index mapping
         "netCardinality": net_cardinality,  # Number of terminals per net
     }

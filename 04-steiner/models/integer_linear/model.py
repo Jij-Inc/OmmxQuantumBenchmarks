@@ -1,17 +1,16 @@
 """
-Steiner Tree Packing Problem - Mathematically Correct Optimized Implementation
-Maximum auxiliary variable reduction while maintaining strict ZPL mathematical equivalence
+Steiner Tree Packing Problem - Arc-based Optimized Implementation
+Memory-efficient implementation using arc-based variable indexing
 """
 
 import jijmodeling as jm
 
 
 def create_steiner_tree_packing_model() -> jm.Problem:
-    """Create Steiner Tree Packing optimization model.
+    """Create Steiner Tree Packing optimization model using arc-based variables.
 
     Implements the node-disjoint Steiner tree packing problem using multicommodity
-    flow formulation. Mathematically equivalent to the ZPL formulation in
-    stp_node_disjoint.zpl.
+    flow formulation with arc-based indexing for memory efficiency.
 
     Returns:
         JijModeling problem instance with all constraints and variables
@@ -65,8 +64,8 @@ def create_steiner_tree_packing_model() -> jm.Problem:
         dtype=jm.DataType.INTEGER,
         description="Net assignments for roots",
     )
-    # cost matrix, [c_{ij}]
-    cost = jm.Placeholder("cost", ndim=2, description="Cost matrix")
+    # arc costs, [cost for each arc]
+    arc_costs = jm.Placeholder("arcCosts", ndim=1, description="Cost for each arc")
     # net cardinality, [(k in L, k's cardinality)]
     net_cardinality = jm.Placeholder(
         "netCardinality",
@@ -77,33 +76,26 @@ def create_steiner_tree_packing_model() -> jm.Problem:
 
     big_m = nodes.len_at(0) ** 2
 
+    # Arc-based variables - much more memory efficient
     x = jm.BinaryVar(
         "x",
-        shape=(nodes.len_at(0), nodes.len_at(0), terminals.len_at(0)),
-        description="x[i, j, t] = 1 if arc (i, j) carries flow for terminal t",
+        shape=(arcs.len_at(0), terminals.len_at(0)),
+        description="x[a, t] = 1 if arc a carries flow for terminal t",
     )
     y = jm.BinaryVar(
         "y",
-        shape=(nodes.len_at(0), nodes.len_at(0), nets.len_at(0)),
-        description="y[i, j, l] = 1 if arc (i, j) is used by net l",
+        shape=(arcs.len_at(0), nets.len_at(0)),
+        description="y[a, l] = 1 if arc a is used by net l",
     )
 
     # === Problem ===
-    problem = jm.Problem(
-        "SteinerTreePackingCorrectOptimized", sense=jm.ProblemSense.MINIMIZE
-    )
+    problem = jm.Problem("SteinerTreePackingArcBased", sense=jm.ProblemSense.MINIMIZE)
 
-    # Objective: minimize sum cost[i,j] * y[i,j,k]
-    objective = jm.sum(
-        [a, l], cost[arcs[a, 0], arcs[a, 1]] * y[arcs[a, 0], arcs[a, 1], nets[l]]
-    )
+    # Objective: minimize sum arc_costs[a] * y[a,k]
+    objective = jm.sum([a, l], arc_costs[a] * y[a, nets[l]])
     problem += objective
 
     # CONSTRAINT 1: ROOT FLOW OUT
-    # subto root_flow_out:
-    #    forall <t> in T do
-    #       forall <r> in R do
-    #          sum <r,j> in A : x[r,j,t] == if innet[r] == innet[t] then 1 else 0 end;
     # Employ Big-M method to handle the condition innet[r] == innet[t].
     # The new variable should be 1 if root_innet(r) == terminal_innet(t), otherwise 0
     z = jm.BinaryVar(
@@ -113,70 +105,56 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     )
     root_flow_out_big_m_lower = jm.Constraint(
         "root_flow_out_big_m_lower",
-        jm.sum([(a, arcs[a, 0] == roots[r])], x[arcs[a, 0], arcs[a, 1], t]) >= z[r, t],
+        jm.sum([(a, arcs[a, 0] == roots[r])], x[a, t]) >= z[r, t],
         forall=[t, r],
     )
     problem += root_flow_out_big_m_lower
 
     root_flow_out_big_m_upper = jm.Constraint(
         "root_flow_out_big_m_upper",
-        jm.sum([(a, arcs[a, 0] == roots[r])], x[arcs[a, 0], arcs[a, 1], t])
+        jm.sum([(a, arcs[a, 0] == roots[r])], x[a, t])
         <= z[r, t] + big_m * (1 - z[r, t]),
         forall=[t, r],
     )
     problem += root_flow_out_big_m_upper
 
     root_flow_out_z_condition = jm.Constraint(
-        "root_flow_out_z_consition",
+        "root_flow_out_z_condition",
         z[r, t] <= 1 - jm.abs(terminal_innet[t, 1] - root_innet[r, 1]) / big_m,
         forall=[t, r],
     )
     problem += root_flow_out_z_condition
 
     # 2. ROOT FLOW IN
-    # subto root_flow_in:
-    #    forall <t> in T do
-    #       forall <r> in R do
-    #          sum <i,r> in A : x[i,r,t] == 0;
     root_flow_in = jm.Constraint(
         "root_flow_in",
-        jm.sum([(a, arcs[a, 1] == roots[r])], x[arcs[a, 0], arcs[a, 1], t]) == 0,
+        jm.sum([(a, arcs[a, 1] == roots[r])], x[a, t]) == 0,
         forall=[t, r],
     )
     problem += root_flow_in
 
     # 3. TERMINAL FLOW OUT
-    # subto terms_flow_out:
-    #    forall <t> in T do
-    #       sum <t,j> in A : x[t,j,t] == 0;
     terms_flow_out = jm.Constraint(
         "terms_flow_out",
-        jm.sum([(a, arcs[a, 0] == terminals[t])], x[arcs[a, 0], arcs[a, 1], t]) == 0,
+        jm.sum([(a, arcs[a, 0] == terminals[t])], x[a, t]) == 0,
         forall=[t],
     )
     problem += terms_flow_out
 
     # 4. TERMINAL FLOW IN
-    # subto terms_flow_in:
-    #    forall <t> in T do
-    #       sum <i,t> in A : x[i,t,t] == 1;
     terms_flow_in = jm.Constraint(
         "terms_flow_in",
-        jm.sum([(a, arcs[a, 1] == terminals[t])], x[arcs[a, 0], arcs[a, 1], t]) == 1,
+        jm.sum([(a, arcs[a, 1] == terminals[t])], x[a, t]) == 1,
         forall=[t],
     )
     problem += terms_flow_in
 
     # 5. TERMINAL FLOW BALANCE SAME NET
-    # subto terms_flow_bal_same:
-    #    forall <t> in T do
-    #       forall <s> in T with s != t and innet[s] == innet[t] do
-    #          sum <i,s> in A : x[i,s,t] - sum <s,j> in A : x[s,j,t] == 0;
     terms_flow_bal_same = jm.Constraint(
         "terms_flow_bal_same",
         (
-            jm.sum([(a, arcs[a, 1] == terminals[s])], x[arcs[a, 0], arcs[a, 1], t])
-            - jm.sum([(a, arcs[a, 0] == terminals[s])], x[arcs[a, 0], arcs[a, 1], t])
+            jm.sum([(a, arcs[a, 1] == terminals[s])], x[a, t])
+            - jm.sum([(a, arcs[a, 0] == terminals[s])], x[a, t])
             == 0
         ),
         forall=[
@@ -191,15 +169,11 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     problem += terms_flow_bal_same
 
     # 6. TERMINAL FLOW BALANCE DIFFERENT NET
-    # subto terms_flow_bal_diff:
-    #    forall <t> in T do
-    #       forall <s> in T with innet[s] != innet[t] do
-    #          sum <i,s> in A : x[i,s,t] + sum <s,j> in A : x[s,j,t] == 0;
     terms_flow_bal_diff = jm.Constraint(
         "terms_flow_bal_diff",
         (
-            jm.sum([(a, arcs[a, 1] == terminals[s])], x[arcs[a, 0], arcs[a, 1], t])
-            - jm.sum([(a, arcs[a, 0] == terminals[s])], x[arcs[a, 0], arcs[a, 1], t])
+            jm.sum([(a, arcs[a, 1] == terminals[s])], x[a, t])
+            - jm.sum([(a, arcs[a, 0] == terminals[s])], x[a, t])
             == 0
         ),
         forall=[t, (s, (terminal_innet[s, 1] != terminal_innet[t, 1]))],
@@ -207,15 +181,11 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     problem += terms_flow_bal_diff
 
     # 7. NORMAL NODES FLOW BALANCE
-    # subto nodes_flow_bal:
-    #    forall <t> in T do
-    #       forall <n> in N do
-    #          sum <n,j> in A : x[n,j,t] - sum <i,n> in A : x[i,n,t] == 0;
     normal_flow_bal = jm.Constraint(
         "normal_flow_bal",
         (
-            jm.sum([(a, arcs[a, 0] == normals[n])], x[arcs[a, 0], arcs[a, 1], t])
-            - jm.sum([(a, arcs[a, 1] == normals[n])], x[arcs[a, 0], arcs[a, 1], t])
+            jm.sum([(a, arcs[a, 0] == normals[n])], x[a, t])
+            - jm.sum([(a, arcs[a, 1] == normals[n])], x[a, t])
             == 0
         ),
         forall=[t, n],
@@ -223,27 +193,20 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     problem += normal_flow_bal
 
     # CONSTRAINT 8: BIND X TO Y
-    # subto bind_x_y:
-    #    forall <i,j> in A do
-    #       forall <k> in L do
-    #          sum <t> in T with innet[t] == k : x[i,j,t] <= nets[k] * y[i,j,k];
     bind_x_y = jm.Constraint(
         "bind_x_y",
-        jm.sum([(t, terminal_innet[t, 1] == nets[l])], x[arcs[a, 0], arcs[a, 1], t])
-        <= net_cardinality[l, 1] * y[arcs[a, 0], arcs[a, 1], nets[l]],
+        jm.sum([(t, terminal_innet[t, 1] == nets[l])], x[a, t])
+        <= net_cardinality[l, 1] * y[a, nets[l]],
         forall=[a, l],
     )
     problem += bind_x_y
 
     # CONSTRAINT 9: NODE DISJOINTNESS NON-ROOT
-    # subto disjoint_nonroot:
-    #    forall <j> in V without R do
-    #       sum <i,j> in A, <k> in L : y[i,j,k] <= 1;
     disjoint_nonroot = jm.Constraint(
         "disjoint_nonroot",
         jm.sum(
             [(a, arcs[a, 1] == nodes_without_roots[nwr]), l],
-            y[arcs[a, 0], arcs[a, 1], nets[l]],
+            y[a, nets[l]],
         )
         <= 1,
         forall=[nwr],
@@ -251,13 +214,9 @@ def create_steiner_tree_packing_model() -> jm.Problem:
     problem += disjoint_nonroot
 
     # CONSTRAINT 10: ROOT NODE DISJOINTNESS
-    # subto disjoint_root:
-    #    forall <r> in R do
-    #       sum <i,r> in A, <k> in L : y[i,r,k] <= 0;
     disjoint_root = jm.Constraint(
         "disjoint_root",
-        jm.sum([(a, arcs[a, 1] == roots[r]), l], y[arcs[a, 0], arcs[a, 1], nets[l]])
-        <= 0,
+        jm.sum([(a, arcs[a, 1] == roots[r]), l], y[a, nets[l]]) <= 0,
         forall=[r],
     )
     problem += disjoint_root
