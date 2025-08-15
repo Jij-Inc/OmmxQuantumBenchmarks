@@ -104,9 +104,7 @@ def batch_process_from_qbench_json(
             solution = None
             try:
                 # Using the updated parse_sol_file (z1..zn, x1..xn)
-                energy_dict, entries_dict, solution_dict = parse_sol_file(
-                    sol_file, math.factorial(n)
-                )
+                energy_dict, solution_dict = parse_sol_file(sol_file, math.factorial(n))
                 solution = ommx_instance.evaluate(solution_dict)
                 if (
                     energy_dict.get("Energy") == solution.objective

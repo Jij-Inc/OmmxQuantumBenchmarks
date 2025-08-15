@@ -1,10 +1,9 @@
 import re
-from typing import Tuple, Dict, Any
 
 
 def parse_sol_file(
     file_path: str, n: int
-) -> Tuple[Dict[str, Any], Dict[str, int], Dict[int, float]]:
+) -> tuple[dict[str, int], dict[str, int], dict[int, float]]:
 
     energy = None
     z_vars = {}
@@ -46,6 +45,5 @@ def parse_sol_file(
         solution_dict[n + i - 1] = x_vars.get(i, 0.0)
 
     energy_dict = {"Energy": energy}
-    entries_dict = {}  # not applicable for this format
 
-    return energy_dict, entries_dict, solution_dict
+    return energy_dict, solution_dict

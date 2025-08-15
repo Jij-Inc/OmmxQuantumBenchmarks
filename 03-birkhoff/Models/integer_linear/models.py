@@ -1,5 +1,4 @@
 import jijmodeling as jm
-import numpy as np
 
 
 def create_problem():
