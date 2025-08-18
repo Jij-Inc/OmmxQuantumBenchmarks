@@ -338,6 +338,27 @@ def process_single_instance(
     gc.collect()
 
 
+def get_node_count_from_param_dat(instance_path: str) -> int:
+    """Read node count from param.dat file.
+
+    Args:
+        instance_path (str): Path to instance directory
+
+    Returns:
+        int: Number of nodes, or 0 if file not found or parsing fails
+    """
+    param_file = os.path.join(instance_path, "param.dat")
+    try:
+        with open(param_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("nodes "):
+                    return int(line.split()[1])
+    except (FileNotFoundError, ValueError, IndexError):
+        pass
+    return 0
+
+
 def batch_process_instances(
     instances_directory: str = "../../instances",
     solution_directory: str = "../../solutions",
@@ -358,17 +379,19 @@ def batch_process_instances(
     # Create output directory
     os.makedirs(output_directory, exist_ok=True)
 
-    # Directory scanning
+    # Directory scanning - filter by node count <= 4500 from param.dat
     instances_path = Path(instances_directory)
-    instance_dirs = [
-        str(item_path)
-        for item_path in instances_path.iterdir()
+    instance_dirs = []
+
+    for item_path in instances_path.iterdir():
         if (
             item_path.is_dir()
             and not item_path.name.startswith(".")
             and any(f.suffix == ".dat" for f in item_path.iterdir() if f.is_file())
-        )
-    ]
+        ):
+            node_count = get_node_count_from_param_dat(str(item_path))
+            if node_count > 0 and node_count <= 4500:
+                instance_dirs.append(str(item_path))
 
     if not instance_dirs:
         print(f"No instance directories found in {instances_directory}", flush=True)
