@@ -1,6 +1,6 @@
 # Custom
-./misc/github_info.json
-./misc/.minto_experiments
+misc/github_info.json
+misc/.minto_experiments
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
