@@ -20,10 +20,18 @@ def parse_sol_to_ordered_dict(file_path: str, constraint_count: int) -> dict:
     with open(file_path, "r") as file:
         for line in file:
             line = line.strip()
-
-            # Skip comments and empty lines
-            if line.startswith("#") or not line:
+            if not line:
                 continue
+
+            # Header lines
+            if line.startswith("#"):
+                # match Energy
+                m = re.match(
+                    r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+)", line, re.IGNORECASE
+                )
+                if m:
+                    energy = float(m.group(1))
+                    continue
 
             # Parse variable line
             parts = line.split()
@@ -69,61 +77,5 @@ def parse_sol_to_ordered_dict(file_path: str, constraint_count: int) -> dict:
         ordered_dict[current_index] = x_vars[x_idx]
         current_index += 1
 
-    return ordered_dict
-
-
-def show_variable_mapping(file_path: str, constraint_count: int):
-    """
-    Display the mapping from dictionary index to variable name and value.
-
-    Args:
-        file_path: path to the .sol file
-        constraint_count: number of constraints (expected s variable count)
-    """
-    s_vars = {}
-    x_vars = {}
-
-    with open(file_path, "r") as file:
-        for line in file:
-            line = line.strip()
-            # Skip comments and empty lines
-            if line.startswith("#") or not line:
-                continue
-
-            parts = line.split()
-            if len(parts) == 2:
-                var_name, value = parts
-                try:
-                    var_value = float(value)
-                    match = re.search(r"([a-zA-Z]+)#(\d+)", var_name)
-                    if match:
-                        var_type = match.group(1)
-                        var_index = int(match.group(2))
-
-                        if var_type == "s":
-                            s_vars[var_index] = var_value
-                        elif var_type == "x":
-                            x_vars[var_index] = var_value
-                except ValueError:
-                    continue
-
-    # Fill missing s variables with 0
-    for i in range(1, constraint_count + 1):
-        if i not in s_vars:
-            s_vars[i] = 0.0
-
-    print("Variable mapping:")
-    print("Dict Index -> Variable Name -> Value")
-    print("-" * 35)
-
-    current_index = 0
-    # s variables
-    for s_idx in sorted(s_vars.keys()):
-        status = "(filled with 0)" if s_vars[s_idx] == 0.0 else ""
-        print(f"{current_index:2d} -> s#{s_idx} -> {s_vars[s_idx]} {status}")
-        current_index += 1
-
-    # x variables
-    for x_idx in sorted(x_vars.keys()):
-        print(f"{current_index:2d} -> x#{x_idx} -> {x_vars[x_idx]}")
-        current_index += 1
+    energy_dict = {"Energy": energy}
+    return energy_dict, ordered_dict

@@ -1,5 +1,6 @@
 import os
 import glob
+import math
 from pathlib import Path
 import jijmodeling as jm
 from ommx.artifact import ArtifactBuilder
@@ -80,18 +81,27 @@ def batch_process_files(
 
             # Read and evaluate the solution
             try:
-                solution_dict = parse_sol_to_ordered_dict(
+                energy_dict, solution_dict = parse_sol_to_ordered_dict(
                     sol_file, len(instance_data["I"])
                 )
                 solution = ommx_instance.evaluate(solution_dict)
+                if (
+                    math.isclose(
+                        energy_dict["Energy"], solution.objective, rel_tol=1e-6
+                    )
+                    and solution.feasible
+                ):
+                    print(
+                        f"  → objective={solution.objective}, feasible={solution.feasible}"
+                    )
+                else:
+                    print("Objective or feasible Error")
 
-                print(
-                    f"Solution evaluation result: objective={solution.objective}, feasible={solution.feasible}"
-                )
             except Exception as sol_error:
-                print(f"Error processing solution file: {str(sol_error)}")
-                print("Skipping solution evaluation and only saving the instance...")
-                solution = None
+                print(f"  ! Error evaluating solution: {sol_error}")
+                print(
+                    "    Skipping solution evaluation and only saving the instance..."
+                )
 
             # Construct the output filename
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
