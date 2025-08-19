@@ -1,6 +1,7 @@
 import jijmodeling as jm
 
-def create_problem():
+
+def create_problem() -> jm.Problem:
     """
     Create the JijModeling problem definition.
     """
@@ -22,7 +23,5 @@ def create_problem():
     problem = jm.Problem("Marketsplit_unconstrained", sense=jm.ProblemSense.MINIMIZE)
 
     # Objective function
-    problem += jm.sum(
-        [i], (b[i] - jm.sum([j], a[i, j] * x[j]))**2
-    )
+    problem += jm.sum([i], (b[i] - jm.sum([j], a[i, j] * x[j])) ** 2)
     return problem
