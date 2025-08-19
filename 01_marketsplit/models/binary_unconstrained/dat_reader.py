@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Dict, List, Tuple, Any
+
 
 class QOBLIBReader:
     """
@@ -20,7 +20,7 @@ class QOBLIBReader:
         self.A = None  # Coefficient matrix A (m x n)
         self.b = None  # Right-hand side vector b (length m)
 
-    def read_dat_file(self) -> Dict[str, Any]:
+    def read_dat_file(self) -> dict[str, int]:
         """
         Read and parse the QOBLIB .dat file.
 
@@ -31,14 +31,14 @@ class QOBLIBReader:
                 - 'a': Coefficient matrix A (shape: m x n)
                 - 'b': Right-hand side vector b (length m)
         """
-        with open(self.filepath, 'r', encoding='utf-8') as f:
+        with open(self.filepath, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Remove comment lines and strip whitespace
         lines = []
-        for line in content.split('\n'):
+        for line in content.split("\n"):
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.startswith("#"):
                 lines.append(line)
 
         if not lines:
@@ -58,9 +58,13 @@ class QOBLIBReader:
             all_numbers.extend([int(x) for x in numbers])
 
         # Validate total number of values
-        expected_numbers = self.m * (self.n + 1)  # Each row: n coefficients + 1 constant
+        expected_numbers = self.m * (
+            self.n + 1
+        )  # Each row: n coefficients + 1 constant
         if len(all_numbers) != expected_numbers:
-            raise ValueError(f"Data length mismatch: expected {expected_numbers}, got {len(all_numbers)}")
+            raise ValueError(
+                f"Data length mismatch: expected {expected_numbers}, got {len(all_numbers)}"
+            )
 
         # Reshape into A (m x n) and b (length m)
         self.A = []
@@ -72,15 +76,15 @@ class QOBLIBReader:
             row_data = all_numbers[start_idx:end_idx]
 
             self.A.append(row_data[:-1])  # First n elements are coefficients
-            self.b.append(row_data[-1])   # Last element is the RHS constant
+            self.b.append(row_data[-1])  # Last element is the RHS constant
 
         self.A = np.array(self.A)
         self.b = np.array(self.b)
 
-        #return the instance
+        # return the instance
         return {
-            'I': np.arange(self.m),
-            'J': np.arange(self.n),
-            'a': self.A,
-            'b': self.b
+            "I": np.arange(self.m),
+            "J": np.arange(self.n),
+            "a": self.A,
+            "b": self.b,
         }
