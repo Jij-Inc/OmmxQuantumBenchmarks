@@ -1,3 +1,7 @@
+# Custom
+./misc/github_info.json
+./misc/.minto_experiments
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
