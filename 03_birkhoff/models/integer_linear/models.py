@@ -1,5 +1,6 @@
 import jijmodeling as jm
 
+
 def create_problem():
     """
     Create the JijModeling problem definition.
