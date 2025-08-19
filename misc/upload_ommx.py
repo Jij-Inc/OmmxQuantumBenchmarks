@@ -143,7 +143,7 @@ def are_same_instances(
         instance2 (ommx.v1.Instance): the second ommx instance.
 
     Returns:
-        bool: True if the instances are the same, False otherwise.
+        bool: True if the instances are the same (decision variables, constraints, and objective match), False otherwise.
     """
     # Check the decision variables of the instances.
     instance1_vars = instance1.decision_variables
@@ -192,6 +192,15 @@ def are_same_instances(
 def are_same_solutions(
     solution1: ommx.v1.Solution, solution2: ommx.v1.Solution
 ) -> bool:
+    """Check if two OMMX solutions are equivalent.
+
+    Args:
+        solution1 (ommx.v1.Solution): The first solution to compare.
+        solution2 (ommx.v1.Solution): The second solution to compare.
+
+    Returns:
+        bool: True if the solutions are the same (objective value, decision variables, and feasibility match), False otherwise.
+    """
     # Return False if the objective values are different.
     if solution1.objective != solution2.objective:
         print(
