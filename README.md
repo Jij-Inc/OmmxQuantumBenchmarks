@@ -1,7 +1,7 @@
 # OMMX-OBLIB
 This directory is dedicated to distributing the dataset [QOBLIB - Quantum Optimization Benchmarking Library](https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library) in `ommx` format. Note that currently, this directory does not provide all datasets, such as the fourth dataset Steiner Tree Packing pointed out in [issue 8](https://github.com/Jij-Inc/OMMX-OBLIB/issues/8). Please have a look at [OMMX-OBLIB/Packages](https://github.com/orgs/Jij-Inc/packages?repo_name=OMMX-OBLIB) to see which datasets are distributed.
 
-## How to Download Dataset
+## How to Download Datasets
 You can access each dataset from [OMMX-OBLIB/Packages](https://github.com/orgs/Jij-Inc/packages?repo_name=OMMX-OBLIB) using [Minto](https://jij-inc.github.io/minto). The code below shows an example of how to load a dataset.
 
 ```python
@@ -24,7 +24,7 @@ instance = instance_dict[key]
 solution = solution_dict[key]
 ```
 
-## How to Upload Dataset
+## How to Upload a Dataset
 You can upload a dataset using the `./misc/upload_ommx.py` script. To upload any dataset, you need to prepare a GitHub personal access token (PAT). The following command uploads the specified dataset to Package.
 
 ```bash
@@ -45,3 +45,6 @@ target_model_path --- directory(1) --- ommx_output --- `.ommx` files
 ```
 
 Each `directory(i)` will be processed as one package.
+
+## How to Create `.ommx` files
+Each dataset directory should contain a `model` directory and some sub-directories under the `model` directory. Those sub-directories should have an `ommx_create.py` script. Simply running the script `uv run ommx_create.py` creates an `ommx_output` directory and produces `.ommx` files in it.
