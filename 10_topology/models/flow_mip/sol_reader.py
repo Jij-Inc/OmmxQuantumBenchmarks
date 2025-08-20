@@ -1,3 +1,4 @@
+from collections import deque
 import gzip
 from pathlib import Path
 
@@ -86,24 +87,73 @@ def convert_topology_solution_to_jijmodeling_format(
     # z[i,j] - binary variable for edge existence (symmetric matrix)
     z = [[0 for _ in range(nodes)] for _ in range(nodes)]
 
-    # Fill in the edges from solution
+    # Fill in the edges from solution and build adjacency list
+    adjacency = [[] for _ in range(nodes)]
     for edge in edges_list:
         i, j = edge[0], edge[1]
         z[i][j] = 1
         z[j][i] = 1  # Symmetric
+        adjacency[i].append(j)
+        adjacency[j].append(i)
 
-    # For topology optimization, we also need to initialize other variables
-    # SP[s,t] - shortest path lengths (will be computed based on graph structure)
-    SP = [[0 for _ in range(nodes)] for _ in range(nodes)]
+    # Compute shortest paths using BFS for each source node
+    shortest_path = [[0 for _ in range(nodes)] for _ in range(nodes)]
+    for s in range(nodes):
+        # BFS from source s
+        distances = [-1] * nodes
+        distances[s] = 0
+        queue = deque([s])
 
-    # x[s,t,i,j] - flow variables (complex to compute from just edge list)
-    # For now, we'll just provide the basic solution structure
+        while queue:
+            current = queue.popleft()
+            for neighbor in adjacency[current]:
+                if distances[neighbor] == -1:  # Not visited
+                    distances[neighbor] = distances[current] + 1
+                    queue.append(neighbor)
+
+        # Fill SP matrix
+        for t in range(nodes):
+            if s != t:
+                shortest_path[s][t] = (
+                    distances[t] if distances[t] != -1 else float("inf")
+                )
+
+    # x[s,t,i,j] - flow variables based on shortest paths
     x = [
         [[[0 for _ in range(nodes)] for _ in range(nodes)] for _ in range(nodes)]
         for _ in range(nodes)
     ]
 
-    return {"diameter": diameter, "z": z, "SP": SP, "x": x}
+    # For each source-target pair, compute the flow that realizes the shortest path
+    for s in range(nodes):
+        for t in range(nodes):
+            if s != t and shortest_path[s][t] != float("inf"):
+                # BFS to find shortest path and construct flow
+                distances = [-1] * nodes
+                parent = [-1] * nodes
+                distances[s] = 0
+                queue = deque([s])
+
+                while queue:
+                    current = queue.popleft()
+                    if current == t:
+                        break
+                    for neighbor in adjacency[current]:
+                        if distances[neighbor] == -1:
+                            distances[neighbor] = distances[current] + 1
+                            parent[neighbor] = current
+                            queue.append(neighbor)
+
+                # Trace back path and set flow variables
+                if distances[t] != -1:
+                    current = t
+                    while parent[current] != -1:
+                        prev = parent[current]
+                        # Set flow from prev to current for commodity (s,t)
+                        x[s][t][prev][current] = 1
+                        current = prev
+
+    return {"diameter": diameter, "z": z, "SP": shortest_path, "x": x}
 
 
 def read_topology_solution_file_as_jijmodeling_format(
