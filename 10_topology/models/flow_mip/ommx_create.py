@@ -3,6 +3,8 @@ import gc
 import glob
 import os
 from pathlib import Path
+import time
+import traceback
 
 from dateutil.tz import tzlocal
 import jijmodeling as jm
@@ -259,3 +261,124 @@ def process_single_instance(
     # Aggressive memory cleanup
     del ommx_instance, builder, data
     gc.collect()
+
+
+def get_node_count_from_dat_file(instance_path: str) -> int:
+    """Read node count from .dat file.
+
+    Args:
+        instance_path (str): Path to .dat file
+
+    Returns:
+        int: Number of nodes, or 0 if file not found or parsing fails
+    """
+    try:
+        data = load_topology_instance(instance_path)
+        return data.get("nodes", 0)
+    except Exception:
+        return 0
+
+
+def batch_process_instances(
+    instances_directory: str = "../../instances",
+    solution_directory: str = "../../solutions",
+    output_directory: str = "./ommx_output",
+    max_nodes: int = 100,
+) -> None:
+    """Process all Topology instances sequentially.
+
+    Args:
+        instances_directory (str): Path to directory containing instance .dat files
+        solution_directory (str): Path to directory containing solution files for verification
+        output_directory (str): Path where .ommx files will be saved
+        max_nodes (int): Maximum number of nodes to process (for memory management)
+
+    Note:
+        - Only processes .dat files
+        - Skips files with more than max_nodes nodes
+        - Provides progress reporting and timing statistics
+    """
+    # Create output directory
+    os.makedirs(output_directory, exist_ok=True)
+
+    # Find all .dat files in instances directory
+    instances_path = Path(instances_directory)
+    dat_files = []
+
+    for dat_file in instances_path.glob("*.dat"):
+        if dat_file.is_file():
+            node_count = get_node_count_from_dat_file(str(dat_file))
+            if 0 < node_count <= max_nodes:
+                dat_files.append(str(dat_file))
+
+    if not dat_files:
+        print(f"No valid .dat files found in {instances_directory}", flush=True)
+        return
+
+    print(f"Found {len(dat_files)} topology instances", flush=True)
+    print(f"Max nodes filter: <= {max_nodes}", flush=True)
+    print(f"Output directory: {output_directory}", flush=True)
+    print("=" * 80, flush=True)
+
+    processed_count = 0
+    error_count = 0
+    start_time = time.time()
+
+    # Process instances sequentially
+    for i, dat_file in enumerate(dat_files):
+        instance_name = Path(dat_file).stem  # Remove .dat extension
+        progress = ((i + 1) / len(dat_files)) * 100
+
+        try:
+            process_single_instance(dat_file, output_directory, solution_directory)
+
+            processed_count += 1
+            print(
+                f"✓ [{i+1:3d}/{len(dat_files)}] ({progress:5.1f}%) {instance_name}",
+                flush=True,
+            )
+
+        except Exception as e:
+            error_count += 1
+            print(
+                f"✗ [{i+1:3d}/{len(dat_files)}] ({progress:5.1f}%) {instance_name} - Exception: {e}",
+                flush=True,
+            )
+
+        # Force garbage collection after each instance
+        gc.collect()
+
+    elapsed_time = time.time() - start_time
+
+    print("=" * 80)
+    print("SUMMARY:")
+    print(f"  Total instances: {len(dat_files)}")
+    print(f"  Successfully processed: {processed_count}")
+    print(f"  Errors: {error_count}")
+    print(f"  Processing time: {elapsed_time:.2f} seconds")
+    if len(dat_files) > 0:
+        print(f"  Average time per instance: {elapsed_time/len(dat_files):.2f} seconds")
+        print(f"  Throughput: {len(dat_files)/elapsed_time:.2f} instances/second")
+    print(f"  Output files saved to: {os.path.abspath(output_directory)}")
+
+
+def main() -> None:
+    """Main function to execute topology OMMX conversion.
+
+    Supports both single instance and batch processing modes.
+    """
+    print("Batch Processing Topology Instances to OMMX")
+    print("=" * 60)
+
+    try:
+        instances_dir = "../../instances"
+        output_dir = "./ommx_output"
+        solution_dir = "../../solutions"
+        batch_process_instances(instances_dir, solution_dir, output_dir)
+    except Exception as e:
+        print(f"Error during batch processing: {e}")
+        traceback.print_exc()
+
+
+if __name__ == "__main__":
+    main()
