@@ -102,7 +102,7 @@ def verify_minto_experiment(experiment: minto.Experiment, dir_path: str) -> bool
         if experiment_instance is None:
             print(f"Instance {instance_name} is missing in the experiment.")
             return False
-        # Return False if the instance is not
+        # Return False if the instance found in the experiment is not the same as the loaded instance.
         if not are_same_instances(experiment_instance, loaded_instance):
             print(
                 f"Instance {instance_name} in the given experiment is not the same as the loaded instance."
@@ -249,7 +249,7 @@ def upload_ommx(
     print(f"GitHub Repository: {repo}")
     print("===========================")
 
-    # Set up the github authentication environment variables.
+    # Set up the GitHub authentication environment variables.
     os.environ["OMMX_BASIC_AUTH_DOMAIN"] = "ghcr.io"
 
     # Obtain all directories in the target model directory.

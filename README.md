@@ -28,7 +28,7 @@ solution = solution_dict[key]
 You can upload a dataset using the `./misc/upload_ommx.py` script. To upload any dataset, you need to prepare a GitHub personal access token (PAT). Moreover, this script leverages `ommx.artifact.Artifact` (through `Minto` [Ref.](https://jij-inc.github.io/minto/en/tutorials/github_push.html)). To use this upload script, you need to setup OMMX CLI first to save information. The following steps are what you need to go through.
 
 1. Setup rust environment to use `cargo`.
-2. Setup OMMX CLI: `cargo instalal ommx`.
+2. Setup OMMX CLI: `cargo install ommx`.
 3. Login OMMX: `ommx login https://ghcr.io/v2/Jij-Inc/OMMX-OBLIB --username [your_username] --password [your_PAT]`.
 4. Run the script at `misc` directory:
 
