@@ -31,8 +31,7 @@ def batch_process(
     convert them into OMMX artifacts, and save them to the output directory.
 
     Parameters:
-        json_path (str): Path to the QBench JSON file.
-        sol_subdir (str): Name of the solution subdirectory, e.g., "03_dense".
+        inst_dir (str): Path to the gph..
         sol_root (str): Path to the root solutions directory.
         output_directory (str): Path to save the generated .ommx files.
     """
@@ -64,9 +63,7 @@ def batch_process(
                 try:
                     print(f"  → Evaluating solution: {sol_path}")
                     obj_from_file, solution_dict = parse_sol_file(sol_path, N)
-                    print("A: ", obj_from_file["Energy"])
                     solution = ommx_instance.evaluate(solution_dict)
-                    print("B ", solution.objective)
                     if (
                         solution.feasible
                         and abs(solution.objective - obj_from_file["Energy"]) < 1e-6
