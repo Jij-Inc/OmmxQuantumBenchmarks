@@ -8,7 +8,7 @@ You can access each dataset from [OMMX-OBLIB/Packages](https://github.com/orgs/J
 import minto
 import ommx
 
-image_name = "ghcr.io/jij-inc/ommx-oblib/02_labs/integer:20250819172014"
+image_name = "url_to_image_you_would_like_to_download"
 experiment = minto.Experiment.load_from_registry(image_name)
 
 datastore = experiment.get_current_datastore()
@@ -25,14 +25,17 @@ solution = solution_dict[key]
 ```
 
 ## How to Upload a Dataset
-You can upload a dataset using the `./misc/upload_ommx.py` script. To upload any dataset, you need to prepare a GitHub personal access token (PAT). The following command uploads the specified dataset to Package.
+You can upload a dataset using the `./misc/upload_ommx.py` script. To upload any dataset, you need to prepare a GitHub personal access token (PAT). Moreover, this script leverages `ommx.artifact.Artifact` (through `Minto` [Ref.](https://jij-inc.github.io/minto/en/tutorials/github_push.html)). To use this upload script, you need to setup OMMX CLI first to save information. The following steps are what you need to go through.
+
+1. Setup rust environment to use `cargo`.
+2. Setup OMMX CLI: `cargo instalal ommx`.
+3. Login OMMX: `ommx login https://ghcr.io/v2/Jij-Inc/OMMX-OBLIB --username [your_username] --password [your_PAT]`.
+4. Run the script at `misc` directory:
 
 ```bash
 uv run upload_ommx.py \
     --model_dir_path [target_model_path] \
-    --dataset_name [dataset_name] \
-    --github_username [github_username] \
-    --github_pat [github_pat]
+    --dataset_name [dataset_name]
 ```
 
 This script assumes the following directory tree.
