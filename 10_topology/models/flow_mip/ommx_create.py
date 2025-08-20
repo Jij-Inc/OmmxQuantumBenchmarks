@@ -264,7 +264,7 @@ def process_single_instance(
                 )
 
     # Add metadata (reuse global timestamp)
-    ommx_instance.title = f"Topology: {instance_name}"
+    ommx_instance.title = f"Topology (flow_mip): {instance_name}"
     ommx_instance.created = _CREATION_TIME
 
     # Create output filename
@@ -279,6 +279,10 @@ def process_single_instance(
     builder.add_instance(ommx_instance)
     if solution is not None:
         builder.add_solution(solution)
+    else:
+        print(
+            f"No solution provided for {instance_name}, skipping solution attachment."
+        )
     builder.build()
 
     # Aggressive memory cleanup
