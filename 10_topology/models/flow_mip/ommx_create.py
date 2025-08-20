@@ -283,7 +283,7 @@ def batch_process_instances(
     instances_directory: str = "../../instances",
     solution_directory: str = "../../solutions",
     output_directory: str = "./ommx_output",
-    max_nodes: int = 100,
+    max_nodes: int | None = None,
 ) -> None:
     """Process all Topology instances sequentially.
 
@@ -291,7 +291,7 @@ def batch_process_instances(
         instances_directory (str): Path to directory containing instance .dat files
         solution_directory (str): Path to directory containing solution files for verification
         output_directory (str): Path where .ommx files will be saved
-        max_nodes (int): Maximum number of nodes to process (for memory management)
+        max_nodes (int | None): Maximum number of nodes to process (for memory management). Default is None (no limit).
 
     Note:
         - Only processes .dat files
@@ -308,7 +308,7 @@ def batch_process_instances(
     for dat_file in instances_path.glob("*.dat"):
         if dat_file.is_file():
             node_count = get_node_count_from_dat_file(str(dat_file))
-            if 0 < node_count <= max_nodes:
+            if max_nodes is not None and 0 < node_count <= max_nodes:
                 dat_files.append(str(dat_file))
 
     if not dat_files:
