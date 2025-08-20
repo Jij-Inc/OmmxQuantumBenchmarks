@@ -57,8 +57,8 @@ def verify_solution_quality(
     print(f"Parsing solution file...")
     solution_data = parse_topology_sol_file(solution_path)
 
-    # Store the original objective from the solution file
-    result["file_objective"] = solution_data.get("objective")
+    # Store the original objective from the solution file (diameter for topology problems)
+    result["file_objective"] = solution_data.get("diameter")
 
     # Load solution in JijModeling format.
     jm_solution = read_topology_solution_file_as_jijmodeling_format(
@@ -84,7 +84,25 @@ def verify_solution_quality(
     var_subscripts = decision_vars_df["subscripts"].values
     var_ids = decision_vars_df.index.values
 
-    # TODO: Process variables
+    # Process variables by mapping from JijModeling solution to OMMX variable IDs
+    for var_name, subscripts, var_id in zip(var_names, var_subscripts, var_ids):
+        if var_name == "diameter":
+            # Scalar variable - no subscripts
+            solution_dict[var_id] = jm_solution["diameter"]
+        elif var_name == "SP":
+            # 2D variable with subscripts [s, t]
+            s, t = subscripts
+            solution_dict[var_id] = jm_solution["SP"][s][t]
+        elif var_name == "z":
+            # 2D variable with subscripts [i, j]
+            i, j = subscripts
+            solution_dict[var_id] = jm_solution["z"][i][j]
+        elif var_name == "x":
+            # 4D variable with subscripts [s, t, i, j]
+            s, t, i, j = subscripts
+            solution_dict[var_id] = jm_solution["x"][s][t][i][j]
+        else:
+            raise ValueError(f"Invalid variable name: {var_name}")
 
     # Ensure all OMMX variables have values (this should not be needed with new implementation)
     missing_vars = set(var_ids) - set(solution_dict.keys())
@@ -142,8 +160,8 @@ def verify_solution_qualities(
 
     # Look for solution file with different extensions
     solution_paths = glob.glob(
-        os.path.join(solution_directory, f"{instance_name}*.sol")
-    )
+        os.path.join(solution_directory, f"{instance_name}*.gph")
+    ) + glob.glob(os.path.join(solution_directory, f"{instance_name}*.gph.gz"))
 
     for solution_path in solution_paths:
         results[solution_path] = verify_solution_quality(
@@ -220,23 +238,6 @@ def process_single_instance(
             raise ValueError(
                 f"Computed objective does not match file objective for instance {instance_name}."
                 f" Results: {results}"
-            )
-    solution_path = os.path.join(instance_path, "sol.txt")
-    if os.path.isfile(solution_path):
-        result = verify_solution_quality(
-            ommx_instance=ommx_instance,
-            solution_path=solution_path,
-            instance_data=data,
-        )
-        if not result["feasible"]:
-            raise ValueError(
-                f"Solution is not feasible for instance {instance_name}."
-                f" Result: {result}"
-            )
-        if not result["objective_match"]:
-            raise ValueError(
-                f"Computed objective does not match file objective for instance {instance_name}."
-                f" Result: {result}"
             )
 
     # Add metadata (reuse global timestamp)
