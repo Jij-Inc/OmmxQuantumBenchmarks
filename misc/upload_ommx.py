@@ -231,8 +231,6 @@ def are_same_solutions(
 def upload_ommx(
     model_dir_path: str,
     dataset_name: str,
-    github_username: str,
-    github_pat: str,
     org: str = "Jij-Inc",
     repo: str = "OMMX-OBLIB",
 ) -> None:
@@ -241,8 +239,6 @@ def upload_ommx(
     Args:
         model_dir_path (str): the path to the directory containing OMMX models.
         dataset_name (str): a name of the target dataset.
-        github_username (str): a GitHub username.
-        github_pat (str): a GitHub personal access token (PAT).
         org (str, optional): the GitHub organization name. Defaults to "Jij-Inc".
         repo (str, optional): the GitHub repository name. Defaults to "OMMX-OBLIB".
     """
@@ -255,8 +251,6 @@ def upload_ommx(
 
     # Set up the github authentication environment variables.
     os.environ["OMMX_BASIC_AUTH_DOMAIN"] = "ghcr.io"
-    os.environ["OMMX_BASIC_AUTH_USERNAME"] = github_username
-    os.environ["OMMX_BASIC_AUTH_PASSWORD"] = github_pat
 
     # Obtain all directories in the target model directory.
     items = os.listdir(model_dir_path)
@@ -306,20 +300,6 @@ if __name__ == "__main__":
         required=True,
         help="The name of the target dataset.",
     )
-    parser.add_argument(
-        "--github_username", type=str, required=True, help="Your GitHub username."
-    )
-    parser.add_argument(
-        "--github_pat",
-        type=str,
-        required=True,
-        help="Your GitHub personal access token (PAT).",
-    )
     args = parser.parse_args()
 
-    upload_ommx(
-        model_dir_path=args.model_dir_path,
-        dataset_name=args.dataset_name,
-        github_username=args.github_username,
-        github_pat=args.github_pat,
-    )
+    upload_ommx(model_dir_path=args.model_dir_path, dataset_name=args.dataset_name)
