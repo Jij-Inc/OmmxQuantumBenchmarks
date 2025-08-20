@@ -1,0 +1,38 @@
+import jijmodeling as jm
+
+
+def create_problem():
+    # Define sets
+    i_set = jm.Placeholder("I", ndim=1)  # Placeholder for set I
+    k_set = jm.Placeholder("K", ndim=1)  # Placeholder for set K
+    n = i_set.len_at(0, latex="n")
+
+    # Define decision variables
+    x = jm.BinaryVar("x", shape=i_set.shape, description="Variable x")
+    c = jm.IntegerVar(
+        "c",
+        shape=k_set.shape,
+        lower_bound=-(n - 1),
+        upper_bound=n - 1,
+        description="Variable c",
+    )
+
+    # Define elements
+    k = jm.Element("k", belong_to=k_set)
+    i = jm.Element("i", belong_to=(0, n - k - 1))
+
+    # Define the problem
+    problem = jm.Problem(
+        "Low Autocorrelation Binary Sequences (LABS)", sense=jm.ProblemSense.MINIMIZE
+    )
+
+    # Define the objective function
+    problem += jm.sum(k, c[k] * c[k])
+
+    # Define constraint c1
+    problem += jm.Constraint(
+        "c1",
+        c[k] == jm.sum(i, (2 * x[i] - 1) * (2 * x[i + k + 1] - 1)),
+        forall=k,
+    )
+    return problem
