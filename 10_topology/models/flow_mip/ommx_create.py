@@ -53,6 +53,7 @@ def verify_solution_quality(
         "objective_match": None,
         "file_objective": None,
         "computed_objective": None,
+        "ommx_solution": None,
     }
 
     # Parse solution file to get original objective
@@ -118,6 +119,7 @@ def verify_solution_quality(
     # Evaluate solution using OMMX Instance.evaluate() method
     print("Evaluating solution with OMMX...")
     ommx_solution = ommx_instance.evaluate(solution_dict)
+    result["ommx_solution"] = ommx_solution
 
     # Check if solution is feasible and get computed objective value
     result["feasible"] = ommx_solution.feasible
@@ -223,7 +225,8 @@ def process_single_instance(
 
     # Verify solution quality if solution directory is provided
     print(f"Verifying solutions qualities...", flush=True)
-    instance_name = Path(instance_path).name
+    instance_name = Path(instance_path).stem
+    solution = None
     if solution_directory:
         is_feasible, is_objective_match, results = verify_solution_qualities(
             instance_name=instance_name,
@@ -242,6 +245,24 @@ def process_single_instance(
                 f" Results: {results}"
             )
 
+        # Try to store the optimal solution first.
+        opt_solution_paths = glob.glob(
+            os.path.join(solution_directory, f"{instance_name}*.opt.gph*")
+        )
+        if len(opt_solution_paths) > 0:
+            solution = results[opt_solution_paths[0]]["ommx_solution"]
+        # If no optimal solution, try the regular solution file.
+        else:
+            solution_paths = glob.glob(
+                os.path.join(solution_directory, f"{instance_name}.gph*")
+            )
+            if solution_paths:
+                solution = results[solution_paths[0]]["ommx_solution"]
+            else:
+                print(
+                    f"No solution files found for {instance_name}, skipping solution attachment."
+                )
+
     # Add metadata (reuse global timestamp)
     ommx_instance.title = f"Topology: {instance_name}"
     ommx_instance.created = _CREATION_TIME
@@ -256,6 +277,8 @@ def process_single_instance(
     # Create OMMX Artifact
     builder = ArtifactBuilder.new_archive_unnamed(output_filename)
     builder.add_instance(ommx_instance)
+    if solution is not None:
+        builder.add_solution(solution)
     builder.build()
 
     # Aggressive memory cleanup
