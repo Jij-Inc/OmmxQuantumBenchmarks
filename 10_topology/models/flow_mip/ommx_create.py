@@ -254,7 +254,7 @@ def process_single_instance(
         # If no optimal solution, try the regular solution file.
         else:
             solution_paths = glob.glob(
-                os.path.join(solution_directory, f"{instance_name}.gph*")
+                os.path.join(solution_directory, f"{instance_name}.*gph*")
             )
             if solution_paths:
                 solution = results[solution_paths[0]]["ommx_solution"]
