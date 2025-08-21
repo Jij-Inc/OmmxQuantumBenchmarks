@@ -328,9 +328,26 @@ def batch_process_instances(
     # Create output directory
     os.makedirs(output_directory, exist_ok=True)
 
-    # Find all .dat files in instances directory
+    # HARD CODING: Use specific instances because of memory issues with large instances
     instances_path = Path(instances_directory)
-    dat_files = []
+    dat_files = [
+        instances_path / "topology_15_3.dat",
+        instances_path / "topology_15_4.dat",
+        instances_path / "topology_20_3.dat",
+        instances_path / "topology_20_4.dat",
+        instances_path / "topology_20_5.dat",
+        instances_path / "topology_25_3.dat",
+        instances_path / "topology_25_4.dat",
+        instances_path / "topology_25_5.dat",
+        instances_path / "topology_25_6.dat",
+        instances_path / "topology_30_4.dat",
+        instances_path / "topology_30_5.dat",
+        instances_path / "topology_30_6.dat",
+        instances_path / "topology_35_5.dat",
+        instances_path / "topology_35_6.dat",
+        instances_path / "topology_40_6.dat",
+        instances_path / "topology_50_4.dat",
+    ]
 
     for dat_file in instances_path.glob("*.dat"):
         if dat_file.is_file():
