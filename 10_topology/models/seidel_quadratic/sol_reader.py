@@ -1,6 +1,7 @@
-from collections import deque
 import gzip
 from pathlib import Path
+
+import numpy as np
 
 
 def parse_topology_sol_file(sol_file_path: str) -> dict[str, object]:
@@ -84,50 +85,50 @@ def convert_topology_solution_to_jijmodeling_format(
     edges_list = solution_data["edges"]
     diameter = solution_data["diameter"]
 
-    # Build adjacency list from edges
-    adjacency = [[] for _ in range(nodes)]
-    for edge in edges_list:
-        i, j = edge[0], edge[1]
-        adjacency[i].append(j)
-        adjacency[j].append(i)
+    # Use Floyd-Warshall algorithm to compute all-pairs shortest paths
+    # Initialize distance matrix using NumPy
+    all_distances = np.full((nodes, nodes), np.inf)
 
-    # Compute all-pairs shortest paths using BFS
-    all_distances = [[float('inf')] * nodes for _ in range(nodes)]
-    
-    for s in range(nodes):
-        # BFS from source s
-        distances = [float('inf')] * nodes
-        distances[s] = 0
-        queue = deque([s])
-        
-        while queue:
-            current = queue.popleft()
-            for neighbor in adjacency[current]:
-                if distances[neighbor] == float('inf'):
-                    distances[neighbor] = distances[current] + 1
-                    queue.append(neighbor)
-        
-        all_distances[s] = distances
+    # Set distance for direct edges
+    for i, j in edges_list:
+        all_distances[i, j] = 1
+        all_distances[j, i] = 1
 
-    # Initialize seidel_quadratic decision variables
-    # dist[s,t,d] - binary variable: 1 if shortest path of length exactly d between s,t
-    dist = [[[0 for _ in range(max_diameter)] for _ in range(nodes)] for _ in range(nodes)]
-    
-    # Set dist[s,t,d] = 1 for the actual shortest path distance
-    for s in range(nodes):
-        for t in range(nodes):
-            if s < t and all_distances[s][t] != float('inf'):  # Only for s < t (set F)
-                actual_distance = int(all_distances[s][t])
-                if actual_distance < max_diameter:
-                    dist[s][t][actual_distance] = 1
+    # Set diagonal to 0 (distance from node to itself)
+    np.fill_diagonal(all_distances, 0)
 
-    # Note: seidel_quadratic doesn't have y variables like seidel_linear
-    # It uses quadratic terms directly in the constraints
-    
-    return {
-        "diameter": diameter,
-        "dist": dist
-    }
+    # Vectorized Floyd-Warshall algorithm
+    for k in range(nodes):
+        all_distances = np.minimum(
+            all_distances, all_distances[:, k : k + 1] + all_distances[k : k + 1, :]
+        )
+
+    # Initialize seidel_quadratic decision variables using NumPy
+    dist = np.zeros((nodes, nodes, max_diameter), dtype=int)
+
+    # Convert edges to adjacency matrix for vectorized operations
+    edges_matrix = np.zeros((nodes, nodes), dtype=bool)
+    for i, j in edges_list:
+        edges_matrix[i, j] = True
+        edges_matrix[j, i] = True
+
+    # Vectorized computation of dist variables
+    # Create upper triangular mask for s < t
+    s_indices, t_indices = np.triu_indices(nodes, k=1)
+
+    # Set dist[s,t,0] = 1 for adjacent pairs where s < t
+    dist[s_indices, t_indices, 0] = edges_matrix[s_indices, t_indices].astype(int)
+
+    # For each (s,t) pair where s < t, set dist values based on actual distance
+    for idx in range(len(s_indices)):
+        s, t = s_indices[idx], t_indices[idx]
+        if all_distances[s, t] != np.inf:
+            actual_distance = int(all_distances[s, t])
+            # Vectorized assignment for all d values
+            d_range = np.arange(1, max_diameter)
+            dist[s, t, d_range] = (d_range + 1 >= actual_distance).astype(int)
+
+    return {"diameter": diameter, "dist": dist.tolist()}
 
 
 def read_topology_solution_file_as_jijmodeling_format(

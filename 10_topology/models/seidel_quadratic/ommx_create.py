@@ -92,19 +92,12 @@ def verify_solution_quality(
         if var_name == "diameter":
             # Scalar variable - no subscripts
             solution_dict[var_id] = jm_solution["diameter"]
-        
         elif var_name == "dist":
             # 3D variable with subscripts [s, t, k]
-            if len(subscripts) == 3:
-                s, t, k = subscripts
-                solution_dict[var_id] = jm_solution["dist"][s][t][k]
-            else:
-                print(f"Warning: Unexpected subscripts for dist variable: {subscripts}")
-                solution_dict[var_id] = 0
-        
+            s, t, k = subscripts
+            solution_dict[var_id] = jm_solution["dist"][s][t][k]
         else:
-            print(f"Warning: Unknown variable name: {var_name}")
-            solution_dict[var_id] = 0
+            raise ValueError(f"Invalid variable name: {var_name}")
 
     # Ensure all OMMX variables have values (this should not be needed with new implementation)
     missing_vars = set(var_ids) - set(solution_dict.keys())
@@ -164,9 +157,7 @@ def verify_solution_qualities(
     # Look for solution file with different extensions
     solution_paths = glob.glob(
         os.path.join(solution_directory, f"{instance_name}*.gph")
-    ) + glob.glob(
-        os.path.join(solution_directory, f"{instance_name}*.gph.gz")
-    )
+    ) + glob.glob(os.path.join(solution_directory, f"{instance_name}*.gph.gz"))
 
     for solution_path in solution_paths:
         results[solution_path] = verify_solution_quality(
@@ -255,7 +246,7 @@ def process_single_instance(
         # If no optimal solution, try the regular solution file.
         else:
             solution_paths = glob.glob(
-                os.path.join(solution_directory, f"{instance_name}.gph*")
+                os.path.join(solution_directory, f"{instance_name}*.gph*")
             )
             if solution_paths:
                 solution = results[solution_paths[0]]["ommx_solution"]
@@ -333,11 +324,27 @@ def batch_process_instances(
     instances_path = Path(instances_directory)
     dat_files = []
 
-    for dat_file in instances_path.glob("*.dat"):
-        if dat_file.is_file():
-            node_count = get_node_count_from_dat_file(str(dat_file))
-            if max_nodes is not None and 0 < node_count <= max_nodes:
-                dat_files.append(str(dat_file))
+    # HARD CODING: Use specific instances because of memory issues with large instances
+    # Find all .dat files in instances directory
+    instances_path = Path(instances_directory)
+    dat_files = [
+        instances_path / "topology_15_3.dat",
+        instances_path / "topology_15_4.dat",
+        instances_path / "topology_20_3.dat",
+        instances_path / "topology_20_4.dat",
+        instances_path / "topology_20_5.dat",
+        instances_path / "topology_25_3.dat",
+        instances_path / "topology_25_4.dat",
+        instances_path / "topology_25_5.dat",
+        instances_path / "topology_25_6.dat",
+        instances_path / "topology_30_4.dat",
+        instances_path / "topology_30_5.dat",
+        instances_path / "topology_30_6.dat",
+        instances_path / "topology_35_5.dat",
+        instances_path / "topology_35_6.dat",
+        instances_path / "topology_40_6.dat",
+        instances_path / "topology_50_4.dat",
+    ]
 
     if not dat_files:
         print(f"No valid .dat files found in {instances_directory}", flush=True)
@@ -395,7 +402,7 @@ def main() -> None:
 
     Supports both single instance and batch processing modes.
     """
-    print("Batch Processing Topology Instances to OMMX")
+    print("Batch Processing Topology Instances to OMMX (Seidel Quadratic)")
     print("=" * 60)
 
     try:
