@@ -262,7 +262,7 @@ def process_single_instance(
         # If no optimal solution, try the regular solution file.
         else:
             solution_paths = glob.glob(
-                os.path.join(solution_directory, f"{instance_name}.gph*")
+                os.path.join(solution_directory, f"{instance_name}*.gph*")
             )
             if solution_paths:
                 solution = results[solution_paths[0]]["ommx_solution"]
@@ -338,14 +338,24 @@ def batch_process_instances(
 
     # Find all .dat files in instances directory
     instances_path = Path(instances_directory)
-    dat_files = []
-
     dat_files = [
-        "/Users/keisukesato/dev/git/OMMX-OBLIB/10_topology/instances/topology_15_4.dat",
-        # "/Users/keisukesato/dev/git/OMMX-OBLIB/10_topology/instances/topology_25_6.dat",
-        # "/Users/keisukesato/dev/git/OMMX-OBLIB/10_topology/instances/topology_35_6.dat",
-        # "/Users/keisukesato/dev/git/OMMX-OBLIB/10_topology/instances/topology_40_6.dat",
-        # "/Users/keisukesato/dev/git/OMMX-OBLIB/10_topology/instances/topology_50_4.dat",
+        "./../instances/topology_15_3.dat",
+        "./../instances/topology_15_4.dat",
+        "./../instances/topology_20_3.dat",
+        "./../instances/topology_20_4.dat",
+        "./../instances/topology_20_5.dat",
+        "./../instances/topology_25_3.dat",
+        "./../instances/topology_25_4.dat",
+        "./../instances/topology_25_5.dat",
+        "./../instances/topology_25_6.dat",
+        "./../instances/topology_30_4.dat",
+        "./../instances/topology_30_5.dat",
+        "./../instances/topology_30_6.dat",
+        "./../instances/topology_35_5.dat",
+        "./../instances/topology_35_6.dat",
+        "./../instances/topology_40_6.dat",
+        "./../instances/topology_50_4.dat",
+        # "./../instances/topology_512_4.dat",
     ]
 
     for dat_file in instances_path.glob("*.dat"):
