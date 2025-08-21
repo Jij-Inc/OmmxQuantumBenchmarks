@@ -1,5 +1,6 @@
 import jijmodeling as jm
 
+
 def build_vrp_ilp() -> jm.Problem:
     """Create Vehicle Routing Problem (VRP) ILP model.
 
@@ -35,12 +36,12 @@ def build_vrp_ilp() -> jm.Problem:
         and constraints for the capacitated VRP.
     """
     # ------------ Placeholders ------------
-    n            = jm.Placeholder("n")
-    VEHICLE_LIMIT= jm.Placeholder("VEHICLE_LIMIT")
-    CAPACITY     = jm.Placeholder("CAPACITY")
-    DEMAND       = jm.Placeholder("DEMAND", ndim=1)     # shape (n,)
-    D            = jm.Placeholder("D", ndim=2)          # shape (n,n)
-    DEPOT        = jm.Placeholder("DEPOT")              # single depot index (0-based)
+    n = jm.Placeholder("n")
+    VEHICLE_LIMIT = jm.Placeholder("VEHICLE_LIMIT")
+    CAPACITY = jm.Placeholder("CAPACITY")
+    DEMAND = jm.Placeholder("DEMAND", ndim=1)  # shape (n,)
+    D = jm.Placeholder("D", ndim=2)  # shape (n,n)
+    DEPOT = jm.Placeholder("DEPOT")  # single depot index (0-based)
 
     # ------------ Indices ------------
     i = jm.Element("i", belong_to=(0, n))
@@ -49,51 +50,47 @@ def build_vrp_ilp() -> jm.Problem:
 
     # ------------ Variables ------------
     x = jm.BinaryVar("x", shape=(n, n), description="arc i->j used")
-    y = jm.IntegerVar("y", shape=(n,), lower_bound=0, upper_bound=CAPACITY,
-                      description="load upon arrival at node")
+    y = jm.IntegerVar(
+        "y",
+        shape=(n,),
+        lower_bound=0,
+        upper_bound=CAPACITY,
+        description="load upon arrival at node",
+    )
 
     # ------------ Problem & Objective ------------
     problem = jm.Problem("vrp_ilp", sense=jm.ProblemSense.MINIMIZE)
-    problem += jm.sum([i, j], D[i, j] * x[i, j])   # (10) minimize total distance
+    problem += jm.sum([i, j], D[i, j] * x[i, j])  # (10) minimize total distance
 
     # ------------ Constraints ------------
     # (11) Each customer visited exactly once (excluding depot)
     problem += jm.Constraint(
         "customer_visited_once",
         jm.sum([(j, j != i)], x[i, j]) == 1,
-        forall=[(i, i != DEPOT)]
+        forall=[(i, i != DEPOT)],
     )
 
     # (12) Flow conservation for non-depot nodes
     problem += jm.Constraint(
         "flow_conservation",
         jm.sum([(i, i != h)], x[i, h]) - jm.sum([(i, i != h)], x[h, i]) == 0,
-        forall=[(h, h != DEPOT)]
+        forall=[(h, h != DEPOT)],
     )
 
     # (13) Vehicle limit: departures from depot ≤ VEHICLE_LIMIT
     problem += jm.Constraint(
-        "vehicle_limit",
-        jm.sum([(j, j != DEPOT)], x[DEPOT, j]) <= VEHICLE_LIMIT
+        "vehicle_limit", jm.sum([(j, j != DEPOT)], x[DEPOT, j]) <= VEHICLE_LIMIT
     )
 
     # (14) Capacity propagation (MTZ-style), exclude depot and i=j
     problem += jm.Constraint(
         "capacity_limit",
         y[j] >= y[i] + DEMAND[j] * x[i, j] - CAPACITY * (1 - x[i, j]),
-        forall=[i, (j, (j != DEPOT) & (j != i))]
+        forall=[i, (j, (j != DEPOT) & (j != i))],
     )
 
     # (15) Capacity bounds at nodes
-    problem += jm.Constraint(
-        "capacity_limit_node_ub",
-        y[i] <= CAPACITY,
-        forall=[i]
-    )
-    problem += jm.Constraint(
-        "capacity_limit_node_lb",
-        DEMAND[i] <= y[i],
-        forall=[i]
-    )
+    problem += jm.Constraint("capacity_limit_node_ub", y[i] <= CAPACITY, forall=[i])
+    problem += jm.Constraint("capacity_limit_node_lb", DEMAND[i] <= y[i], forall=[i])
 
     return problem
