@@ -337,7 +337,6 @@ def batch_process_instances(
     os.makedirs(output_directory, exist_ok=True)
 
     # HARD CODING: Use specific instances because of memory issues with large instances
-    # Find all .dat files in instances directory
     instances_path = Path(instances_directory)
     dat_files = [
         instances_path / "topology_15_3.dat",
