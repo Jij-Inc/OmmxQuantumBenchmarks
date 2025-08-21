@@ -92,28 +92,16 @@ def verify_solution_quality(
         if var_name == "diameter":
             # Scalar variable - no subscripts
             solution_dict[var_id] = jm_solution["diameter"]
-
         elif var_name == "dist":
             # 3D variable with subscripts [s, t, k]
-            if len(subscripts) == 3:
-                s, t, k = subscripts
-                solution_dict[var_id] = jm_solution["dist"][s][t][k]
-            else:
-                print(f"Warning: Unexpected subscripts for dist variable: {subscripts}")
-                solution_dict[var_id] = 0
-
+            s, t, k = subscripts
+            solution_dict[var_id] = jm_solution["dist"][s][t][k]
         elif var_name == "y":
             # 4D variable with subscripts [s, t, i, k]
-            if len(subscripts) == 4:
-                s, t, i, k = subscripts
-                solution_dict[var_id] = jm_solution["y"][s][t][i][k]
-            else:
-                print(f"Warning: Unexpected subscripts for y variable: {subscripts}")
-                solution_dict[var_id] = 0
-
+            s, t, i, k = subscripts
+            solution_dict[var_id] = jm_solution["y"][s][t][i][k]
         else:
-            print(f"Warning: Unknown variable name: {var_name}")
-            solution_dict[var_id] = 0
+            raise ValueError(f"Invalid variable name: {var_name}")
 
     # Ensure all OMMX variables have values (this should not be needed with new implementation)
     missing_vars = set(var_ids) - set(solution_dict.keys())

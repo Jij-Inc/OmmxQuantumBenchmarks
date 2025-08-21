@@ -68,7 +68,7 @@ def create_topology_model() -> jm.Problem:
         "DistCalc",
         dist[s, t, k + 1]
         <= dist[s, t, k] + jm.sum([(i, (i != s) & (i != t))], y[s, t, i, k]),
-        forall=[s, (t, s < t), (k, k < max_d - 1)],
+        forall=[s, (t, s < t), (k, k != max_d - 1)],
     )
 
     # Constraint 3: DistLinearize - linearization constraints
@@ -78,13 +78,13 @@ def create_topology_model() -> jm.Problem:
     problem += jm.Constraint(
         "DistLinearize_si",
         y[s, t, i, k] <= dist[jm.min(s, i), jm.max(s, i), k],
-        forall=[s, (t, s < t), (i, (i != s) & (i != t)), (k, k < max_d - 1)],
+        forall=[s, (t, s < t), (i, (i != s) & (i != t)), (k, k != max_d - 1)],
     )
     # Second part: y[s,t,i,k] <= dist[min(i,t),max(i,t),0]
     problem += jm.Constraint(
         "DistLinearize_it",
         y[s, t, i, k] <= dist[jm.min(i, t), jm.max(i, t), 0],
-        forall=[s, (t, s < t), (i, (i != s) & (i != t)), (k, k < max_d - 1)],
+        forall=[s, (t, s < t), (i, (i != s) & (i != t)), (k, k != max_d - 1)],
     )
 
     # Constraint 4: degreeButLast - degree constraint for all nodes except the last
