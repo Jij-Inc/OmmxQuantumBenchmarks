@@ -99,63 +99,63 @@ def convert_topology_solution_to_jijmodeling_format(
             all_distances, all_distances[:, k : k + 1] + all_distances[k : k + 1, :]
         )
 
-    # Convert edges_list to set for O(1) lookup
-    edges_set = set()
+    # Initialize seidel_linear decision variables using NumPy
+    dist = np.zeros((nodes, nodes, max_diameter), dtype=int)
+
+    # Convert edges to adjacency matrix for vectorized operations
+    edges_matrix = np.zeros((nodes, nodes), dtype=bool)
     for i, j in edges_list:
-        edges_set.add((i, j))
-        edges_set.add((j, i))
+        edges_matrix[i, j] = True
+        edges_matrix[j, i] = True
 
-    # Initialize seidel_linear decision variables
-    dist = [
-        [[0 for _ in range(max_diameter)] for _ in range(nodes)] for _ in range(nodes)
-    ]
+    # Vectorized computation of dist variables
+    # Create upper triangular mask for s < t
+    s_indices, t_indices = np.triu_indices(nodes, k=1)
 
-    # Set dist variables according to Seidel semantics
+    # Set dist[s,t,0] = 1 for adjacent pairs where s < t
+    dist[s_indices, t_indices, 0] = edges_matrix[s_indices, t_indices].astype(int)
+
+    # For each (s,t) pair where s < t, set dist values based on actual distance
+    for idx in range(len(s_indices)):
+        s, t = s_indices[idx], t_indices[idx]
+        if all_distances[s, t] != np.inf:
+            actual_distance = int(all_distances[s, t])
+            # Vectorized assignment for all d values
+            d_range = np.arange(1, max_diameter)
+            dist[s, t, d_range] = (d_range + 1 >= actual_distance).astype(int)
+
+    # Initialize y variables using NumPy
+    y = np.zeros((nodes, nodes, nodes, max_diameter), dtype=int)
+
+    # Vectorized computation of y variables
     for s in range(nodes):
         for t in range(s + 1, nodes):
-            is_adjacent = (s, t) in edges_set
-            dist[s][t][0] = 1 if is_adjacent else 0
+            # Get all u values that are not s or t
+            u_indices = np.arange(nodes)
+            u_mask = (u_indices != s) & (u_indices != t)
+            u_valid = u_indices[u_mask]
 
-            if all_distances[s, t] != np.inf:
-                actual_distance = int(all_distances[s, t])
-                for d in range(1, max_diameter):
-                    if d + 1 >= actual_distance:
-                        dist[s][t][d] = 1
+            for j in range(max_diameter - 1):
+                for u in u_valid:
+                    # Get dist[min(s,u), max(s,u), j]
+                    if s < u:
+                        dist_su_j = dist[s, u, j]
+                    elif u < s:
+                        dist_su_j = dist[u, s, j]
                     else:
-                        dist[s][t][d] = 0
-            else:
-                for d in range(1, max_diameter):
-                    dist[s][t][d] = 0
+                        dist_su_j = 0
 
-    # Initialize y variables (linearization variables)
-    y = [
-        [[[0 for _ in range(max_diameter)] for _ in range(nodes)] for _ in range(nodes)]
-        for _ in range(nodes)
-    ]
+                    # Get dist[min(u,t), max(u,t), 0]
+                    if u < t:
+                        dist_ut_0 = dist[u, t, 0]
+                    elif t < u:
+                        dist_ut_0 = dist[t, u, 0]
+                    else:
+                        dist_ut_0 = 0
 
-    # Compute y variables based on linearization definition
-    for s in range(nodes):
-        for t in range(s + 1, nodes):
-            for u in range(nodes):
-                if u != s and u != t:
-                    for j in range(max_diameter - 1):
-                        if s < u:
-                            dist_su_j = dist[s][u][j]
-                        elif u < s:
-                            dist_su_j = dist[u][s][j]
-                        else:
-                            dist_su_j = 0
+                    y[s, t, u, j] = dist_su_j * dist_ut_0
 
-                        if u < t:
-                            dist_ut_0 = dist[u][t][0]
-                        elif t < u:
-                            dist_ut_0 = dist[t][u][0]
-                        else:
-                            dist_ut_0 = 0
-
-                        y[s][t][u][j] = dist_su_j * dist_ut_0
-
-    return {"diameter": diameter, "dist": dist, "y": y}
+    return {"diameter": diameter, "dist": dist.tolist(), "y": y.tolist()}
 
 
 def read_topology_solution_file_as_jijmodeling_format(
