@@ -336,33 +336,28 @@ def batch_process_instances(
     # Create output directory
     os.makedirs(output_directory, exist_ok=True)
 
+    # HARD CODING: Use specific instances because of memory issues with large instances
     # Find all .dat files in instances directory
     instances_path = Path(instances_directory)
     dat_files = [
-        "./../instances/topology_15_3.dat",
-        "./../instances/topology_15_4.dat",
-        "./../instances/topology_20_3.dat",
-        "./../instances/topology_20_4.dat",
-        "./../instances/topology_20_5.dat",
-        "./../instances/topology_25_3.dat",
-        "./../instances/topology_25_4.dat",
-        "./../instances/topology_25_5.dat",
-        "./../instances/topology_25_6.dat",
-        "./../instances/topology_30_4.dat",
-        "./../instances/topology_30_5.dat",
-        "./../instances/topology_30_6.dat",
-        "./../instances/topology_35_5.dat",
-        "./../instances/topology_35_6.dat",
-        "./../instances/topology_40_6.dat",
-        "./../instances/topology_50_4.dat",
-        # "./../instances/topology_512_4.dat",
+        instances_path / "instances/topology_15_3.dat",
+        instances_path / "instances/topology_15_4.dat",
+        instances_path / "instances/topology_20_3.dat",
+        instances_path / "instances/topology_20_4.dat",
+        instances_path / "instances/topology_20_5.dat",
+        instances_path / "instances/topology_25_3.dat",
+        instances_path / "instances/topology_25_4.dat",
+        instances_path / "instances/topology_25_5.dat",
+        instances_path / "instances/topology_25_6.dat",
+        instances_path / "instances/topology_30_4.dat",
+        instances_path / "instances/topology_30_5.dat",
+        instances_path / "instances/topology_30_6.dat",
+        instances_path / "instances/topology_35_5.dat",
+        instances_path / "instances/topology_35_6.dat",
+        instances_path / "instances/topology_40_6.dat",
+        instances_path / "instances/topology_50_4.dat",
+        # instances_path / "instances/topology_512_4.dat",
     ]
-
-    for dat_file in instances_path.glob("*.dat"):
-        if dat_file.is_file():
-            node_count = get_node_count_from_dat_file(str(dat_file))
-            if max_nodes is not None and 0 < node_count <= max_nodes:
-                dat_files.append(str(dat_file))
 
     if not dat_files:
         print(f"No valid .dat files found in {instances_directory}", flush=True)
