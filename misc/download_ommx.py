@@ -178,7 +178,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_dir",
         type=str,
-        required=True,
+        default="downloaded_ommx",
         help="The directory where the downloaded data will be saved.",
     )
     parser.add_argument(
