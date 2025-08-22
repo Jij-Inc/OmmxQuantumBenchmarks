@@ -171,6 +171,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset_names",
         type=str,
+        nargs="+",
         required=True,
         help="The name of the dataset to download. Use 'all' to download all datasets.",
     )
