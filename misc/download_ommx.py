@@ -12,7 +12,7 @@ import datasets
 
 DATASETS = datasets.get_all_datasets()
 DATASET_NAMES = datasets.get_all_dataset_names()
-DATASET_modelS = datasets.get_all_dataset_models()
+DATASET_MODELS = datasets.get_all_dataset_models()
 
 
 def parse_models_json(value: str) -> dict[str, str | list[str]]:
@@ -60,26 +60,26 @@ def validate_dataset_names(names: list[str]) -> None:
             )
 
 
-def validate_dataset_models(models: dict[str, list[str]]) -> None:
+def validate_dataset_models(model_dict: dict[str, list[str]]) -> None:
     """Validate if the dataset models are valid.
 
     Args:
-        models (dict[str, list[str]]): Dictionary of dataset names and their models.
+        model_dict (dict[str, list[str]]): Dictionary of dataset names and their models.
 
     Raises:
         ValueError: If any dataset name or model is invalid.
     """
     # Check the keys are valid dataset names.
-    for dataset_name in models.keys():
+    for dataset_name in model_dict.keys():
         if dataset_name not in DATASET_NAMES:
             raise ValueError(
                 f"Invalid dataset name '{dataset_name}' is specified in models' key."
                 f"Valid names are: {DATASET_NAMES}."
             )
     # Check the models are valid for each dataset.
-    for dataset_name, model_list in models.items():
+    for dataset_name, model_list in model_dict.items():
         for model in model_list:
-            valid_models = DATASET_modelS[dataset_name]
+            valid_models = DATASET_MODELS[dataset_name]
             if model not in valid_models:
                 raise ValueError(
                     f"Invalid model '{model}' for dataset '{dataset_name}'."
@@ -129,7 +129,7 @@ def download_ommx(
 
     # Convert None to all models specified in dataset_names.
     if model_dict is None:
-        model_dict = {name: DATASET_modelS[name] for name in dataset_names}
+        model_dict = {name: DATASET_MODELS[name] for name in dataset_names}
     # Convert model_dict to a list if it is a string.
     for dataset_name, _models in model_dict.items():
         if isinstance(_models, str):
