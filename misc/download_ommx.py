@@ -163,7 +163,7 @@ def download_ommx(
 
             end_time = time.time()
             print(f"Downloaded {dataset_name} OMMX data to {ommx_file_path}")
-            print(f"Upload time: {end_time - start_time:.2f} seconds")
+            print(f"Download time: {end_time - start_time:.2f} seconds")
 
 
 if __name__ == "__main__":
