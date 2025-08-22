@@ -96,7 +96,7 @@ def convert_topology_solution_to_jijmodeling_format(
     # Vectorized Floyd-Warshall algorithm
     for k in range(nodes):
         all_distances = np.minimum(
-            all_distances, all_distances[:, k : k + 1] + all_distances[k : k + 1, :]
+            all_distances, np.add.outer(all_distances[:, k], all_distances[k, :])
         )
 
     # Initialize seidel_linear decision variables using NumPy
@@ -155,7 +155,7 @@ def convert_topology_solution_to_jijmodeling_format(
 
                     y[s, t, u, j] = dist_su_j * dist_ut_0
 
-    return {"diameter": diameter, "dist": dist.tolist(), "y": y.tolist()}
+    return {"diameter": diameter, "dist": dist, "y": y}
 
 
 def read_topology_solution_file_as_jijmodeling_format(
