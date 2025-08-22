@@ -47,8 +47,8 @@ class Labs(BaseDataset):
     )
     subitem_url: dict[str, str] = field(
         default_factory=lambda: {
-            "integer": "docker pull ghcr.io/jij-inc/ommx-oblib/02_labs/integer:20250820181458",
-            "quadratic_unconstrained": "docker pull ghcr.io/jij-inc/ommx-oblib/02_labs/quadratic_unconstrained:20250820180941",
+            "integer": "ghcr.io/jij-inc/ommx-oblib/02_labs/integer:20250820181458",
+            "quadratic_unconstrained": "ghcr.io/jij-inc/ommx-oblib/02_labs/quadratic_unconstrained:20250820180941",
         }
     )
 
