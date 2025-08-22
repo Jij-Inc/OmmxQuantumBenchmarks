@@ -191,7 +191,7 @@ if __name__ == "__main__":
         help="The directory where the downloaded data will be saved.",
     )
     parser.add_argument(
-        "--model_dict",
+        "--models",
         type=parse_models_json,
         default=None,
         help='Optional JSON string specifying models for each dataset. If it\'s None, all models will be downloaded. Example: \'{"network": ["integer_linear"]}\'.',
@@ -201,5 +201,5 @@ if __name__ == "__main__":
     download_ommx(
         dataset_names=args.dataset_names,
         output_dir=args.output_dir,
-        model_dict=args.model_dict,
+        model_dict=args.models,
     )
