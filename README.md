@@ -3,7 +3,7 @@ This directory is dedicated to distributing the dataset [QOBLIB - Quantum Optimi
 
 ## How to Download Datasets and Usage of the Datasets
 ### Download
-You can donwload each dataset in `ommx` format using `misc/download_ommx.py` script. `misc/requirement.txt` provides the package information that `download_ommx.py` requires. Simply go to `misc` directory and run the following command.
+You can download each dataset in `ommx` format using `misc/download_ommx.py` script. `misc/requirement.txt` provides the package information that `download_ommx.py` requires. Simply go to `misc` directory and run the following command.
 
 ```bash
 python download_ommx.py \
@@ -14,7 +14,7 @@ python download_ommx.py \
 
 `--dataset_name` must be chosen in `marketsplit`, `labs`, `birkhoff`, `steiner`, `sports`, `portfolio`, `independent_set`, `network`, `routing`, `topology` and `all`. If you choose `all`, then all the 10 datasets will be downloaded.
 
-`--output_dir` is a path to the output direcotry.
+`--output_dir` is a path to the output directory.
 
 Each dataset may have multiple modeling as follows.
 
@@ -39,7 +39,7 @@ The table below is the summary of the arguments.
 | `--output_dir` | True | 1 as string | `./downloaded_ommx` |
 | `--models` | True | 1 as dictionary | `None` |
 
-For instance, if you would like to download `quadratic_unconstrained` model os `labs`, then the command will be:
+For instance, if you would like to download `quadratic_unconstrained` model of `labs`, then the command will be:
 
 ```bash
 python download_ommx.py \
