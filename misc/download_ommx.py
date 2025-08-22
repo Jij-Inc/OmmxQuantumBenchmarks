@@ -1,4 +1,4 @@
-"""This script uploads OMMX data to a GitHub repository using Minto."""
+"""This script downloads OMMX data from a GitHub repository using Minto."""
 
 import argparse
 import json
@@ -118,7 +118,7 @@ def download_ommx(
     Raises:
         ValueError: If an invalid dataset name is specified.
     """
-    # Make datasett_names a list if it is a string.
+    # Make dataset_names a list if it is a string.
     if isinstance(dataset_names, str):
         dataset_names = [dataset_names]
     # Convert "all" to a list of all dataset names.
