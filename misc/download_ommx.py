@@ -130,6 +130,10 @@ def download_ommx(
     # Convert None to all subitems specified in dataset_names.
     if subitems is None:
         subitems = {name: DATASET_SUBITEMS[name] for name in dataset_names}
+    # Convert subitems to a list if it is a string.
+    for dataset_name, _subitems in subitems.items():
+        if isinstance(_subitems, str):
+            subitems[dataset_name] = [_subitems]
     # Validate the dataset subitems.
     validate_dataset_subitems(subitems)
 
