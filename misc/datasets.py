@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -9,7 +9,7 @@ class BaseDataset(ABC):
     number: int
     name: str
     description: str
-    subitem_url: dict[str, str]
+    subitem_url: dict[str, str] = field(default_factory=dict)
 
     @property
     def subitems(self) -> list[str]:
@@ -31,7 +31,9 @@ class MarketSplit(BaseDataset):
     description: str = (
         "Marketsplit dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/01-marketsplit?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"binary_linear": "", "binary_unconstrained": ""}
+    subitem_url: dict[str, str] = field(
+        default_factory=lambda: {"binary_linear": "", "binary_unconstrained": ""}
+    )
 
 
 @dataclass
@@ -43,10 +45,12 @@ class Labs(BaseDataset):
     description: str = (
         "Labs dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/02-labs?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {
-        "integer": "docker pull ghcr.io/jij-inc/ommx-oblib/02_labs/integer:20250820181458",
-        "quadratic_unconstrained": "docker pull ghcr.io/jij-inc/ommx-oblib/02_labs/quadratic_unconstrained:20250820180941",
-    }
+    subitem_url: dict[str, str] = field(
+        default_factory=lambda: {
+            "integer": "docker pull ghcr.io/jij-inc/ommx-oblib/02_labs/integer:20250820181458",
+            "quadratic_unconstrained": "docker pull ghcr.io/jij-inc/ommx-oblib/02_labs/quadratic_unconstrained:20250820180941",
+        }
+    )
 
 
 @dataclass
@@ -58,7 +62,7 @@ class Birkhoff(BaseDataset):
     description: str = (
         "Birkhoff dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/03-birkhoff?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"integer_linear": ""}
+    subitem_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
 
 
 @dataclass
@@ -70,7 +74,7 @@ class Steiner(BaseDataset):
     description: str = (
         "Steiner dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/04-steiner?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"integer_linear": ""}
+    subitem_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
 
 
 @dataclass
@@ -82,7 +86,9 @@ class Sports(BaseDataset):
     description: str = (
         "Sports dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/05-sports?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"mixed_integer_linear": ""}
+    subitem_url: dict[str, str] = field(
+        default_factory=lambda: {"mixed_integer_linear": ""}
+    )
 
 
 @dataclass
@@ -94,10 +100,12 @@ class Portfolio(BaseDataset):
     description: str = (
         "Portfolio dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/06-portfolio?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {
-        "binary_quadratic": "",
-        "quadratic_unconstrained": "",
-    }
+    subitem_url: dict[str, str] = field(
+        default_factory=lambda: {
+            "binary_quadratic": "",
+            "quadratic_unconstrained": "",
+        }
+    )
 
 
 @dataclass
@@ -109,7 +117,9 @@ class IndependentSet(BaseDataset):
     description: str = (
         "Independent Set dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/07-independentset?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"binary_linear": "", "binary_unconstrained": ""}
+    subitem_url: dict[str, str] = field(
+        default_factory=lambda: {"binary_linear": "", "binary_unconstrained": ""}
+    )
 
 
 @dataclass
@@ -121,7 +131,7 @@ class Network(BaseDataset):
     description: str = (
         "Network dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"integer_linear": ""}
+    subitem_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
 
 
 @dataclass
@@ -133,7 +143,7 @@ class Routing(BaseDataset):
     description: str = (
         "Routing dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/09-routing?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {"integer_linear": ""}
+    subitem_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
 
 
 @dataclass
@@ -145,11 +155,13 @@ class Topology(BaseDataset):
     description: str = (
         "Topology dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/10-topology?ref_type=heads."
     )
-    subitem_url: dict[str, str] = {
-        "flow_mip": "",
-        "seidel_linear": "",
-        "seidel_quadratic": "",
-    }
+    subitem_url: dict[str, str] = field(
+        default_factory=lambda: {
+            "flow_mip": "",
+            "seidel_linear": "",
+            "seidel_quadratic": "",
+        }
+    )
 
 
 def get_all_datasets() -> list[BaseDataset]:
