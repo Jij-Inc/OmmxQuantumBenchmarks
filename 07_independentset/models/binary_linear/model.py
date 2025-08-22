@@ -31,4 +31,11 @@ def build_mis_problem() -> jm.Problem:
     e = jm.Element("e", belong_to=E)
     probem += jm.Constraint("no_adjacent", x[e[0]] + x[e[1]] <= 1, forall=e)
 
-    return probem
+    problem = jm.Problem("maximum_independent_set", sense=jm.ProblemSense.MAXIMIZE)
+    problem += obj
+
+    # Constraints: for all (u,v) in E, x[u] + x[v] <= 1
+    e = jm.Element("e", belong_to=E)
+    problem += jm.Constraint("no_adjacent", x[e[0]] + x[e[1]] <= 1, forall=e)
+
+    return problem
