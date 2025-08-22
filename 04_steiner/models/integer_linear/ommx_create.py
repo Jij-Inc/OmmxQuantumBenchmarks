@@ -64,6 +64,7 @@ def verify_solution_quality(
         "objective_match": None,
         "file_objective": None,
         "computed_objective": None,
+        "ommx_solution": None,
     }
 
     # Parse solution file to get original objective
@@ -176,6 +177,7 @@ def verify_solution_quality(
     # Evaluate solution using OMMX Instance.evaluate() method
     print("Evaluating solution with OMMX...")
     ommx_solution = ommx_instance.evaluate(solution_dict)
+    result["ommx_solution"] = ommx_solution
 
     # Check if solution is feasible and get computed objective value
     result["feasible"] = ommx_solution.feasible
@@ -282,6 +284,7 @@ def process_single_instance(
     # Verify solution quality if solution directory is provided
     print(f"Verifying solutions qualities...", flush=True)
     instance_name = Path(instance_path).name
+    solution = None
     if solution_directory:
         is_feasible, is_objective_match, results = verify_solution_qualities(
             instance_name=instance_name,
@@ -299,6 +302,24 @@ def process_single_instance(
                 f"Computed objective does not match file objective for instance {instance_name}."
                 f" Results: {results}"
             )
+
+        # Try to store the optimal solution first.
+        opt_solution_paths = glob.glob(
+            os.path.join(solution_directory, f"{instance_name}*.opt.sol")
+        )
+        if len(opt_solution_paths) > 0:
+            solution = results[opt_solution_paths[0]]["ommx_solution"]
+        # If no optimal solution, try the regular solution file.
+        else:
+            solution_paths = glob.glob(
+                os.path.join(solution_directory, f"{instance_name}.sol")
+            )
+            if solution_paths:
+                solution = results[solution_paths[0]]["ommx_solution"]
+            else:
+                print(
+                    f"No solution files found for {instance_name}, skipping solution attachment."
+                )
     solution_path = os.path.join(instance_path, "sol.txt")
     if os.path.isfile(solution_path):
         result = verify_solution_quality(
@@ -316,6 +337,9 @@ def process_single_instance(
                 f"Computed objective does not match file objective for instance {instance_name}."
                 f" Result: {result}"
             )
+        # If solution is still None, use the result from sol.txt
+        if solution is None:
+            solution = result["ommx_solution"]
 
     # Add metadata (reuse global timestamp)
     ommx_instance.title = f"Steiner Tree Packing: {instance_name}"
@@ -331,6 +355,8 @@ def process_single_instance(
     # Create OMMX Artifact
     builder = ArtifactBuilder.new_archive_unnamed(output_filename)
     builder.add_instance(ommx_instance)
+    if solution is not None:
+        builder.add_solution(solution)
     builder.build()
 
     # Aggressive memory cleanup
