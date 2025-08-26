@@ -37,14 +37,14 @@ class Uploader:
         # Load an instance data from an OMMX archive file.
         artifact = Artifact.load_archive(ommx_filepath)
         # Create an experiment and log the instance and solution data.
-        experiment = minto.Experiment(name=name, auto_saving=False)
-        name = Path(ommx_filepath).stem
+        experiment = minto.Experiment(name=image_name, auto_saving=False)
+        key_name = Path(ommx_filepath).stem
         if artifact.instance is not None:
-            experiment.log_instance(instance_name=name, instance=artifact.instance)
+            experiment.log_instance(instance_name=key_name, instance=artifact.instance)
         else:
             raise ValueError(f"Instance is None for file: {ommx_filepath}")
         if artifact.solution is not None:
-            experiment.log_solution(solution_name=name, solution=artifact.solution)
+            experiment.log_solution(solution_name=key_name, solution=artifact.solution)
         else:
             print(f"Warning: Solution is None for file: {ommx_filepath}")
 
