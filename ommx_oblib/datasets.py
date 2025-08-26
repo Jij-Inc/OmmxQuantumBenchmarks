@@ -52,16 +52,6 @@ class BaseDataset(ABC):
         )
 
     @property
-    def models(self) -> list[str]:
-        """Return the models of the dataset."""
-        return list(self.model_url.keys())
-
-    @property
-    def urls(self) -> list[str]:
-        """Return the URLs of the dataset models."""
-        return list(self.model_url.values())
-
-    @property
     def instance_url(self, model_name: str, instance_name: str) -> str:
         """Return the URL of the instance data specified by the given model and instance names.
 
