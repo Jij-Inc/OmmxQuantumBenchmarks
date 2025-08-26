@@ -72,7 +72,27 @@ class BaseDataset(ABC):
         instance_url = self.get_instance_url(
             model_name=model_name, instance_name=instance_name
         )
-        experiment = minto.Experiment.load_from_registry(instance_url)
+        # Try to load the experiment from the Github Container Registry.
+        try:
+            experiment = minto.Experiment.load_from_registry(instance_url)
+        except RuntimeError as e:
+            # If the error is 404 not found, raise FileNotFoundError with a user-friendly message.
+            if "status code 404" in str(e):
+                print(f"Error: Dataset not found at {instance_url}")
+                print(
+                    "Available datasets might be different. Please check the repository."
+                )
+                raise FileNotFoundError(
+                    f"""
+                    Dataset not found: {instance_url}. Choose from the available datasets:
+                    {self.available_instances}
+                    Or please have a look at the Package: https://github.com/Jij-Inc/OMMX-OBLIB/pkgs/container/ommx-oblib%2Fqoblib
+                    """
+                ) from e
+            else:
+                # Raise the original error for other cases.
+                raise
+
         return experiment
 
     def __call__(
