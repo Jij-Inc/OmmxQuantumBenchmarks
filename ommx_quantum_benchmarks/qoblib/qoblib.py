@@ -95,8 +95,25 @@ class BaseDataset(ABC):
         experiment = self.get_experiment(
             model_name=model_name, instance_name=instance_name
         )
-        instance = experiment.get_instance(instance_name)
-        solution = experiment.get_solution(instance_name)
+        # Load the only instance in the experiment.
+        instances = experiment.get_current_datastore().instances
+        if len(instances) != 1:
+            raise ValueError(
+                f"Number of instances in the given experiment is not one: {len(instances)}."
+            )
+        else:
+            instance = list(instances.values())[0]
+
+        # Load the only solution in the experiment if it exists.
+        solutions = experiment.get_current_datastore().solutions
+        if len(solutions) > 1:
+            raise ValueError(
+                f"Number of solutions in the given experiment is more than one: {len(solutions)}."
+            )
+        elif len(solutions) == 1:
+            solution = list(solutions.values())[0]
+        else:
+            solution = None
 
         return (instance, solution)
 
