@@ -11,13 +11,13 @@ import ommx.v1
 class BaseDataset(ABC):
     """Base class for datasets."""
 
-    # Define the base URL, which will be not changed in subclasses.
-    base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/ommx_datasets"
-    # Define variables that are set when the class is defined.
+    # Define member variables that are set in subclasses.
     number: int
     name: str
     description: str
     model_names: list[str] = field(default_factory=list)
+    # Define the base URL, which will be not changed in subclasses.
+    base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/ommx_datasets"
     # Define variable that is set in __post_init__.
     model_url: dict[str, str] = field(default_factory=dict)
 
