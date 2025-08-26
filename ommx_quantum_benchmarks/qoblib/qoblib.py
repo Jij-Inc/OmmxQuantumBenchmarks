@@ -18,6 +18,7 @@ class BaseDataset(ABC):
     model_names: list[str] = field(default_factory=list)
     # Define the base URL, which will be not changed in subclasses.
     base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/qoblib"
+    available_instances: dict[str, list[str]] = field(default_factory=dict)
     # Define variable that is set in __post_init__.
     model_url: dict[str, str] = field(default_factory=dict)
 
@@ -130,6 +131,9 @@ class MarketSplit(BaseDataset):
     model_names: list[str] = field(
         default_factory=lambda: ["binary_linear", "binary_unconstrained"]
     )
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"binary_linear": [], "binary_unconstrained": []}
+    )
 
 
 @dataclass
@@ -144,6 +148,212 @@ class Labs(BaseDataset):
     model_names: list[str] = field(
         default_factory=lambda: ["integer", "quadratic_unconstrained"]
     )
+    available_instances: Final[dict[str, list[str]]] = field(
+        default_factory=lambda: {
+            "integer": [
+                "labs002",
+                "labs003",
+                "labs004",
+                "labs005",
+                "labs006",
+                "labs007",
+                "labs008",
+                "labs009",
+                "labs010",
+                "labs011",
+                "labs012",
+                "labs013",
+                "labs014",
+                "labs015",
+                "labs016",
+                "labs017",
+                "labs018",
+                "labs019",
+                "labs020",
+                "labs021",
+                "labs022",
+                "labs023",
+                "labs024",
+                "labs025",
+                "labs026",
+                "labs027",
+                "labs028",
+                "labs029",
+                "labs030",
+                "labs031",
+                "labs032",
+                "labs033",
+                "labs034",
+                "labs035",
+                "labs036",
+                "labs037",
+                "labs038",
+                "labs039",
+                "labs040",
+                "labs041",
+                "labs042",
+                "labs043",
+                "labs044",
+                "labs045",
+                "labs046",
+                "labs047",
+                "labs048",
+                "labs049",
+                "labs050",
+                "labs051",
+                "labs052",
+                "labs053",
+                "labs054",
+                "labs055",
+                "labs056",
+                "labs057",
+                "labs058",
+                "labs059",
+                "labs060",
+                "labs061",
+                "labs062",
+                "labs063",
+                "labs064",
+                "labs065",
+                "labs066",
+                "labs067",
+                "labs068",
+                "labs069",
+                "labs070",
+                "labs071",
+                "labs072",
+                "labs073",
+                "labs074",
+                "labs075",
+                "labs076",
+                "labs077",
+                "labs078",
+                "labs079",
+                "labs080",
+                "labs081",
+                "labs082",
+                "labs083",
+                "labs084",
+                "labs085",
+                "labs086",
+                "labs087",
+                "labs088",
+                "labs089",
+                "labs090",
+                "labs091",
+                "labs092",
+                "labs093",
+                "labs094",
+                "labs095",
+                "labs096",
+                "labs097",
+                "labs098",
+                "labs099",
+                "labs100",
+            ],
+            "quadratic_unconstrained": [
+                "labs002",
+                "labs003",
+                "labs004",
+                "labs005",
+                "labs006",
+                "labs007",
+                "labs008",
+                "labs009",
+                "labs010",
+                "labs011",
+                "labs012",
+                "labs013",
+                "labs014",
+                "labs015",
+                "labs016",
+                "labs017",
+                "labs018",
+                "labs019",
+                "labs020",
+                "labs021",
+                "labs022",
+                "labs023",
+                "labs024",
+                "labs025",
+                "labs026",
+                "labs027",
+                "labs028",
+                "labs029",
+                "labs030",
+                "labs031",
+                "labs032",
+                "labs033",
+                "labs034",
+                "labs035",
+                "labs036",
+                "labs037",
+                "labs038",
+                "labs039",
+                "labs040",
+                "labs041",
+                "labs042",
+                "labs043",
+                "labs044",
+                "labs045",
+                "labs046",
+                "labs047",
+                "labs048",
+                "labs049",
+                "labs050",
+                "labs051",
+                "labs052",
+                "labs053",
+                "labs054",
+                "labs055",
+                "labs056",
+                "labs057",
+                "labs058",
+                "labs059",
+                "labs060",
+                "labs061",
+                "labs062",
+                "labs063",
+                "labs064",
+                "labs065",
+                "labs066",
+                "labs067",
+                "labs068",
+                "labs069",
+                "labs070",
+                "labs071",
+                "labs072",
+                "labs073",
+                "labs074",
+                "labs075",
+                "labs076",
+                "labs077",
+                "labs078",
+                "labs079",
+                "labs080",
+                "labs081",
+                "labs082",
+                "labs083",
+                "labs084",
+                "labs085",
+                "labs086",
+                "labs087",
+                "labs088",
+                "labs089",
+                "labs090",
+                "labs091",
+                "labs092",
+                "labs093",
+                "labs094",
+                "labs095",
+                "labs096",
+                "labs097",
+                "labs098",
+                "labs099",
+                "labs100",
+            ],
+        }
+    )
 
 
 @dataclass
@@ -156,6 +366,9 @@ class Birkhoff(BaseDataset):
         "Birkhoff dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/03-birkhoff?ref_type=heads."
     )
     model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"integer_linear": []}
+    )
 
 
 @dataclass
@@ -168,6 +381,9 @@ class Steiner(BaseDataset):
         "Steiner dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/04-steiner?ref_type=heads."
     )
     model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"integer_linear": []}
+    )
 
 
 @dataclass
@@ -180,6 +396,9 @@ class Sports(BaseDataset):
         "Sports dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/05-sports?ref_type=heads."
     )
     model_names: list[str] = field(default_factory=lambda: ["mixed_integer_linear"])
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"mixed_integer_linear": []}
+    )
 
 
 @dataclass
@@ -193,6 +412,9 @@ class Portfolio(BaseDataset):
     )
     model_names: list[str] = field(
         default_factory=lambda: ["binary_quadratic", "quadratic_unconstrained"]
+    )
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"binary_quadratic": [], "quadratic_unconstrained": []}
     )
 
 
@@ -208,6 +430,9 @@ class IndependentSet(BaseDataset):
     model_names: list[str] = field(
         default_factory=lambda: ["binary_linear", "binary_unconstrained"]
     )
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"binary_linear": [], "binary_unconstrained": []}
+    )
 
 
 @dataclass
@@ -220,6 +445,9 @@ class Network(BaseDataset):
         "Network dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads."
     )
     model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"integer_linear": []}
+    )
 
 
 @dataclass
@@ -232,6 +460,9 @@ class Routing(BaseDataset):
         "Routing dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/09-routing?ref_type=heads."
     )
     model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {"integer_linear": []}
+    )
 
 
 @dataclass
@@ -245,4 +476,11 @@ class Topology(BaseDataset):
     )
     model_names: list[str] = field(
         default_factory=lambda: ["flow_mip", "seidel_linear", "seidel_quadratic"]
+    )
+    available_instances: dict[str, list[str]] = field(
+        default_factory=lambda: {
+            "flow_mip": [],
+            "seidel_linear": [],
+            "seidel_quadratic": [],
+        }
     )
