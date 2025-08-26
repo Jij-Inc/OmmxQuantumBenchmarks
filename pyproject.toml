@@ -11,3 +11,8 @@ dependencies = [
     "ommx>=2.0.4",
     "requests>=2.32.4",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
