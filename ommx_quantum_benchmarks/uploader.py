@@ -9,10 +9,10 @@ from ommx.artifact import Artifact
 
 class Uploader:
     ORG: Final[str] = "Jij-Inc"
+    REPO: Final[str] = "OMMX-OBLIB"
 
-    def __init__(self, repo: str) -> None:
+    def __init__(self) -> None:
         os.environ["OMMX_BASIC_AUTH_DOMAIN"] = "ghcr.io"
-        self.repo: str = repo
 
     def push_ommx(
         self,
@@ -53,7 +53,7 @@ class Uploader:
             Uploader.veryfy_experiment(experiment, ommx_filepath)
 
         artifact = experiment.push_github(
-            org=self.ORG, repo=self.repo, name=image_name, tag=image_tag
+            org=self.ORG, repo=self.REPO, name=image_name, tag=image_tag
         )
 
     @staticmethod
