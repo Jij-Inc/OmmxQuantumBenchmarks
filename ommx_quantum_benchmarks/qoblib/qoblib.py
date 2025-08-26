@@ -76,19 +76,18 @@ class BaseDataset(ABC):
         try:
             experiment = minto.Experiment.load_from_registry(instance_url)
         except RuntimeError as e:
+            error_messge_1 = f"Invalid dataset name: {instance_url}. Choose from the available datasets:\n"
+            error_message_2 = ""
+            for model, instances in self.available_instances.items():
+                error_message_2 += f"- Model: {model}, Instances: {', '.join(instances) if instances else 'All available instances'}\n"
+            error_message_3 = "Or please have a look at the Package: https://github.com/Jij-Inc/OMMX-OBLIB/pkgs/container/ommx-oblib%2Fqoblib"
+            error_message = f"{error_messge_1}{error_message_2}{error_message_3}"
+
             # If the error is 404 not found, raise FileNotFoundError with a user-friendly message.
             if "status code 404" in str(e):
-                print(f"Error: Dataset not found at {instance_url}")
-                print(
-                    "Available datasets might be different. Please check the repository."
-                )
-                raise FileNotFoundError(
-                    f"""
-                    Dataset not found: {instance_url}. Choose from the available datasets:
-                    {self.available_instances}
-                    Or please have a look at the Package: https://github.com/Jij-Inc/OMMX-OBLIB/pkgs/container/ommx-oblib%2Fqoblib
-                    """
-                ) from e
+                raise FileNotFoundError(error_message) from e
+            elif "Invalid name" in str(e):
+                raise FileNotFoundError(error_message) from e
             else:
                 # Raise the original error for other cases.
                 raise
