@@ -1,5 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, field
+import numbers
 from typing import Final
 
 import minto
@@ -21,11 +22,38 @@ class BaseDataset(ABC):
     model_url: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Set model_url based on the member variables."""
+        """Set model_url based on the member variables and assert the member variables."""
         self.model_url = {
             f"{self.base_url}:{self.number:02d}-{self.name}-{model_name}": model_name
             for model_name in self.model_names
         }
+
+        # Assert the member variables.
+        meesage_prefix = "[FOR DEVELOPER] "
+        assert isinstance(self.number, numbers.Integral) and self.number > 0, (
+            meesage_prefix
+            + f"Dataset number must be a positive integer, but got {self.number}."
+        )
+        assert isinstance(self.name, str) and self.name, (
+            meesage_prefix
+            + f"Dataset name must be a non-empty string, but got {self.name}."
+        )
+        assert isinstance(self.description, str) and self.description, (
+            meesage_prefix
+            + f"Dataset description must be a non-empty string, but got {self.description}."
+        )
+        assert (
+            isinstance(self.model_names, list)
+            and self.model_names
+            and all(isinstance(model_name, str) for model_name in self.model_names)
+        ), (
+            meesage_prefix
+            + f"Dataset model_names must be a non-empty list of strings, but got {self.model_names}."
+        )
+        assert self.base_url == "ghcr.io/jij-inc/ommx-oblib/ommx_datasets", (
+            meesage_prefix
+            + f"Dataset base_url must be 'ghcr.io/jij-inc/ommx-oblib/ommx_datasets', but got {self.base_url}."
+        )
 
     @property
     def models(self) -> list[str]:
