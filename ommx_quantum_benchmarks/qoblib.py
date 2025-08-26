@@ -24,7 +24,7 @@ class BaseDataset(ABC):
     def __post_init__(self) -> None:
         """Set model_url based on the member variables and assert the member variables."""
         self.model_url = {
-            f"{self.base_url}:{self.number:02d}-{self.name}-{model_name}": model_name
+            model_name: f"{self.base_url}:{self.number:02d}-{self.name}-{model_name}"
             for model_name in self.model_names
         }
 
@@ -51,9 +51,8 @@ class BaseDataset(ABC):
             + f"Dataset base_url must be 'ghcr.io/jij-inc/ommx-oblib/ommx_datasets', but got {self.base_url}."
         )
 
-    @property
-    def instance_url(self, model_name: str, instance_name: str) -> str:
-        """Return the URL of the instance data specified by the given model and instance names.
+    def get_instance_url(self, model_name: str, instance_name: str) -> str:
+        """Get the URL of the instance data specified by the given model and instance names.
 
         Args:
             model_name (str): a model name.
@@ -63,8 +62,7 @@ class BaseDataset(ABC):
             str: the URL of the instance data.
         """
         base_url = self.model_url.get(model_name)
-        instance_url = f"{base_url}-{instance_name}"
-        return instance_url
+        return f"{base_url}-{instance_name}"
 
     def get_experiment(self, model_name: str, instance_name: str) -> minto.Experiment:
         """Get OMMX data for a specific dataset from the Github Packages.
@@ -76,7 +74,7 @@ class BaseDataset(ABC):
         Returns:
             minto.Experiment: The Minto experiment containing OMMX data.
         """
-        instance_url = self.instance_url(
+        instance_url = self.get_instance_url(
             model_name=model_name, instance_name=instance_name
         )
         experiment = minto.Experiment.load_from_registry(instance_url)
