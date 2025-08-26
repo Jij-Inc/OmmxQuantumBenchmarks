@@ -1,15 +1,31 @@
 from abc import ABC
 from dataclasses import dataclass, field
+from typing import Final
+
+import minto
+import ommx.v1
 
 
 @dataclass
 class BaseDataset(ABC):
     """Base class for datasets."""
 
+    # Define the base URL, which will be not changed in subclasses.
+    base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/ommx_datasets"
+    # Define variables that are set when the class is defined.
     number: int
     name: str
     description: str
+    model_names: list[str] = field(default_factory=list)
+    # Define variable that is set in __post_init__.
     model_url: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Set model_url based on the member variables."""
+        self.model_url = {
+            f"{self.base_url}:{self.number:02d}-{self.name}-{model_name}": model_name
+            for model_name in self.model_names
+        }
 
     @property
     def models(self) -> list[str]:
@@ -21,6 +37,57 @@ class BaseDataset(ABC):
         """Return the URLs of the dataset models."""
         return list(self.model_url.values())
 
+    @property
+    def instance_url(self, model_name: str, instance_name: str) -> str:
+        """Return the URL of the instance data specified by the given model and instance names.
+
+        Args:
+            model_name (str): a model name.
+            instance_name (str): an instance name.
+
+        Returns:
+            str: the URL of the instance data.
+        """
+        base_url = self.model_url.get(model_name)
+        instance_url = f"{base_url}-{instance_name}"
+        return instance_url
+
+    def get_experiment(self, model_name: str, instance_name: str) -> minto.Experiment:
+        """Get OMMX data for a specific dataset from the Github Packages.
+
+        Args:
+            model_name (str): The name of the model.
+            instance_name (str): The name of the instance.
+
+        Returns:
+            minto.Experiment: The Minto experiment containing OMMX data.
+        """
+        instance_url = self.instance_url(
+            model_name=model_name, instance_name=instance_name
+        )
+        experiment = minto.Experiment.load_from_registry(instance_url)
+        return experiment
+
+    def __call__(
+        self, model_name: str, instance_name: str
+    ) -> tuple[ommx.v1.Instance, ommx.v1.Solution]:
+        """Get the OMMX instance and solution for a specific Labs dataset.
+
+        Args:
+            instance_name (str): The name of the instance.
+            model (str): The model to use.
+
+        Returns:
+            tuple[ommx.v1.Instance, ommx.v1.Solution]: The OMMX instance and solution.
+        """
+        experiment = self.get_experiment(
+            model_name=model_name, instance_name=instance_name
+        )
+        instance = experiment.get_instance(instance_name)
+        solution = experiment.get_solution(instance_name)
+
+        return (instance, solution)
+
 
 @dataclass
 class MarketSplit(BaseDataset):
@@ -31,8 +98,8 @@ class MarketSplit(BaseDataset):
     description: str = (
         "Marketsplit dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/01-marketsplit?ref_type=heads."
     )
-    model_url: dict[str, str] = field(
-        default_factory=lambda: {"binary_linear": "", "binary_unconstrained": ""}
+    model_names: list[str] = field(
+        default_factory=lambda: ["binary_linear", "binary_unconstrained"]
     )
 
 
@@ -45,11 +112,8 @@ class Labs(BaseDataset):
     description: str = (
         "Labs dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/02-labs?ref_type=heads."
     )
-    model_url: dict[str, str] = field(
-        default_factory=lambda: {
-            "integer": "ghcr.io/jij-inc/ommx-oblib/02_labs/integer:latest",
-            "quadratic_unconstrained": "ghcr.io/jij-inc/ommx-oblib/02_labs/quadratic_unconstrained:latest",
-        }
+    model_names: list[str] = field(
+        default_factory=lambda: ["integer", "quadratic_unconstrained"]
     )
 
 
@@ -62,7 +126,7 @@ class Birkhoff(BaseDataset):
     description: str = (
         "Birkhoff dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/03-birkhoff?ref_type=heads."
     )
-    model_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
+    model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
 
 
 @dataclass
@@ -74,7 +138,7 @@ class Steiner(BaseDataset):
     description: str = (
         "Steiner dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/04-steiner?ref_type=heads."
     )
-    model_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
+    model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
 
 
 @dataclass
@@ -86,9 +150,7 @@ class Sports(BaseDataset):
     description: str = (
         "Sports dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/05-sports?ref_type=heads."
     )
-    model_url: dict[str, str] = field(
-        default_factory=lambda: {"mixed_integer_linear": ""}
-    )
+    model_names: list[str] = field(default_factory=lambda: ["mixed_integer_linear"])
 
 
 @dataclass
@@ -100,11 +162,8 @@ class Portfolio(BaseDataset):
     description: str = (
         "Portfolio dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/06-portfolio?ref_type=heads."
     )
-    model_url: dict[str, str] = field(
-        default_factory=lambda: {
-            "binary_quadratic": "",
-            "quadratic_unconstrained": "",
-        }
+    model_names: list[str] = field(
+        default_factory=lambda: ["binary_quadratic", "quadratic_unconstrained"]
     )
 
 
@@ -117,8 +176,8 @@ class IndependentSet(BaseDataset):
     description: str = (
         "Independent Set dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/07-independentset?ref_type=heads."
     )
-    model_url: dict[str, str] = field(
-        default_factory=lambda: {"binary_linear": "", "binary_unconstrained": ""}
+    model_names: list[str] = field(
+        default_factory=lambda: ["binary_linear", "binary_unconstrained"]
     )
 
 
@@ -131,7 +190,7 @@ class Network(BaseDataset):
     description: str = (
         "Network dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads."
     )
-    model_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
+    model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
 
 
 @dataclass
@@ -143,7 +202,7 @@ class Routing(BaseDataset):
     description: str = (
         "Routing dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/09-routing?ref_type=heads."
     )
-    model_url: dict[str, str] = field(default_factory=lambda: {"integer_linear": ""})
+    model_names: list[str] = field(default_factory=lambda: ["integer_linear"])
 
 
 @dataclass
@@ -155,36 +214,6 @@ class Topology(BaseDataset):
     description: str = (
         "Topology dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/10-topology?ref_type=heads."
     )
-    model_url: dict[str, str] = field(
-        default_factory=lambda: {
-            "flow_mip": "",
-            "seidel_linear": "",
-            "seidel_quadratic": "",
-        }
+    model_names: list[str] = field(
+        default_factory=lambda: ["flow_mip", "seidel_linear", "seidel_quadratic"]
     )
-
-
-def get_all_datasets() -> list[BaseDataset]:
-    """Get all datasets as a list of BaseDataset instances."""
-    return [
-        MarketSplit(),
-        Labs(),
-        Birkhoff(),
-        Steiner(),
-        Sports(),
-        Portfolio(),
-        IndependentSet(),
-        Network(),
-        Routing(),
-        Topology(),
-    ]
-
-
-def get_all_dataset_names():
-    """Get all dataset names as a list of strings."""
-    return [dataset.name for dataset in get_all_datasets()]
-
-
-def get_all_dataset_models() -> dict[str, list[str]]:
-    """Get all dataset models as a list of strings."""
-    return {dataset.name: dataset.models for dataset in get_all_datasets()}
