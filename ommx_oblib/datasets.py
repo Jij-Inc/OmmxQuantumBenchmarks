@@ -30,17 +30,13 @@ class BaseDataset(ABC):
 
         # Assert the member variables.
         meesage_prefix = "[FOR DEVELOPER] "
-        assert isinstance(self.number, numbers.Integral) and self.number > 0, (
+        assert isinstance(self.number, numbers.Integral) and 11 > self.number > 0, (
             meesage_prefix
-            + f"Dataset number must be a positive integer, but got {self.number}."
+            + f"Dataset number must be a positive integer between 1 and 10, but got {self.number}."
         )
         assert isinstance(self.name, str) and self.name, (
             meesage_prefix
             + f"Dataset name must be a non-empty string, but got {self.name}."
-        )
-        assert isinstance(self.description, str) and self.description, (
-            meesage_prefix
-            + f"Dataset description must be a non-empty string, but got {self.description}."
         )
         assert (
             isinstance(self.model_names, list)
