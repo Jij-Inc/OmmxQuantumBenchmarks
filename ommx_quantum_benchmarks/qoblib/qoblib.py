@@ -17,7 +17,7 @@ class BaseDataset(ABC):
     description: str
     model_names: list[str] = field(default_factory=list)
     # Define the base URL, which will be not changed in subclasses.
-    base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/ommx_datasets"
+    base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/qoblib"
     # Define variable that is set in __post_init__.
     model_url: dict[str, str] = field(default_factory=dict)
 
@@ -46,9 +46,9 @@ class BaseDataset(ABC):
             meesage_prefix
             + f"Dataset model_names must be a non-empty list of strings, but got {self.model_names}."
         )
-        assert self.base_url == "ghcr.io/jij-inc/ommx-oblib/ommx_datasets", (
+        assert self.base_url == "ghcr.io/jij-inc/ommx-oblib/qoblib", (
             meesage_prefix
-            + f"Dataset base_url must be 'ghcr.io/jij-inc/ommx-oblib/ommx_datasets', but got {self.base_url}."
+            + f"Dataset base_url must be 'ghcr.io/jij-inc/ommx-oblib/qoblib', but got {self.base_url}."
         )
 
     def get_instance_url(self, model_name: str, instance_name: str) -> str:
