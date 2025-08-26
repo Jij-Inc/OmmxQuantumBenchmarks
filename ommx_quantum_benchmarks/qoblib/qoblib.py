@@ -1,6 +1,5 @@
 from abc import ABC
 from dataclasses import dataclass, field
-import numbers
 from typing import Final
 
 import minto
@@ -12,7 +11,6 @@ class BaseDataset(ABC):
     """Base class for datasets."""
 
     # Define member variables that are set in subclasses.
-    number: int
     name: str
     description: str
     model_names: list[str] = field(default_factory=list)
@@ -25,16 +23,12 @@ class BaseDataset(ABC):
     def __post_init__(self) -> None:
         """Set model_url based on the member variables and assert the member variables."""
         self.model_url = {
-            model_name: f"{self.base_url}:{self.number:02d}-{self.name}-{model_name}"
+            model_name: f"{self.base_url}:{self.name}-{model_name}"
             for model_name in self.model_names
         }
 
         # Assert the member variables.
         meesage_prefix = "[FOR DEVELOPER] "
-        assert isinstance(self.number, numbers.Integral) and 11 > self.number > 0, (
-            meesage_prefix
-            + f"Dataset number must be a positive integer between 1 and 10, but got {self.number}."
-        )
         assert isinstance(self.name, str) and self.name, (
             meesage_prefix
             + f"Dataset name must be a non-empty string, but got {self.name}."
@@ -123,8 +117,7 @@ class BaseDataset(ABC):
 class MarketSplit(BaseDataset):
     """Class representing a market split dataset."""
 
-    number: int = 1
-    name: str = "marketsplit"
+    name: str = "01-marketsplit"
     description: str = (
         "Marketsplit dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/01-marketsplit?ref_type=heads."
     )
@@ -140,8 +133,7 @@ class MarketSplit(BaseDataset):
 class Labs(BaseDataset):
     """Class representing a labs dataset."""
 
-    number: int = 2
-    name: str = "labs"
+    name: str = "02-labs"
     description: str = (
         "Labs dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/02-labs?ref_type=heads."
     )
@@ -360,8 +352,7 @@ class Labs(BaseDataset):
 class Birkhoff(BaseDataset):
     """Class representing a Birkhoff dataset."""
 
-    number: int = 3
-    name: str = "birkhoff"
+    name: str = "03-birkhoff"
     description: str = (
         "Birkhoff dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/03-birkhoff?ref_type=heads."
     )
@@ -375,8 +366,7 @@ class Birkhoff(BaseDataset):
 class Steiner(BaseDataset):
     """Class representing a Steiner dataset."""
 
-    number: int = 4
-    name: str = "steiner"
+    name: str = "04-steiner"
     description: str = (
         "Steiner dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/04-steiner?ref_type=heads."
     )
@@ -390,8 +380,7 @@ class Steiner(BaseDataset):
 class Sports(BaseDataset):
     """Class representing a Sports dataset."""
 
-    number: int = 5
-    name: str = "sports"
+    name: str = "05-sports"
     description: str = (
         "Sports dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/05-sports?ref_type=heads."
     )
@@ -405,8 +394,7 @@ class Sports(BaseDataset):
 class Portfolio(BaseDataset):
     """Class representing a Portfolio dataset."""
 
-    number: int = 6
-    name: str = "portfolio"
+    name: str = "06-portfolio"
     description: str = (
         "Portfolio dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/06-portfolio?ref_type=heads."
     )
@@ -422,8 +410,7 @@ class Portfolio(BaseDataset):
 class IndependentSet(BaseDataset):
     """Class representing an Independent Set dataset."""
 
-    number: int = 7
-    name: str = "independent_set"
+    name: str = "07-independent_set"
     description: str = (
         "Independent Set dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/07-independentset?ref_type=heads."
     )
@@ -439,8 +426,7 @@ class IndependentSet(BaseDataset):
 class Network(BaseDataset):
     """Class representing a Network dataset."""
 
-    number: int = 8
-    name: str = "network"
+    name: str = "08-network"
     description: str = (
         "Network dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads."
     )
@@ -454,8 +440,7 @@ class Network(BaseDataset):
 class Routing(BaseDataset):
     """Class representing a Routing dataset."""
 
-    number: int = 9
-    name: str = "routing"
+    name: str = "09-routing"
     description: str = (
         "Routing dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/09-routing?ref_type=heads."
     )
@@ -469,8 +454,7 @@ class Routing(BaseDataset):
 class Topology(BaseDataset):
     """Class representing a Topology dataset."""
 
-    number: int = 10
-    name: str = "topology"
+    name: str = "10-topology"
     description: str = (
         "Topology dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/10-topology?ref_type=heads."
     )
