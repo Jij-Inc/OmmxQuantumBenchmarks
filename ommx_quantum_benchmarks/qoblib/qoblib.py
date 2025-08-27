@@ -84,7 +84,7 @@ class BaseDataset(ABC):
         try:
             experiment = minto.Experiment.load_from_registry(instance_url)
         except RuntimeError as e:
-            error_messge_1 = f"Invalid dataset name: {instance_url}. Choose from the available datasets:\n"
+            error_messge_1 = f"Invalid instance name: {instance_url}. Choose from the available instances:\n"
             error_message_2 = ""
             for model, instances in self.available_instances.items():
                 error_message_2 += f"- Model: {model}, Instances: {', '.join(instances) if instances else 'All available instances'}\n"
