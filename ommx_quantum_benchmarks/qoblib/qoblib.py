@@ -117,20 +117,19 @@ class BaseDataset(ABC):
         )
         # Load the only instance in the experiment.
         instances = experiment.get_current_datastore().instances
-        if len(instances) != 1:
-            raise ValueError(
-                f"Number of instances in the given experiment is not one: {len(instances)}."
-            )
-        else:
-            instance = list(instances.values())[0]
+        # The uploaded instance should be only one. Thus, if this error is raised, it is a bug of the uploader.
+        assert (
+            len(instances) == 1
+        ), f"[FOR DEVELOPER] Number of instances obtained by model_name={model_name} and instance_name={instance_name} is not one: {len(instances)}."
+        instance = list(instances.values())[0]
 
         # Load the only solution in the experiment if it exists.
         solutions = experiment.get_current_datastore().solutions
-        if len(solutions) > 1:
-            raise ValueError(
-                f"Number of solutions in the given experiment is more than one: {len(solutions)}."
-            )
-        elif len(solutions) == 1:
+        # The uploaded solutions should be at most one. Thus, if this error is raised, it is a bug of the uploader.
+        assert (
+            0 <= len(solutions) <= 1
+        ), f"[FOR DEVELOER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(solutions)}."
+        if len(solutions) == 1:
             solution = list(solutions.values())[0]
         else:
             solution = None
