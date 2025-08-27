@@ -16,6 +16,7 @@ class BaseDataset(ABC):
     model_names: list[str] = field(default_factory=list)
     # Define the base URL, which will be not changed in subclasses.
     base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/qoblib"
+    # Define available instances for each model, which will be set in subclasses.
     available_instances: dict[str, list[str]] = field(default_factory=dict)
     # Define variable that is set in __post_init__.
     model_url: dict[str, str] = field(default_factory=dict)
