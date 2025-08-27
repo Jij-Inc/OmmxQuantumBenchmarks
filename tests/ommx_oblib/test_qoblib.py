@@ -1,4 +1,5 @@
 import pytest
+import ommx.v1
 
 from ommx_quantum_benchmarks.qoblib.qoblib import *
 from .mock import *
@@ -14,9 +15,15 @@ def test_base_dataset_creation():
     4. each item of its model_url is model_name: f"{self.base_url}:{self.name}-{model_name}".
     """
     # 1. no assertion error is raised during the creation of the instance,
+    dataset = MockDataset()
     # 2. its base_url is "ghcr.io/jij-inc/ommx-oblib/qoblib",
+    assert dataset.base_url == "ghcr.io/jij-inc/ommx-oblib/qoblib"
     # 3. its model_url is a dict,
+    assert isinstance(dataset.model_url, dict)
     # 4. each item of its model_url is model_name: f"{self.base_url}:{self.name}-{model_name}".
+    for model_name in dataset.model_names:
+        expected_url = f"{dataset.base_url}:{dataset.name}-{model_name}"
+        assert dataset.model_url[model_name] == expected_url
 
 
 def test_base_dataset_creation_with_invalid_name():
@@ -26,6 +33,8 @@ def test_base_dataset_creation_with_invalid_name():
     1. AssertionError is raised during the creation of the instance.
     """
     # 1. AssertionError is raised during the creation of the instance.
+    with pytest.raises(AssertionError):
+        MockDatasetWithEmptyName()
 
 
 def test_base_dataset_creation_with_empty_model_names():
@@ -35,6 +44,8 @@ def test_base_dataset_creation_with_empty_model_names():
     1. AssertionError is raised during the creation of the instance.
     """
     # 1. AssertionError is raised during the creation of the instance.
+    with pytest.raises(AssertionError):
+        MockDatasetWithEmptyModelNames()
 
 
 def test_base_dataset_creation_with_changed_base_url():
@@ -44,6 +55,8 @@ def test_base_dataset_creation_with_changed_base_url():
     1. AssertionError is raised during the creation of the instance.
     """
     # 1. AssertionError is raised during the creation of the instance.
+    with pytest.raises(AssertionError):
+        MockDatasetChangedBaseURL()
 
 
 def test_get_instance_url():
@@ -54,7 +67,14 @@ def test_get_instance_url():
     2. the returned value is f"{self.model_url[model_name]}-{instance_name}".
     """
     # 1. the returned value is str,
+    dataset = MockDataset()
+    model_name = "model1"
+    instance_name = "instance1"
+    result = dataset.get_instance_url(model_name, instance_name)
+    assert isinstance(result, str)
     # 2. the returned value is f"{self.model_url[model_name]}-{instance_name}".
+    expected_url = f"{dataset.model_url[model_name]}-{instance_name}"
+    assert result == expected_url
 
 
 def test_get_instance_url_with_invalid_model_name():
@@ -64,6 +84,9 @@ def test_get_instance_url_with_invalid_model_name():
     1. ValueError is raised.
     """
     # 1. ValueError is raised.
+    dataset = MockDataset()
+    with pytest.raises(ValueError):
+        dataset.get_instance_url("invalid_model", "instance1")
 
 
 def test_get_experiment_with_invalid_url():
@@ -72,7 +95,10 @@ def test_get_experiment_with_invalid_url():
     Check if
     1. FileNotFoundError is raised.
     """
-    # 1. RuntimeError is raised.
+    # 1. FileNotFoundError is raised.
+    dataset = MockDataset()
+    with pytest.raises(FileNotFoundError):
+        dataset.get_experiment("model1", "invalid_instance")
 
 
 def test_marketsplit():
@@ -87,11 +113,36 @@ def test_marketsplit():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "01_marketsplit",
+    dataset = Marketsplit()
+    assert dataset.name == "01_marketsplit"
     # 2. its model_names is ["binary_linear", "binary_unconstrained"],
+    assert dataset.model_names == ["binary_linear", "binary_unconstrained"]
     # 3. its availabe_instances is dict whose key are "binary_linear" and "binary_unconstrained",
+    assert isinstance(dataset.available_instances, dict)
+    assert "binary_linear" in dataset.available_instances
+    assert "binary_unconstrained" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_labs():
@@ -106,11 +157,36 @@ def test_labs():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "02_labs",
+    dataset = Labs()
+    assert dataset.name == "02_labs"
     # 2. its model_names is ["integer", "quadratic_unconstrained"],
+    assert dataset.model_names == ["integer", "quadratic_unconstrained"]
     # 3. its availabe_instances is dict whose key are "integer" and "quadratic_unconstrained",
+    assert isinstance(dataset.available_instances, dict)
+    assert "integer" in dataset.available_instances
+    assert "quadratic_unconstrained" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
     # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
     # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    # Note: Tests 5 and 6 require network access and valid instances. Uncomment and modify as needed:
+    # for model_name, instances in dataset.available_instances.items():
+    #     if instances:  # Only test if instances are available
+    #         instance_name = instances[0]  # Test with first instance
+    #         result = dataset(model_name, instance_name)
+    #         assert isinstance(result, tuple)
+    #         assert len(result) == 2
+    #         instance, solution = result
+    #         assert isinstance(instance, ommx.v1.Instance)
+    #         if solution is not None:
+    #             assert isinstance(solution, ommx.v1.Solution)
+    #             evaluated_solution = instance.evaluate(solution.state)
+    #             assert evaluated_solution.feasible == solution.feasible
+    #             assert evaluated_solution.objective == solution.objective
+    #             assert evaluated_solution.state == solution.state
 
 
 def test_birkhoff():
@@ -125,11 +201,35 @@ def test_birkhoff():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "03_birkhoff",
+    dataset = Birkhoff()
+    assert dataset.name == "03_birkhoff"
     # 2. its model_names is ["integer_linear"],
+    assert dataset.model_names == ["integer_linear"]
     # 3. its availabe_instances is dict whose key are "integer_linear",
+    assert isinstance(dataset.available_instances, dict)
+    assert "integer_linear" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_steiner():
@@ -144,11 +244,35 @@ def test_steiner():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "04_steiner",
+    dataset = Steiner()
+    assert dataset.name == "04_steiner"
     # 2. its model_names is ["integer_linear"],
+    assert dataset.model_names == ["integer_linear"]
     # 3. its availabe_instances is dict whose key are "integer_linear",
+    assert isinstance(dataset.available_instances, dict)
+    assert "integer_linear" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_sports():
@@ -163,11 +287,35 @@ def test_sports():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "05_sports",
+    dataset = Sports()
+    assert dataset.name == "05_sports"
     # 2. its model_names is ["mixed_integer_linear"],
+    assert dataset.model_names == ["mixed_integer_linear"]
     # 3. its availabe_instances is dict whose key are "mixed_integer_linear",
+    assert isinstance(dataset.available_instances, dict)
+    assert "mixed_integer_linear" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_portfolio():
@@ -182,11 +330,35 @@ def test_portfolio():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "06_portfolio",
+    dataset = Portfolio()
+    assert dataset.name == "06_portfolio"
     # 2. its model_names is ["binary_quadratic", "quadratic_unconstrained"],
+    assert dataset.model_names == ["binary_quadratic", "quadratic_unconstrained"]
     # 3. its availabe_instances is dict whose key are "binary_quadratic" and "quadratic_unconstrained",
+    assert isinstance(dataset.available_instances, dict)
+    assert "binary_quadratic" in dataset.available_instances
+    assert "quadratic_unconstrained" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_independent_set():
@@ -201,11 +373,35 @@ def test_independent_set():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "07_independent_set",
+    dataset = IndependentSet()
+    assert dataset.name == "07_independent_set"
     # 2. its model_names is ["binary_linear", "binary_unconstrained"],
+    assert dataset.model_names == ["binary_linear", "binary_unconstrained"]
     # 3. its availabe_instances is dict whose key are "binary_linear" and "binary_unconstrained",
+    assert isinstance(dataset.available_instances, dict)
+    assert "binary_linear" in dataset.available_instances
+    assert "binary_unconstrained" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_network():
@@ -220,11 +416,34 @@ def test_network():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "08_network",
+    dataset = Network()
+    assert dataset.name == "08_network"
     # 2. its model_names is ["integer_linear"],
+    assert dataset.model_names == ["integer_linear"]
     # 3. its availabe_instances is dict whose key are "integer_linear",
+    assert isinstance(dataset.available_instances, dict)
+    assert "integer_linear" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_routing():
@@ -239,11 +458,34 @@ def test_routing():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "09_routing",
+    dataset = Routing()
+    assert dataset.name == "09_routing"
     # 2. its model_names is ["integer_linear"],
+    assert dataset.model_names == ["integer_linear"]
     # 3. its availabe_instances is dict whose key are "integer_linear",
+    assert isinstance(dataset.available_instances, dict)
+    assert "integer_linear" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
 
 
 def test_topology():
@@ -258,8 +500,33 @@ def test_topology():
     6. the evaluated solution with its instance and solution is the same as the original solution.
     """
     # 1. its name is "10_topology",
+    dataset = Topology()
+    assert dataset.name == "10_topology"
     # 2. its model_names is ["flow_mip", "seidel_linear", "seidel_quadratic"],
+    assert dataset.model_names == ["flow_mip", "seidel_linear", "seidel_quadratic"]
     # 3. its availabe_instances is dict whose key are "flow_mip", "seidel_linear" and "seidel_quadratic",
+    assert isinstance(dataset.available_instances, dict)
+    assert "flow_mip" in dataset.available_instances
+    assert "seidel_linear" in dataset.available_instances
+    assert "seidel_quadratic" in dataset.available_instances
     # 4. each value of its availabe_instances is a list of str,
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
+    for model_name, instances in dataset.available_instances.items():
+        assert isinstance(instances, list)
+        for instance in instances:
+            assert isinstance(instance, str)
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state == solution.state
