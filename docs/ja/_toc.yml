@@ -6,30 +6,30 @@ root: index
 parts:
   - caption: "Switch Language"
     chapters:
-      - url: https://jij-inc.github.io/OMMX-OBLIB/ja/
-        title: "日本語"
+      - url: https://jij-inc.github.io/OMMX-OBLIB/en/
+        title: "English"
 
-  - caption: Getting Started
+  - caption: はじめに
     chapters:
     - file: quickstart
 
-  - caption: Usage Guide
+  - caption: 使用ガイド
     chapters:
     - file: tutorial/usage/index_usage
       sections:
         - file: tutorial/usage/basic_usage
         - file: tutorial/usage/dataset_overview
 
-  - caption: Examples
+  - caption: 例
     chapters:
     - file: tutorial/examples/index_examples
       sections:
         - file: tutorial/examples/marketsplit_example
 
-  - caption: API Reference
+  - caption: API リファレンス
     chapters:
     - file: autoapi/index
 
-  - caption: "Release Notes"
+  - caption: "リリースノート"
     chapters:
       - file: release_note/index
