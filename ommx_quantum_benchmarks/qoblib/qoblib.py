@@ -54,10 +54,17 @@ class BaseDataset(ABC):
             model_name (str): a model name.
             instance_name (str): an instance name.
 
+        Raises:
+            ValueError: if the given model name is not valid.
+
         Returns:
             str: the URL of the instance data.
         """
-        base_url = self.model_url.get(model_name)
+        if model_name not in self.model_names:
+            raise ValueError(
+                f"Invalid model name: {model_name}. Choose from {self.model_names}."
+            )
+        base_url = self.model_url[model_name]
         return f"{base_url}-{instance_name}"
 
     def get_experiment(self, model_name: str, instance_name: str) -> minto.Experiment:
@@ -86,8 +93,6 @@ class BaseDataset(ABC):
 
             # If the error is 404 not found, raise FileNotFoundError with a user-friendly message.
             if "status code 404" in str(e):
-                raise FileNotFoundError(error_message) from e
-            elif "Invalid name" in str(e):
                 raise FileNotFoundError(error_message) from e
             else:
                 # Raise the original error for other cases.
