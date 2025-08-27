@@ -1456,8 +1456,7 @@ wheels = [
 
 [[package]]
 name = "ommx-quantum-benchmarks"
-version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "jijmodeling" },
     { name = "minto" },
