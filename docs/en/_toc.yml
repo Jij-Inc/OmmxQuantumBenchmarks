@@ -14,7 +14,6 @@ parts:
       sections:
         - file: tutorial/usage/basic_usage
         - file: tutorial/usage/dataset_overview
-        - file: tutorial/usage/working_with_instances
 
   - caption: Examples
     chapters:
