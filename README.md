@@ -1,7 +1,31 @@
 # OMMX Quantum Benchmarks
-This directory is dedicated to providing quantum optimization benchmarking datasets in `ommx` format. The objective is this repository is to collect several datasets for quantum optimization.
+OMMX Quantum Benchmarks provides access to quantum optimization benchmark datasets in [OMMX](https://jij-inc.github.io/ommx/en/introduction.html) format for easier integration with quantum and classical optimization workflows.
 
-OMMX stands for [Open Mathematical prograMming eXchange](https://jij-inc.github.io/ommx/en/introduction.html), which is a SDK designed to simplify data exchange between software and people when applying mathematical optimization to real-world problems. The formulation process has done using [JijModeling](https://jij-inc.github.io/JijModeling-Tutorials/en/introduction.html). The download process is implemented through [Minto](https://jij-inc.github.io/minto/en/intro.html).
+## Quick Start
+### Installation
+
+```bash
+# Clone and install
+git clone https://github.com/Jij-Inc/OMMX-OBLIB.git
+cd OMMX-OBLIB
+pip install -e .
+```
+
+### Basic Usage
+
+```python
+from ommx_quantum_benchmarks.qoblib import Marketsplit
+
+# Load a dataset
+dataset = Marketsplit()
+instance, solution = dataset("binary_linear", "ms_03_050_002")
+
+# Evaluate the solution
+evaluated = instance.evaluate(solution.state)
+print(f"Objective: {evaluated.objective}, Feasible: {evaluated.feasible}")
+```
+
+For detailed documentation, visit: [Documentation](docs/en/index.md)
 
 
 ## QOBLIB
