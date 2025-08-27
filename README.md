@@ -1,8 +1,31 @@
-# OMMX-OBLIB
-This directory is dedicated to distributing the dataset [QOBLIB - Quantum Optimization Benchmarking Library](https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library) in `ommx` format. Note that currently, this directory does not provide all datasets, such as the fourth dataset Steiner Tree Packing pointed out in [issue 8](https://github.com/Jij-Inc/OMMX-OBLIB/issues/8). Please have a look at [OMMX-OBLIB/Packages](https://github.com/orgs/Jij-Inc/packages?repo_name=OMMX-OBLIB) to see which datasets are distributed.
+# OMMX Quantum Benchmarks
+This directory is dedicated to providing quantum optimization benchmarking datasets in `ommx` format. The objective is this repository is to collect several datasets for quantum optimization. OMMX stands for [Open Mathematical prograMming eXchange](https://jij-inc.github.io/ommx/en/introduction.html), which is a DSK designed to simplify data exchange between software and people when applying mathematical optimization to real-world problems. The download process is implemented through [Minto](https://jij-inc.github.io/minto/en/intro.html).
 
-## How to Download Datasets and Usage of the Datasets
-### Download
+
+## QOBLIB
+QOBLIB stands for Quantum Optimization Benchmarking Library. In this repository we provide instance data given in the original QOBLIB reposutory in `ommx` format leveraging the power of Github Container Registry. Note that currently, this directory does not provide all datasets, such as the fourth dataset Steiner Tree Packing pointed out in [issue 8](https://github.com/Jij-Inc/OMMX-OBLIB/issues/8). One can see which instance data are available accessing `available_instances` property, which will be mentioned later.
+
+### Data Attribution
+This project includes data derived from [QOBLIB - Quantum Optimization Benchmarking Library](https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library):
+- Original authors: Thorsten Koch, David E. Bernal Neira, Ying Chen, Giorgio Cortiana, Daniel J. Egger, Raoul Heese, Narendra N. Hegade, Alejandro Gomez Cadavid, Rhea Huang, Toshinari Itoko, Thomas Kleinert, Pedro Maciel Xavier, Naeimeh Mohseni, Jhon A. Montanez-Barrera, Koji Nakano, Giacomo Nannicini, Corey O’Meara, Justin Pauckert, Manuel Proissl, Anurag Ramesh, Maximilian Schicker, Noriaki Shimada, Mitsuharu Takeori, Victor Valls, David Van Bulck, Stefan Woerner, and Christa Zoufal.
+- License: CC BY 4.0
+
+The instance data has been converted to `ommx` format with additional modifications if needed.
+
+### Best-practice for solution reporting
+Please refer to the original [contribution guidelines](https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/blob/main/CONTRIBUTING.md?ref_type=heads) for further information.
+
+### Best-practice for hardware implementation
+A collection of guidelines to run quantum optimization algorithms with Qiskit on hardware that is based on superconducting qubits can be found [here](https://github.com/qiskit-community/qopt-best-practices).
+
+
+
+<details>
+<summary>
+Need to be fixed.
+</summary>
+
+### Example Code to Download Intance Data
 You can download each dataset in `ommx` format using `misc/download_ommx.py` script. `misc/requirement.txt` provides the package information that `download_ommx.py` requires. Simply go to `misc` directory and run the following command.
 
 ```bash
@@ -96,3 +119,5 @@ Each `directory(i)` will be processed as one package.
 
 ## How to Create `.ommx` files
 Each dataset directory should contain a `model` directory and some sub-directories under the `model` directory. Those sub-directories should have an `ommx_create.py` script. Simply running the script `uv run ommx_create.py` creates an `ommx_output` directory and produces `.ommx` files in it.
+
+</details>
