@@ -1,5 +1,7 @@
 # OMMX Quantum Benchmarks
-This directory is dedicated to providing quantum optimization benchmarking datasets in `ommx` format. The objective is this repository is to collect several datasets for quantum optimization. OMMX stands for [Open Mathematical prograMming eXchange](https://jij-inc.github.io/ommx/en/introduction.html), which is a DSK designed to simplify data exchange between software and people when applying mathematical optimization to real-world problems. The download process is implemented through [Minto](https://jij-inc.github.io/minto/en/intro.html).
+This directory is dedicated to providing quantum optimization benchmarking datasets in `ommx` format. The objective is this repository is to collect several datasets for quantum optimization.
+
+OMMX stands for [Open Mathematical prograMming eXchange](https://jij-inc.github.io/ommx/en/introduction.html), which is a SDK designed to simplify data exchange between software and people when applying mathematical optimization to real-world problems. The formulation process has done using [JijModeling](https://jij-inc.github.io/JijModeling-Tutorials/en/introduction.html). The download process is implemented through [Minto](https://jij-inc.github.io/minto/en/intro.html).
 
 
 ## QOBLIB
