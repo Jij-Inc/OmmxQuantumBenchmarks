@@ -16,6 +16,9 @@ dependencies = [
     "requests>=2.32.4",
 ]
 
+[tool.setuptools]
+packages = ["ommx_quantum_benchmarks"]
+
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
