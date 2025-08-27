@@ -2,15 +2,15 @@
 
 This section provides practical examples for working with OMMX Quantum Benchmarks datasets.
 
-**Note**: All datasets in OMMX Quantum Benchmarks follow the same API pattern. The examples shown here using Marketsplit apply to all other datasets (Labs, Portfolio, Topology, etc.) with only the class name and available instances differing.
+**Note**: All datasets from the QOBLIB collection follow the same API pattern. The examples shown here using Marketsplit apply to other QOBLIB datasets (Labs, Portfolio, Topology, etc.) with only the class name and available instances differing.
 
 ## Representative Example
 
 - [Marketsplit Example](marketsplit_example.md) - Complete usage example showing all common patterns
 
-## Common Usage Pattern
+## Common Usage Pattern for QOBLIB Datasets
 
-All datasets follow this consistent interface:
+All QOBLIB datasets follow this consistent interface:
 
 ```python
 from ommx_quantum_benchmarks.qoblib import DatasetName
@@ -30,7 +30,7 @@ if dataset.available_instances[model_name]:
 
 ## What the Example Covers
 
-The Marketsplit example demonstrates all common patterns that apply to every dataset:
+The Marketsplit example demonstrates all common patterns that apply to QOBLIB datasets:
 
 1. **Dataset instantiation and exploration**
 2. **Instance loading and validation**
@@ -39,4 +39,4 @@ The Marketsplit example demonstrates all common patterns that apply to every dat
 5. **Performance considerations**
 6. **Integration patterns for optimization workflows**
 
-These patterns work identically across all dataset classes, making it easy to switch between different problem types while using the same code structure.
+These patterns work identically across all QOBLIB dataset classes, making it easy to switch between different QOBLIB problem types while using the same code structure.
