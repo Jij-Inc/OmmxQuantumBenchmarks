@@ -142,7 +142,7 @@ def test_marketsplit():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_labs():
@@ -170,23 +170,22 @@ def test_labs():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-    # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
-    # 6. the evaluated solution with its instance and solution is the same as the original solution.
-    # Note: Tests 5 and 6 require network access and valid instances. Uncomment and modify as needed:
-    # for model_name, instances in dataset.available_instances.items():
-    #     if instances:  # Only test if instances are available
-    #         instance_name = instances[0]  # Test with first instance
-    #         result = dataset(model_name, instance_name)
-    #         assert isinstance(result, tuple)
-    #         assert len(result) == 2
-    #         instance, solution = result
-    #         assert isinstance(instance, ommx.v1.Instance)
-    #         if solution is not None:
-    #             assert isinstance(solution, ommx.v1.Solution)
-    #             evaluated_solution = instance.evaluate(solution.state)
-    #             assert evaluated_solution.feasible == solution.feasible
-    #             assert evaluated_solution.objective == solution.objective
-    #             assert evaluated_solution.state == solution.state
+    for model_name, instances in dataset.available_instances.items():
+        if instances:  # Only test if instances are available
+            instance_name = instances[0]  # Test with first instance
+            result = dataset(model_name, instance_name)
+            # 5. the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its availabe_instances,
+            assert isinstance(result, tuple)
+            assert len(result) == 2
+            instance, solution = result
+            assert isinstance(instance, ommx.v1.Instance)
+            if solution is not None:
+                assert isinstance(solution, ommx.v1.Solution)
+                # 6. the evaluated solution with its instance and solution is the same as the original solution.
+                evaluated_solution = instance.evaluate(solution.state)
+                assert evaluated_solution.feasible == solution.feasible
+                assert evaluated_solution.objective == solution.objective
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_birkhoff():
@@ -229,7 +228,7 @@ def test_birkhoff():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_steiner():
@@ -272,7 +271,7 @@ def test_steiner():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_sports():
@@ -315,7 +314,7 @@ def test_sports():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_portfolio():
@@ -358,7 +357,7 @@ def test_portfolio():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_independent_set():
@@ -401,7 +400,7 @@ def test_independent_set():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_network():
@@ -443,7 +442,7 @@ def test_network():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_routing():
@@ -485,7 +484,7 @@ def test_routing():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_topology():
@@ -529,4 +528,4 @@ def test_topology():
                 evaluated_solution = instance.evaluate(solution.state)
                 assert evaluated_solution.feasible == solution.feasible
                 assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state == solution.state
+                assert evaluated_solution.state.entries == solution.state.entries
