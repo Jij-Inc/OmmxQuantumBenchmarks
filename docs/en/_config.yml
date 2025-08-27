@@ -3,7 +3,6 @@
 
 title: OMMX Quantum Benchmarks Documentation
 author: Jij Inc.
-logo: ommx_oblib_logo.png
 
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
@@ -50,7 +49,6 @@ sphinx:
       - 'sphinx_copybutton'
     config:
       add_module_names: False
-      autoapi_type: 'python'
       autoapi_dirs: ['../../ommx_quantum_benchmarks']
       autoapi_add_toctree_entry: True
       autoapi_options:
