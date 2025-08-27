@@ -138,7 +138,7 @@ class BaseDataset(ABC):
 
 
 @dataclass
-class MarketSplit(BaseDataset):
+class Marketsplit(BaseDataset):
     """Class representing a market split dataset."""
 
     name: str = "01_marketsplit"
