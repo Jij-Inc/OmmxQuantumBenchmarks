@@ -1455,7 +1455,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ommx-oblib"
+name = "ommx-quantum-benchmarks"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

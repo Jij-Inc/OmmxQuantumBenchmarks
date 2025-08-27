@@ -1,7 +1,11 @@
+[build-system]
+requires = ["setuptools >= 64", "setuptools_scm >= 8", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "ommx-oblib"
-version = "0.1.0"
-description = "Add your description here"
+name = "ommx-quantum-benchmarks"
+dynamic = ["version"]
+description = "Quantum Benchmark dataset in OMMX format"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
