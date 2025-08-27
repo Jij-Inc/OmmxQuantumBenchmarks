@@ -1,6 +1,6 @@
 # Release Notes
 
-## Version 0.1.0 (Current)
+## Version 0.1.0
 
 **Initial Release - QOBLIB Dataset Collection**
 
@@ -13,20 +13,12 @@ This initial release establishes OMMX Quantum Benchmarks as a collection of opti
 - Python API for accessing quantum optimization benchmark datasets
 - OMMX format conversion and standardization
 - GitHub Container Registry integration for distributed data access
-- Solution verification tools using `instance.evaluate()`
-- Extensible framework for additional benchmark sources
 - Consistent interface across all dataset categories
 
 ### Currently Available Data
 **From QOBLIB Collection**:
 - **Marketsplit** (01): 160+ instances with binary linear and unconstrained formulations
 - **Labs** (02): 99 instances with integer and quadratic unconstrained formulations
-
-### Framework for Future Expansion
-The system defines classes for additional dataset categories, ready for expansion:
-- Framework supports multiple benchmark sources beyond QOBLIB
-- Standardized interface across all present and future datasets
-- Ready to accommodate additional problem categories and sources
 
 ### Attribution
 All converted data is derived from the original QOBLIB repository created by Thorsten Koch, David E. Bernal Neira, and colleagues, licensed under CC BY 4.0.
