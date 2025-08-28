@@ -263,8 +263,47 @@ def process_single_instance(
                     f"No solution files found for {instance_name}, skipping solution attachment."
                 )
 
-    # Add metadata (reuse global timestamp)
-    ommx_instance.title = f"Topology (flow_mip): {instance_name}"
+    # Create QOBLIB authors.
+    qoblib_authors = [
+        "Thorsten Koch",
+        "David E. Bernal Neira",
+        "Ying Chen",
+        "Giorgio Cortiana",
+        "Daniel J. Egger",
+        "Raoul Heese",
+        "Narendra N. Hegade",
+        "Alejandro Gomez Cadavid",
+        "Rhea Huang",
+        "Toshinari Itoko",
+        "Thomas Kleinert",
+        "Pedro Maciel Xavier",
+        "Naeimeh Mohseni",
+        "Jhon A. Montanez-Barrera",
+        "Koji Nakano",
+        "Giacomo Nannicini",
+        "Corey O’Meara",
+        "Justin Pauckert",
+        "Manuel Proissl",
+        "Anurag Ramesh",
+        "Maximilian Schicker",
+        "Noriaki Shimada",
+        "Mitsuharu Takeori",
+        "Victor Valls",
+        "David Van Bulck",
+        "Stefan Woerner",
+        "Christa Zoufal",
+    ]
+    qoblib_authors_str = ", ".join(qoblib_authors)
+    # Add annotations to the instance.
+    ommx_instance.title = instance_name
+    ommx_instance.license = "CC BY 4.0"
+    ommx_instance.dataset = "Topology Design"
+    ommx_instance.authors = qoblib_authors
+    ommx_instance.num_variables = len(ommx_instance.decision_variables)
+    ommx_instance.num_constraints = len(ommx_instance.constraints)
+    ommx_instance.annotations["org.ommx.qoblib.url"] = (
+        "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/10-topology?ref_type=heads"
+    )
     ommx_instance.created = _CREATION_TIME
 
     # Create output filename
@@ -276,8 +315,10 @@ def process_single_instance(
 
     # Create OMMX Artifact
     builder = ArtifactBuilder.new_archive_unnamed(output_filename)
-    builder.add_instance(ommx_instance)
+    instance_desc = builder.add_instance(ommx_instance)
     if solution is not None:
+        solution.instance = instance_desc.digest
+        solution.annotations["org.ommx.qoblib.authors"] = qoblib_authors_str
         builder.add_solution(solution)
     else:
         print(
@@ -329,6 +370,7 @@ def batch_process_instances(
     os.makedirs(output_directory, exist_ok=True)
 
     # HARD CODING: Use specific instances because of memory issues with large instances
+    # TODO: If we add more data, then we need to check the solution's authors.
     instances_path = Path(instances_directory)
     dat_files = [
         instances_path / "topology_15_3.dat",
