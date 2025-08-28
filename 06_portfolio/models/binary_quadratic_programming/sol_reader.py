@@ -175,7 +175,10 @@ def parse_solution_ordered_dict_debug_v7(
                     if has_at and current_t_block is not None:
                         t, reason = current_t_block, "t := current_t_block (has @HEX)"
                     elif has_at and last_t_global is not None:
-                        t, reason = last_t_global, "t := last_t_global (has @HEX, no s1)"
+                        t, reason = (
+                            last_t_global,
+                            "t := last_t_global (has @HEX, no s1)",
+                        )
                     else:
                         t, reason = t_exp, "t := explicit #t"
                         last_t_global = t
@@ -202,7 +205,10 @@ def parse_solution_ordered_dict_debug_v7(
                     if has_at and current_t_block is not None:
                         t, reason = current_t_block, "t := current_t_block (has @HEX)"
                     elif has_at and last_t_global is not None:
-                        t, reason = last_t_global, "t := last_t_global (has @HEX, no s1)"
+                        t, reason = (
+                            last_t_global,
+                            "t := last_t_global (has @HEX, no s1)",
+                        )
                     elif t_inline is not None:
                         t, reason = int(t_inline), "t := explicit #t"
                         last_t_global = t
@@ -232,7 +238,10 @@ def parse_solution_ordered_dict_debug_v7(
                     if current_t_block is not None:
                         t, reason = current_t_block, "t := current_t_block (has @HEX)"
                     elif last_t_global is not None:
-                        t, reason = last_t_global, "t := last_t_global (has @HEX, no s1)"
+                        t, reason = (
+                            last_t_global,
+                            "t := last_t_global (has @HEX, no s1)",
+                        )
                     else:
                         key = (i, m, sl)
                         t = t_counters.get(key, 0)

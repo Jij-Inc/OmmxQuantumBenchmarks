@@ -202,9 +202,7 @@ def batch_process(
                     print(
                         f"Obj from eval process={obj_from_eval}, c2 feasible={feasible_c2}, c3 feasible={feasible_c3}"
                     )
-                    print(
-                        f"Obj from eval sol_file={obj_from_sol}"
-                    )
+                    print(f"Obj from eval sol_file={obj_from_sol}")
                     print(
                         f"[{base}] {fname}: q={q_val}, b={b_val}, obj={sol_eval.objective}, feasible={sol_eval.feasible}"
                     )
