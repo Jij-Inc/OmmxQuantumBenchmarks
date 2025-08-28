@@ -147,7 +147,11 @@ def batch_process(
                     )
 
                     sol_eval = ommx_instance.evaluate(sol_dict)
-                    out_path = os.path.join(output_directory, f"{fname}.ommx")
+
+                    # Create for the dir
+                    base_out_dir = os.path.join(output_directory, base)
+                    os.makedirs(base_out_dir, exist_ok=True)
+                    out_path = os.path.join(base_out_dir, f"{fname}.ommx")
                     if os.path.exists(out_path):
                         os.remove(out_path)
 
