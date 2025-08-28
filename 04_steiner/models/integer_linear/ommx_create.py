@@ -375,12 +375,12 @@ def process_single_instance(
     # Add annotations to the instance.
     ommx_instance.title = instance_name
     ommx_instance.license = "CC BY 4.0"
-    ommx_instance.dataset = "Low Autocorrelation Binary Sequences (LABS)"
+    ommx_instance.dataset = "Steiner Tree Packing Problem"
     ommx_instance.authors = qoblib_authors
     ommx_instance.num_variables = len(ommx_instance.decision_variables)
     ommx_instance.num_constraints = len(ommx_instance.constraints)
     ommx_instance.annotations["org.ommx.qoblib.url"] = (
-        "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/02-labs?ref_type=heads"
+        "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/04-steiner?ref_type=heads"
     )
     ommx_instance.created = _CREATION_TIME
 
