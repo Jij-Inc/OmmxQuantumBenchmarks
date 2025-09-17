@@ -56,7 +56,6 @@ def batch_process(
             raise ValueError("n must be between 5 and 24.")
         return [row[:n] for row in t[:n]]
     
-    n_val = 5
     your_t_0based = [
         [0, 24, 43, 23, 21, 41, 61, 21, 20, 0, 0, 0, 0, 0, 40, 0, 0, 0, 0, 0, 24, 19, 23, 0],
         [0, 0, 0, 0, 21, 18, 39, 23, 0, 0, 40, 19, 64, 19, 17, 64, 80, 0, 0, 22, 24, 18, 19, 0],
