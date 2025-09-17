@@ -53,7 +53,7 @@ def parse_sol_file(file_path: str, n: int) -> tuple[dict[str, float], dict[int, 
             m = kv_pattern.match(ln)
             if m:
                 idx = int(m.group(1))  # assume 1-based: x#1, x#2, ...
-                val = float(m.group(2))
+                val = int(m.group(2))
                 x_vars[idx] = val
 
         solution_dict = {i - 1: x_vars.get(i, 0.0) for i in range(1, n + 1)}
