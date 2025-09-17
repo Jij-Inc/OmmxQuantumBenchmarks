@@ -29,7 +29,7 @@ def read_vrp_tsplib(
             - "VEHICLE_LIMIT" (int): Vehicle limit.
             - "CAPACITY" (int): Vehicle capacity.
             - "DEMAND" (List[int]): Demand at each node (0-based).
-            - "D" (List[List[float|int]]): Distance matrix (symmetric).
+            - "D" (List[List[int|int]]): Distance matrix (symmetric).
             - "DEPOT" (int): Depot index (0-based).
     """
     # --- 1) Read file lines ---
@@ -79,7 +79,7 @@ def read_vrp_tsplib(
         sec_eof = len(lines)
 
     # --- 4) Node coordinates ---
-    coords: list[tuple[float, float]] = []
+    coords: list[tuple[int, int]] = []
     k = sec_coord + 1
     while k < len(lines) and k < sec_demand:
         ln = lines[k]
@@ -87,8 +87,8 @@ def read_vrp_tsplib(
             break
         parts = ln.split()
         if len(parts) >= 3:
-            x = float(parts[1])
-            y = float(parts[2])
+            x = int(parts[1])
+            y = int(parts[2])
             coords.append((x, y))
         k += 1
     if len(coords) != dim:
@@ -127,7 +127,7 @@ def read_vrp_tsplib(
     depot0 = depots_1b[0] - 1
 
     # --- 7) Distance matrix ---
-    def euc2d(a: tuple[float, float], b: tuple[float, float]) -> float:
+    def euc2d(a: tuple[int, int], b: tuple[int, int]) -> float:
         return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
     D: list[list[float]] = [[0.0] * dim for _ in range(dim)]
@@ -137,7 +137,7 @@ def read_vrp_tsplib(
                 D[u][v] = 0.0
             else:
                 d = euc2d(coords[u], coords[v])
-                D[u][v] = int(round(d)) if euc2d_round else d
+                D[u][v] = round(d) if euc2d_round else d
 
     # --- 8) Return instance_data ---
     instance_data = {
