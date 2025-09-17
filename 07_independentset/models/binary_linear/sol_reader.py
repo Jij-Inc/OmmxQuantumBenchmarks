@@ -1,15 +1,15 @@
 import re
 
 
-def parse_sol_file(file_path: str, n: int) -> tuple[dict[str, float], dict[int, float]]:
+def parse_sol_file(file_path: str, n: int) -> tuple[dict[str, int], dict[int, int]]:
     """Parse MIS solution file with automatic format detection.
 
     Supports two common formats found in `.sol` files:
 
     **A) Key–Value format (e.g., `opt.sol`, `sol`)**
         Lines may include:
-            - `# Objective value = <float>`
-            - `x#<idx> <float>` (typically 1-based indexing)
+            - `# Objective value = <int>`
+            - `x#<idx> <int>` (typically 1-based indexing)
 
     **B) Index-list format (e.g., `bst.sol`, sometimes `opt.sol`)**
         Each line contains a single integer representing a selected vertex.
@@ -21,9 +21,9 @@ def parse_sol_file(file_path: str, n: int) -> tuple[dict[str, float], dict[int, 
 
     Returns:
         tuple:
-            - dict[str, float]: `{"Energy": <float or None>}`.
+            - dict[str, int]: `{"Energy": <int or None>}`.
               The objective value if present; otherwise, the count of selected vertices.
-            - dict[int, float]: Mapping of vertex indices (0..n−1) to 0.0/1.0 (or float in KV format).
+            - dict[int, int]: Mapping of vertex indices (0..n−1) to 0.0/1.0 (or int in KV format).
     """
     # read full file
     with open(file_path, "r") as f:
@@ -43,7 +43,7 @@ def parse_sol_file(file_path: str, n: int) -> tuple[dict[str, float], dict[int, 
     for ln in lines:
         m = obj_pattern.match(ln)
         if m:
-            obj_value = float(m.group(1))
+            obj_value = int(m.group(1))
             break
 
     if has_kv:
@@ -89,7 +89,7 @@ def parse_sol_file(file_path: str, n: int) -> tuple[dict[str, float], dict[int, 
                 solution_dict[v] = 1.0
 
         if obj_value is None:
-            obj_value = float(sum(solution_dict.values()))
+            obj_value = int(sum(solution_dict.values()))
 
         return {"Energy": obj_value}, solution_dict
 
