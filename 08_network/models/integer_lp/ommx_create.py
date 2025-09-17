@@ -39,7 +39,7 @@ def batch_process(
     processed_count = 0
     error_count = 0
 
-    # 掃描 sol_root 下所有 .sol 檔，提取 base 名稱
+    # scan all sol_root's .sol file and get the base name.
     sol_files = glob.glob(os.path.join(sol_root, "*.sol"))
     bases = set()
     for path in sol_files:
@@ -52,7 +52,7 @@ def batch_process(
     print(f"Found {len(bases)} bases: {sorted(bases)}")
 
     def cut_matrix(t: list[list[int]], n: int) -> list[list[int]]:
-        if not (1 <= n <= 24):
+        if not (5 <= n <= 24):
             raise ValueError("n must be between 5 and 24.")
         return [row[:n] for row in t[:n]]
     
@@ -85,7 +85,7 @@ def batch_process(
     ]
 
     for base in sorted(bases):
-        # 從 base 裡取 n，例如 network05 → n=5
+        # from base to obtain n, such like network05 → n=5
         try:
             n_str = "".join(ch for ch in base if ch.isdigit())
             n_val = int(n_str) if n_str else 5
