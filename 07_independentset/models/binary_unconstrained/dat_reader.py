@@ -50,7 +50,7 @@ def read_dimacs_gph(path: str):
     E = [list(e) for e in E]
 
     # Basic validation: ensure all endpoints are in range
-    if any(u < 0 or v < 0 or u >= N or v >= N for u, v in E):
+    if any(u < 0 or v < 0 or u > N - 1 or v > N - 1 for u, v in E):
         raise ValueError("Edge endpoint out of range for declared N.")
 
     return N, E
