@@ -1,6 +1,9 @@
 import numpy as np
 
-def read_qoblib_dat_file(filepath: str, *, dtype: type = np.int64) -> dict[str, np.ndarray]:
+
+def read_qoblib_dat_file(
+    filepath: str, *, dtype: type = np.int64
+) -> dict[str, np.ndarray]:
     """Read and parse a QOBLIB-format .dat file into arrays for JijModeling.
 
     The file format is:
@@ -65,7 +68,9 @@ def read_qoblib_dat_file(filepath: str, *, dtype: type = np.int64) -> dict[str, 
     try:
         arr = np.asarray(tokens, dtype=dtype).reshape(m, n + 1)
     except Exception as e:
-        raise ValueError("Failed to convert/reshape data numbers into matrix form.") from e
+        raise ValueError(
+            "Failed to convert/reshape data numbers into matrix form."
+        ) from e
 
     a = arr[:, :n]
     b = arr[:, -1]

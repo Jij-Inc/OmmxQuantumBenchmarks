@@ -72,7 +72,7 @@ def batch_process_files(
             print(f"Processing file pair: {dat_file} and {sol_file}")
 
             # Read the .dat file
-            instance_data = read_qoblib_dat_file(dat_file) 
+            instance_data = read_qoblib_dat_file(dat_file)
 
             # Create an OMMX instance
             interpreter = jm.Interpreter(instance_data)
@@ -87,21 +87,31 @@ def batch_process_files(
                 solution = ommx_instance.evaluate(solution_dict)
 
                 if (
-                    math.isclose(energy_dict["Energy"], solution.objective, rel_tol=1e-6)
+                    math.isclose(
+                        energy_dict["Energy"], solution.objective, rel_tol=1e-6
+                    )
                     and solution.feasible
                 ):
-                    print(f"  → Calculate objective={solution.objective:.6f}, "f"Solution objective={energy_dict['Energy']:.6f}")
-                    print(f"  → objective={solution.objective:.6f}, feasible={solution.feasible}")
+                    print(
+                        f"  → Calculate objective={solution.objective:.6f}, "
+                        f"Solution objective={energy_dict['Energy']:.6f}"
+                    )
+                    print(
+                        f"  → objective={solution.objective:.6f}, feasible={solution.feasible}"
+                    )
                 else:
                     diff = solution.objective - energy_dict["Energy"]
                     print("Objective or feasible Error")
-                    print(f"  ✗ mismatch: calc={solution.objective:.6f}, sol={energy_dict['Energy']:.6f}, "
-                        f"Δ={diff:.6g}, feasible={solution.feasible}")
+                    print(
+                        f"  ✗ mismatch: calc={solution.objective:.6f}, sol={energy_dict['Energy']:.6f}, "
+                        f"Δ={diff:.6g}, feasible={solution.feasible}"
+                    )
 
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
-                print("    Skipping solution evaluation and only saving the instance...")
-
+                print(
+                    "    Skipping solution evaluation and only saving the instance..."
+                )
 
             # Construct the output filename
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
