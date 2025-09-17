@@ -1,6 +1,6 @@
 import re
 
-def parse_solution_zfx(file_path: str, n: int) -> dict[int, float]:
+def parse_solution_zfx(file_path: str, n: int) -> dict[int, int]:
     """Parse Jij solution (.sol) into {id: value} with strict z→f→x ordering.
 
     Order:
@@ -13,7 +13,7 @@ def parse_solution_zfx(file_path: str, n: int) -> dict[int, float]:
         n (int): Number of nodes
 
     Returns:
-        dict[int,float]: {id: value} in z→f→x order
+        dict[int,int]: {id: value} in z→f→x order
     """
     z_val = None
     f_vals = {}
@@ -28,7 +28,7 @@ def parse_solution_zfx(file_path: str, n: int) -> dict[int, float]:
             # z
             m = re.match(r"^z\s+([-+]?\d+\.?\d*)$", line)
             if m:
-                z_val = float(m.group(1))
+                z_val = int(m.group(1))
                 continue
 
             # f#k#i#j
@@ -38,7 +38,7 @@ def parse_solution_zfx(file_path: str, n: int) -> dict[int, float]:
                     int(m.group(1)) - 1,
                     int(m.group(2)) - 1,
                     int(m.group(3)) - 1,
-                    float(m.group(4)),
+                    int(m.group(4)),
                 )
                 f_vals[(k, i, j)] = val
                 continue
@@ -46,14 +46,14 @@ def parse_solution_zfx(file_path: str, n: int) -> dict[int, float]:
             # x#i#j
             m = re.match(r"^x#(\d+)#(\d+)\s+([-+]?\d+\.?\d*)$", line)
             if m:
-                i, j, val = int(m.group(1)) - 1, int(m.group(2)) - 1, float(m.group(3))
+                i, j, val = int(m.group(1)) - 1, int(m.group(2)) - 1, int(m.group(3))
                 x_vals[(i, j)] = val
                 continue
 
     if z_val is None:
         raise ValueError("No z found in solution file.")
 
-    # ---- 重建 {id: value} ----
+    # ---- Rebuild {id: value} ----
     sol_dict = {}
     idx = 0
 
@@ -61,14 +61,14 @@ def parse_solution_zfx(file_path: str, n: int) -> dict[int, float]:
     sol_dict[idx] = z_val
     idx += 1
 
-    # f[k,i,j]，字典序
+    # f[k,i,j], dictionary order
     for k in range(n):
         for i in range(n):
             for j in range(n):
                 sol_dict[idx] = f_vals.get((k, i, j), 0.0)
                 idx += 1
 
-    # x[i,j]，字典序
+    # x[i,j], dictionary order
     for i in range(n):
         for j in range(n):
             sol_dict[idx] = x_vals.get((i, j), 0.0)
