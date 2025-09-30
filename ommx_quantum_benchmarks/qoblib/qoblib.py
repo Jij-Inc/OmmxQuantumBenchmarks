@@ -29,9 +29,9 @@ class BaseDataset(ABC):
         }
 
         # Assert the member variables.
-        meesage_prefix = "[FOR DEVELOPER] "
+        message_prefix = "[FOR DEVELOPER] "
         assert isinstance(self.name, str) and self.name, (
-            meesage_prefix
+            message_prefix
             + f"Dataset name must be a non-empty string, but got {self.name}."
         )
         assert (
@@ -39,11 +39,11 @@ class BaseDataset(ABC):
             and self.model_names
             and all(isinstance(model_name, str) for model_name in self.model_names)
         ), (
-            meesage_prefix
+            message_prefix
             + f"Dataset model_names must be a non-empty list of strings, but got {self.model_names}."
         )
         assert self.base_url == "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib", (
-            meesage_prefix
+            message_prefix
             + f"Dataset base_url must be 'ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib', but got {self.base_url}."
         )
 
