@@ -127,7 +127,7 @@ class BaseDataset(ABC):
         # The uploaded solutions should be at most one. Thus, if this error is raised, it is a bug of the uploader.
         assert (
             0 <= len(solutions) <= 1
-        ), f"[FOR DEVELOER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(solutions)}."
+        ), f"[FOR DEVELOPER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(solutions)}."
         if len(solutions) == 1:
             solution = list(solutions.values())[0]
         else:
