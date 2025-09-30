@@ -95,7 +95,7 @@ class Uploader:
         solution = solutions[name] if len(solutions) == 1 else None
         # Load a solution data from an OMMX archive file.
         loaded_solution = loaded_artifact.solution
-        # Veryfy if those solutions are same.
+        # Verify if those solutions are same.
         if solution is None and loaded_solution is None:
             pass
         elif solution is None and loaded_solution is not None:
