@@ -16,7 +16,7 @@ class Uploader(BaseUploader):
             ommx_filepath (str): an OMMX archive file path.
             verification (bool, optional):
                 if True, verify the experiment. Defaults to False.
-                This functionality is primaliry for debugging purpose.
+                This functionality is primarily for debugging purpose.
         """
         super().push_ommx(
             image_name=Uploader.IMAGE_NAME,

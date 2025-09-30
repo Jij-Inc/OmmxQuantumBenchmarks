@@ -29,7 +29,7 @@ class Uploader:
             ommx_filepath (str): an OMMX archive file path.
             verification (bool, optional):
                 if True, verify the experiment. Defaults to False.
-                This functionality is primaliry for debugging purpose.
+                This functionality is primarily for debugging purpose.
 
         Raises:
             ValueError: if the loaded experiment is invalid
