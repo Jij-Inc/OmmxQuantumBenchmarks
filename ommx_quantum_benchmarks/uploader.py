@@ -50,14 +50,14 @@ class Uploader:
 
         # Verify the experiment.
         if verification:
-            Uploader.veryfy_experiment(experiment, ommx_filepath)
+            Uploader.verify_experiment(experiment, ommx_filepath)
 
         artifact = experiment.push_github(
             org=self.ORG, repo=self.REPO, name=image_name, tag=image_tag
         )
 
     @staticmethod
-    def veryfy_experiment(experiment: minto.Experiment, ommx_filepath: str) -> None:
+    def verify_experiment(experiment: minto.Experiment, ommx_filepath: str) -> None:
         """Verify the experiment by reloading the instance and solution data.
 
         Args:
