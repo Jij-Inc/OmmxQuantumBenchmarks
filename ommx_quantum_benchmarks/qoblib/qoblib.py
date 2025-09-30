@@ -84,11 +84,11 @@ class BaseDataset(ABC):
         try:
             experiment = minto.Experiment.load_from_registry(instance_url)
         except RuntimeError as e:
-            error_messge_1 = f"Invalid instance name: {instance_url}. Choose from the available instances:\n"
+            error_message_1 = f"Invalid instance name: {instance_url}. Choose from the available instances:\n"
             error_message_2 = ""
             for model, instances in self.available_instances.items():
                 error_message_2 += f"- Model: {model}, Instances: {', '.join(instances) if instances else 'All available instances'}."
-            error_message = f"{error_messge_1}{error_message_2}"
+            error_message = f"{error_message_1}{error_message_2}"
 
             # If the error is 404 not found, raise FileNotFoundError with a user-friendly message.
             if "status code 404" in str(e):
