@@ -1,7 +1,11 @@
+[build-system]
+requires = ["setuptools >= 64", "setuptools_scm >= 8", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "ommx-oblib"
-version = "0.1.0"
-description = "Add your description here"
+name = "ommx-quantum-benchmarks"
+dynamic = ["version"]
+description = "Quantum Benchmark dataset in OMMX format"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -10,4 +14,18 @@ dependencies = [
     "numpy>=2.2.6",
     "ommx>=2.0.4",
     "requests>=2.32.4",
+]
+
+[tool.setuptools]
+packages = ["ommx_quantum_benchmarks"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
+docs = [
+    "jupyter-book>=1.0.4.post1",
+    "matplotlib>=3.10.5",
+    "sphinx-autoapi>=3.6.0",
+    "sphinx-copybutton>=0.5.2",
 ]
