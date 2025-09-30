@@ -6,7 +6,7 @@ root: index
 parts:
   - caption: "Switch Language"
     chapters:
-      - url: https://github.com/Jij-Inc/OmmxQuantumBenchmarks.git
+      - url: https://jij-inc.github.io/OmmxQuantumBenchmarks/en/
         title: "English"
 
   - caption: はじめに
