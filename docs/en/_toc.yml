@@ -6,7 +6,7 @@ root: index
 parts:
   - caption: "Switch Language"
     chapters:
-      - url: https://jij-inc.github.io/OMMX-OBLIB/ja/
+      - url: https://jij-inc.github.io/OmmxQuantumBenchmarks/ja/
         title: "日本語"
 
   - caption: Getting Started

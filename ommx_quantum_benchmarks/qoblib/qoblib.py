@@ -15,7 +15,7 @@ class BaseDataset(ABC):
     description: str
     model_names: list[str] = field(default_factory=list)
     # Define the base URL, which will be not changed in subclasses.
-    base_url: Final[str] = "ghcr.io/jij-inc/ommx-oblib/qoblib"
+    base_url: Final[str] = "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib"
     # Define available instances for each model, which will be set in subclasses.
     available_instances: dict[str, list[str]] = field(default_factory=dict)
     # Define variable that is set in __post_init__.
@@ -42,9 +42,9 @@ class BaseDataset(ABC):
             meesage_prefix
             + f"Dataset model_names must be a non-empty list of strings, but got {self.model_names}."
         )
-        assert self.base_url == "ghcr.io/jij-inc/ommx-oblib/qoblib", (
+        assert self.base_url == "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib", (
             meesage_prefix
-            + f"Dataset base_url must be 'ghcr.io/jij-inc/ommx-oblib/qoblib', but got {self.base_url}."
+            + f"Dataset base_url must be 'ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib', but got {self.base_url}."
         )
 
     def get_instance_url(self, model_name: str, instance_name: str) -> str:
@@ -87,9 +87,8 @@ class BaseDataset(ABC):
             error_messge_1 = f"Invalid instance name: {instance_url}. Choose from the available instances:\n"
             error_message_2 = ""
             for model, instances in self.available_instances.items():
-                error_message_2 += f"- Model: {model}, Instances: {', '.join(instances) if instances else 'All available instances'}\n"
-            error_message_3 = "Or please have a look at the Package: https://github.com/Jij-Inc/OMMX-OBLIB/pkgs/container/ommx-oblib%2Fqoblib"
-            error_message = f"{error_messge_1}{error_message_2}{error_message_3}"
+                error_message_2 += f"- Model: {model}, Instances: {', '.join(instances) if instances else 'All available instances'}."
+            error_message = f"{error_messge_1}{error_message_2}"
 
             # If the error is 404 not found, raise FileNotFoundError with a user-friendly message.
             if "status code 404" in str(e):

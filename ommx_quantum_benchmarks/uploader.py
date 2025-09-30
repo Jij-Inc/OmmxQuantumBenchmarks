@@ -9,7 +9,7 @@ from ommx.artifact import Artifact
 
 class Uploader:
     ORG: Final[str] = "Jij-Inc"
-    REPO: Final[str] = "OMMX-OBLIB"
+    REPO: Final[str] = "OmmxQuantumBenchmarks"
 
     def __init__(self) -> None:
         os.environ["OMMX_BASIC_AUTH_DOMAIN"] = "ghcr.io"

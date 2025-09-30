@@ -8,8 +8,8 @@ Documentation: https://jij-inc.github.io/QmmxQuantumBenchmarks/
 
 ```bash
 # Clone and install
-git clone https://github.com/Jij-Inc/OMMX-OBLIB.git
-cd OMMX-OBLIB
+git clone https://github.com/Jij-Inc/OmmxQuantumBenchmarks.git
+cd OmmxQuantumBenchmarks
 pip install -e .
 ```
 
