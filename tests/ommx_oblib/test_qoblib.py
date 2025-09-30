@@ -10,14 +10,14 @@ def test_base_dataset_creation():
 
     Check if
     1. no assertion error is raised during the creation of the instance,
-    2. its base_url is "ghcr.io/jij-inc/ommx-oblib/qoblib",
+    2. its base_url is "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib",
     3. its model_url is a dict,
     4. each item of its model_url is model_name: f"{self.base_url}:{self.name}-{model_name}".
     """
     # 1. no assertion error is raised during the creation of the instance,
     dataset = MockDataset()
-    # 2. its base_url is "ghcr.io/jij-inc/ommx-oblib/qoblib",
-    assert dataset.base_url == "ghcr.io/jij-inc/ommx-oblib/qoblib"
+    # 2. its base_url is "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib",
+    assert dataset.base_url == "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib"
     # 3. its model_url is a dict,
     assert isinstance(dataset.model_url, dict)
     # 4. each item of its model_url is model_name: f"{self.base_url}:{self.name}-{model_name}".
