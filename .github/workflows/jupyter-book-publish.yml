@@ -64,7 +64,7 @@ jobs:
           mkdir -p docs/_build/html
           mkdir -p docs/_build/html/en && cp -r doc-jupyter-book-en/* docs/_build/html/en/
           mkdir -p docs/_build/html/ja && cp -r doc-jupyter-book-ja/* docs/_build/html/ja/
-          cp -r docs/_build/html/en/index.html docs/_build/html/index.html
+          cp -r docs/index.html docs/_build/html/index.html
       # Upload the unified site structure as a single artifact.
       - name: Upload artifact
         uses: actions/upload-artifact@v4
