@@ -1,5 +1,4 @@
 import pytest
-import ommx.v1
 
 from ommx_quantum_benchmarks.qoblib.qoblib import *
 from .mock import *
