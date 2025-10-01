@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run:  |
           set -eux
-          uv sync --group doc
+          uv sync --group docs
       # Build the jupyter notebooks.
       - name: Build the book and LP
         run: |
