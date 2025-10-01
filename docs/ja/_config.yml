@@ -50,7 +50,7 @@ sphinx:
       - 'sphinx_copybutton'
     config:
       add_module_names: False
-      autoapi_dirs: ['../../ommx_quantum_benchmarks/qoblib']
+      autoapi_dirs: ['../../ommx_quantum_benchmarks']
       autoapi_add_toctree_entry: True
       autoapi_options:
         - members
@@ -62,9 +62,9 @@ sphinx:
       autoapi_ignore:
         - "**/uploader.py"
         - "**/uploader/*"
-        - "**/qoblib/__init__.py"
-        - "**/qoblib/*"
-        - "!**/qoblib/qoblib.py"
+        - "**/[0-9][0-9]_*/*"
+        - "**/qoblib/definitions.py"
+        - "**/ommx_quantum_benchmarks/uploader/*"
       autoapi_python_class_content: 'both'
       language: ja
       html_search_language: ja
