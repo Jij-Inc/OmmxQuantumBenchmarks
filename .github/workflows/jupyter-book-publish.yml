@@ -3,7 +3,7 @@ name: Deploy Jupyter Book to GitHub Pages
 on:
   # For now we just use manual trigger.
   push:
-    branches: ["main", "doc"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
