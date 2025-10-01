@@ -5,6 +5,8 @@ from typing import Final
 import minto
 import ommx.v1
 
+from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_tag
+
 
 @dataclass
 class BaseDataset(ABC):
@@ -14,20 +16,11 @@ class BaseDataset(ABC):
     name: str
     description: str
     model_names: list[str] = field(default_factory=list)
-    # Define the base URL, which will be not changed in subclasses.
-    base_url: Final[str] = "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib"
     # Define available instances for each model, which will be set in subclasses.
     available_instances: dict[str, list[str]] = field(default_factory=dict)
-    # Define variable that is set in __post_init__.
-    model_url: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Set model_url based on the member variables and assert the member variables."""
-        self.model_url = {
-            model_name: f"{self.base_url}:{self.name}-{model_name}"
-            for model_name in self.model_names
-        }
-
+        """Assert the member variables."""
         # Assert the member variables.
         message_prefix = "[FOR DEVELOPER] "
         assert isinstance(self.name, str) and self.name, (
@@ -41,10 +34,6 @@ class BaseDataset(ABC):
         ), (
             message_prefix
             + f"Dataset model_names must be a non-empty list of strings, but got {self.model_names}."
-        )
-        assert self.base_url == "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib", (
-            message_prefix
-            + f"Dataset base_url must be 'ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib', but got {self.base_url}."
         )
 
     def get_instance_url(self, model_name: str, instance_name: str) -> str:
@@ -64,8 +53,12 @@ class BaseDataset(ABC):
             raise ValueError(
                 f"Invalid model name: {model_name}. Choose from {self.model_names}."
             )
-        base_url = self.model_url[model_name]
-        return f"{base_url}-{instance_name}"
+
+        instance_tag = get_instance_tag(
+            dataset_name=self.name, model_name=model_name, instance_name=instance_name
+        )
+        instance_url = f"{BASE_URL}:{instance_tag}"
+        return instance_url
 
     def get_experiment(self, model_name: str, instance_name: str) -> minto.Experiment:
         """Get OMMX data for a specific dataset from the Github Packages.
