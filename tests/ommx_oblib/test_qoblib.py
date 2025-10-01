@@ -1,6 +1,7 @@
 import pytest
 
 from ommx_quantum_benchmarks.qoblib.qoblib import *
+from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_tag
 from .mock import *
 
 
@@ -9,20 +10,9 @@ def test_base_dataset_creation():
 
     Check if
     - no assertion error is raised during the creation of the instance,
-    - its base_url is "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib",
-    - its model_url is a dict,
-    - each item of its model_url is model_name: f"{self.base_url}:{self.name}-{model_name}".
     """
     # - no assertion error is raised during the creation of the instance,
     dataset = MockDataset()
-    # - its base_url is "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib",
-    assert dataset.base_url == "ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib"
-    # - its model_url is a dict,
-    assert isinstance(dataset.model_url, dict)
-    # - each item of its model_url is model_name: f"{self.base_url}:{self.name}-{model_name}".
-    for model_name in dataset.model_names:
-        expected_url = f"{dataset.base_url}:{dataset.name}-{model_name}"
-        assert dataset.model_url[model_name] == expected_url
 
 
 def test_base_dataset_creation_with_invalid_name():
@@ -47,23 +37,12 @@ def test_base_dataset_creation_with_empty_model_names():
         MockDatasetWithEmptyModelNames()
 
 
-def test_base_dataset_creation_with_changed_base_url():
-    """Create a mock BaseDataset instance with a changed base_url.
-
-    Check if
-    - AssertionError is raised during the creation of the instance.
-    """
-    # - AssertionError is raised during the creation of the instance.
-    with pytest.raises(AssertionError):
-        MockDatasetChangedBaseURL()
-
-
 def test_get_instance_url():
     """Run get_instance_url method of a mock BaseDataset instance.
 
     Check if
     - the returned value is str,
-    - the returned value is f"{self.model_url[model_name]}-{instance_name}".
+    - the returned value is f"{BASE_URL}:{instance_tag}".
     """
     # - the returned value is str,
     dataset = MockDataset()
@@ -71,8 +50,10 @@ def test_get_instance_url():
     instance_name = "instance1"
     result = dataset.get_instance_url(model_name, instance_name)
     assert isinstance(result, str)
-    # - the returned value is f"{self.model_url[model_name]}-{instance_name}".
-    expected_url = f"{dataset.model_url[model_name]}-{instance_name}"
+    # - the returned value is f"{BASE_URL}:{instance_tag}".
+    expected_url = (
+        f"{BASE_URL}:{get_instance_tag(dataset.name, model_name, instance_name)}"
+    )
     assert result == expected_url
 
 

@@ -1,26 +1,32 @@
-from typing import Final
-
 from ommx_quantum_benchmarks.uploader import Uploader as BaseUploader
+from ommx_quantum_benchmarks.qoblib.definitions import IMAGE_NAME, get_instance_tag
 
 
 class Uploader(BaseUploader):
-    IMAGE_NAME: Final[str] = "qoblib"
 
     def push_ommx(
-        self, image_tag: str, ommx_filepath: str, verification: bool = False
+        self,
+        dataset_name: str,
+        model_name: str,
+        instance_name: str,
+        ommx_filepath: str,
+        verification: bool = False,
     ) -> None:
         """Push an OMMX archive file to GitHub Container Registry.
 
         Args:
-            image_tag (str): an image tag for GitHub Container Registry.
+            dataset_name (str): a dataset name.
+            model_name (str): a model name.
+            instance_name (str): an instance name.
             ommx_filepath (str): an OMMX archive file path.
             verification (bool, optional):
                 if True, verify the experiment. Defaults to False.
                 This functionality is primarily for debugging purpose.
         """
+        instance_tag = get_instance_tag(dataset_name, model_name, instance_name)
         super().push_ommx(
-            image_name=Uploader.IMAGE_NAME,
-            image_tag=image_tag,
+            image_name=IMAGE_NAME,
+            image_tag=instance_tag,
             ommx_filepath=ommx_filepath,
             verification=verification,
         )
