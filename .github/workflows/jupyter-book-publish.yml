@@ -57,6 +57,8 @@ jobs:
     needs: [build-jupyter-book]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout  # For getting index.html
+        uses: actions/checkout@v4
       - name: Download all artifacts
         uses: actions/download-artifact@v4
       - name: Create unified site structure
