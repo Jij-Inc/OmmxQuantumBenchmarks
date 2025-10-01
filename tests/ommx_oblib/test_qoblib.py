@@ -133,6 +133,8 @@ def test_labs():
     - its model_names is ["integer", "quadratic_unconstrained"],
     - its available_instances is dict whose key are "integer" and "quadratic_unconstrained",
     - each value of its available_instances is a list of str,
+    - the length of its available_instances["integer"] is 99,
+    - the length of its available_instances["quadratic_unconstrained"] is 99,
     - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
     - the evaluated solution with its instance and solution is the same as the original solution.
     """
@@ -150,9 +152,12 @@ def test_labs():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
+    # - the length of its available_instances["integer"] is 99,
+    assert len(dataset.available_instances["integer"]) == 99
+    # - the length of its available_instances["quadratic_unconstrained"] is 99,
+    assert len(dataset.available_instances["quadratic_unconstrained"]) == 99
     for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
+        for instance_name in instances:
             result = dataset(model_name, instance_name)
             # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
             assert isinstance(result, tuple)
@@ -176,6 +181,7 @@ def test_birkhoff():
     - its model_names is ["integer_linear"],
     - its available_instances is dict whose key are "integer_linear",
     - each value of its available_instances is a list of str,
+    - the length of its available_instances["integer_linear"] is 800,
     - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
     - the evaluated solution with its instance and solution is the same as the original solution.
     """
@@ -192,10 +198,10 @@ def test_birkhoff():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-
+    # - the length of its available_instances["integer_linear"] is 800,
+    assert len(dataset.available_instances["integer_linear"]) == 800
     for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
+        for instance_name in instances:
             result = dataset(model_name, instance_name)
             # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
             assert isinstance(result, tuple)
@@ -219,6 +225,7 @@ def test_steiner():
     - its model_names is ["integer_linear"],
     - its available_instances is dict whose key are "integer_linear",
     - each value of its available_instances is a list of str,
+    - the length of its available_instances["integer_linear"] is 31,
     - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
     - the evaluated solution with its instance and solution is the same as the original solution.
     """
@@ -235,10 +242,10 @@ def test_steiner():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-
+    # - the length of its available_instances["integer_linear"] is 31,
+    assert len(dataset.available_instances["integer_linear"]) == 31
     for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
+        for instance_name in instances:
             result = dataset(model_name, instance_name)
             # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
             assert isinstance(result, tuple)
@@ -475,6 +482,9 @@ def test_topology():
     - its model_names is ["flow_mip", "seidel_linear", "seidel_quadratic"],
     - its available_instances is dict whose key are "flow_mip", "seidel_linear" and "seidel_quadratic",
     - each value of its available_instances is a list of str,
+    - the length of its available_instances["flow_mip"] is 16,
+    - the length of its available_instances["seidel_linear"] is 16,
+    - the length of its available_instances["seidel_quadratic"] is 16,
     - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
     - the evaluated solution with its instance and solution is the same as the original solution.
     """
@@ -493,9 +503,14 @@ def test_topology():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
+    # - the length of its available_instances["flow_mip"] is 16,
+    assert len(dataset.available_instances["flow_mip"]) == 16
+    # - the length of its available_instances["seidel_linear"] is 16,
+    assert len(dataset.available_instances["seidel_linear"]) == 16
+    # - the length of its available_instances["seidel_quadratic"] is 16,
+    assert len(dataset.available_instances["seidel_quadratic"]) == 16
     for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
+        for instance_name in instances:
             result = dataset(model_name, instance_name)
             # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
             assert isinstance(result, tuple)
