@@ -1,7 +1,7 @@
 # OMMX Quantum Benchmarks
 OMMX Quantum Benchmarks provides access to quantum optimization benchmark datasets in [OMMX](https://jij-inc.github.io/ommx/en/introduction.html) format for easier integration with quantum and classical optimization workflows.
 
-Documentation: https://jij-inc.github.io/QmmxQuantumBenchmarks/
+Documentation: https://jij-inc.github.io/OmmxQuantumBenchmarks/
 
 ## Quick Start
 ### Installation
