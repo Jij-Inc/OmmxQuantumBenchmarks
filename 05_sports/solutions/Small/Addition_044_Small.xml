@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution><MetaData>
+<SolutionName>Add-0</SolutionName>
+<InstanceName>Add</InstanceName>
+<Contributor>Team MODAL (koch@zib.de)</Contributor>
+<Date day="14" month="14" year="2024"/>
+<SolutionMethod>IP</SolutionMethod>
+<ObjectiveValue objective="0" infeasibility="0"/>
+<LowerBound objective="0" infeasibility="0"/>
+<Remarks></Remarks>
+</MetaData><Games>
+<ScheduledMatch home="0" away="1" slot="11"/><ScheduledMatch home="0" away="2" slot="7"/><ScheduledMatch home="0" away="3" slot="5"/><ScheduledMatch home="0" away="4" slot="4"/><ScheduledMatch home="0" away="5" slot="1"/><ScheduledMatch home="0" away="6" slot="9"/><ScheduledMatch home="0" away="7" slot="2"/><ScheduledMatch home="1" away="2" slot="12"/>
+<ScheduledMatch home="1" away="3" slot="1"/><ScheduledMatch home="1" away="4" slot="9"/><ScheduledMatch home="1" away="5" slot="7"/><ScheduledMatch home="1" away="6" slot="4"/><ScheduledMatch home="1" away="7" slot="0"/><ScheduledMatch home="1" away="0" slot="3"/><ScheduledMatch home="2" away="1" slot="6"/><ScheduledMatch home="2" away="3" slot="9"/>
+<ScheduledMatch home="2" away="4" slot="11"/><ScheduledMatch home="2" away="5" slot="8"/><ScheduledMatch home="2" away="6" slot="2"/><ScheduledMatch home="2" away="7" slot="5"/><ScheduledMatch home="2" away="0" slot="0"/><ScheduledMatch home="3" away="1" slot="13"/><ScheduledMatch home="3" away="2" slot="4"/><ScheduledMatch home="3" away="4" slot="2"/>
+<ScheduledMatch home="3" away="5" slot="10"/><ScheduledMatch home="3" away="6" slot="7"/><ScheduledMatch home="3" away="7" slot="6"/><ScheduledMatch home="3" away="0" slot="12"/><ScheduledMatch home="4" away="1" slot="5"/><ScheduledMatch home="4" away="2" slot="1"/><ScheduledMatch home="4" away="3" slot="8"/><ScheduledMatch home="4" away="5" slot="12"/>
+<ScheduledMatch home="4" away="6" slot="13"/><ScheduledMatch home="4" away="7" slot="3"/><ScheduledMatch home="4" away="0" slot="10"/><ScheduledMatch home="5" away="1" slot="2"/><ScheduledMatch home="5" away="2" slot="3"/><ScheduledMatch home="5" away="3" slot="0"/><ScheduledMatch home="5" away="4" slot="6"/><ScheduledMatch home="5" away="6" slot="11"/>
+<ScheduledMatch home="5" away="7" slot="9"/><ScheduledMatch home="5" away="0" slot="13"/><ScheduledMatch home="6" away="1" slot="8"/><ScheduledMatch home="6" away="2" slot="10"/><ScheduledMatch home="6" away="3" slot="3"/><ScheduledMatch home="6" away="4" slot="0"/><ScheduledMatch home="6" away="5" slot="5"/><ScheduledMatch home="6" away="7" slot="12"/>
+<ScheduledMatch home="6" away="0" slot="6"/><ScheduledMatch home="7" away="1" slot="10"/><ScheduledMatch home="7" away="2" slot="13"/><ScheduledMatch home="7" away="3" slot="11"/><ScheduledMatch home="7" away="4" slot="7"/><ScheduledMatch home="7" away="5" slot="4"/><ScheduledMatch home="7" away="6" slot="1"/><ScheduledMatch home="7" away="0" slot="8"/>
+</Games></Solution>
