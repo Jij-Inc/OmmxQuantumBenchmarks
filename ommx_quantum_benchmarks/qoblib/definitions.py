@@ -1,5 +1,39 @@
 from typing import Final
 
+# Constants for QOBLIB
+QOBLIB_AUTHORS: Final[list[str]] = [
+    "Thorsten Koch",
+    "David E. Bernal Neira",
+    "Ying Chen",
+    "Giorgio Cortiana",
+    "Daniel J. Egger",
+    "Raoul Heese",
+    "Narendra N. Hegade",
+    "Alejandro Gomez Cadavid",
+    "Rhea Huang",
+    "Toshinari Itoko",
+    "Thomas Kleinert",
+    "Pedro Maciel Xavier",
+    "Naeimeh Mohseni",
+    "Jhon A. Montanez-Barrera",
+    "Koji Nakano",
+    "Giacomo Nannicini",
+    "Corey O’Meara",
+    "Justin Pauckert",
+    "Manuel Proissl",
+    "Anurag Ramesh",
+    "Maximilian Schicker",
+    "Noriaki Shimada",
+    "Mitsuharu Takeori",
+    "Victor Valls",
+    "David Van Bulck",
+    "Stefan Woerner",
+    "Christa Zoufal",
+]
+QOBLIB_AUTHORS_STR: Final[str] = ", ".join(QOBLIB_AUTHORS)
+LICENSE: Final[str] = "CC BY 4.0"
+
+# Constants for Docker image
 IMAGE_NAME: Final[str] = "qoblib"
 BASE_URL: Final[str] = f"ghcr.io/jij-inc/ommxquantumbenchmarks/{IMAGE_NAME}"
 
