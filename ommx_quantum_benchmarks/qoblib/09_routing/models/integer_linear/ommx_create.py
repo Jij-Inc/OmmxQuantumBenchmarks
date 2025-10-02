@@ -101,7 +101,7 @@ def batch_process(
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
             ommx_instance.annotations["org.ommx.qoblib.url"] = (
-                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads"
+                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/09-routing?ref_type=heads"
             )
 
             builder = ArtifactBuilder.new_archive_unnamed(out_path)
