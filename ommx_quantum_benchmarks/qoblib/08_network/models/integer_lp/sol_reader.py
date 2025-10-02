@@ -1,5 +1,6 @@
 import re
 
+
 def parse_solution_zfx(file_path: str, n: int) -> dict[int, int]:
     """Parse Jij solution (.sol) into {id: value} with strict z→f→x ordering.
 

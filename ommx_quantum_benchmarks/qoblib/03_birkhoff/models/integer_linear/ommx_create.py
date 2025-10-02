@@ -7,6 +7,11 @@ from ommx.artifact import ArtifactBuilder
 from models import create_problem
 from dat_reader import load_and_process_all
 from sol_reader import parse_sol_file
+from ommx_quantum_benchmarks.qoblib.definitions import (
+    QOBLIB_AUTHORS,
+    QOBLIB_AUTHORS_STR,
+    LICENSE,
+)
 
 
 def infer_name_func_from_subdir(sol_subdir: str):
@@ -125,42 +130,11 @@ def batch_process_from_qbench_json(
             if os.path.exists(output_filename):
                 os.remove(output_filename)
 
-            # Create QOBLIB authors.
-            qoblib_authors = [
-                "Thorsten Koch",
-                "David E. Bernal Neira",
-                "Ying Chen",
-                "Giorgio Cortiana",
-                "Daniel J. Egger",
-                "Raoul Heese",
-                "Narendra N. Hegade",
-                "Alejandro Gomez Cadavid",
-                "Rhea Huang",
-                "Toshinari Itoko",
-                "Thomas Kleinert",
-                "Pedro Maciel Xavier",
-                "Naeimeh Mohseni",
-                "Jhon A. Montanez-Barrera",
-                "Koji Nakano",
-                "Giacomo Nannicini",
-                "Corey O’Meara",
-                "Justin Pauckert",
-                "Manuel Proissl",
-                "Anurag Ramesh",
-                "Maximilian Schicker",
-                "Noriaki Shimada",
-                "Mitsuharu Takeori",
-                "Victor Valls",
-                "David Van Bulck",
-                "Stefan Woerner",
-                "Christa Zoufal",
-            ]
-            qoblib_authors_str = ", ".join(qoblib_authors)
             # Add annotations to the instance.
             ommx_instance.title = base_name
-            ommx_instance.license = "CC BY 4.0"
+            ommx_instance.license = LICENSE
             ommx_instance.dataset = "Minimum Birkhoff Decomposition"
-            ommx_instance.authors = qoblib_authors
+            ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
             ommx_instance.annotations["org.ommx.qoblib.url"] = (
@@ -170,7 +144,7 @@ def batch_process_from_qbench_json(
             instance_desc = builder.add_instance(ommx_instance)
             if solution is not None:
                 solution.instance = instance_desc.digest
-                solution.annotations["org.ommx.qoblib.authors"] = qoblib_authors_str
+                solution.annotations["org.ommx.qoblib.authors"] = QOBLIB_AUTHORS_STR
                 builder.add_solution(solution)
             builder.build()
 

@@ -5,6 +5,11 @@ from ommx.artifact import ArtifactBuilder
 from model import build_vrp_ilp
 from dat_reader import read_vrp_tsplib
 from sol_reader import parse_vrp_solution_file
+from ommx_quantum_benchmarks.qoblib.definitions import (
+    QOBLIB_AUTHORS,
+    QOBLIB_AUTHORS_STR,
+    LICENSE,
+)
 
 
 def _pick_solution_file(sol_dir: str, base: str) -> str | None:
@@ -88,9 +93,22 @@ def batch_process(
             if os.path.exists(out_path):
                 os.remove(out_path)
 
+            # Add annotations to the instance.
+            ommx_instance.title = base
+            ommx_instance.license = LICENSE
+            ommx_instance.dataset = "Vehicle Routing"
+            ommx_instance.authors = QOBLIB_AUTHORS
+            ommx_instance.num_variables = len(ommx_instance.decision_variables)
+            ommx_instance.num_constraints = len(ommx_instance.constraints)
+            ommx_instance.annotations["org.ommx.qoblib.url"] = (
+                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/09-routing?ref_type=heads"
+            )
+
             builder = ArtifactBuilder.new_archive_unnamed(out_path)
-            builder.add_instance(ommx_instance)
+            instance_desc = builder.add_instance(ommx_instance)
             if solution is not None:
+                solution.instance = instance_desc.digest
+                solution.annotations["org.ommx.qoblib.authors"] = QOBLIB_AUTHORS_STR
                 builder.add_solution(solution)
             builder.build()
 
