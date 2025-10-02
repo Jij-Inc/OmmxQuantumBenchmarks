@@ -1,0 +1,46 @@
+name: Python Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  Python-Test:
+    if: ${{ !contains(github.head_ref, 'dependabot/github_actions') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11" , "3.12"]
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+      - name: Set up Python with uv
+        run: uv python install ${{ matrix.python-version }}
+      - name: uv Install
+        shell: bash
+        run:  |
+          set -eux
+          uv sync --all-extras
+      - name: Test
+        shell: bash
+        run: |
+          set -eux
+          uv pip list
+          cd tests
+          uv run pytest

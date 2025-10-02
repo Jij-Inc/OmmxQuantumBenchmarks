@@ -1,0 +1,35 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: index
+parts:
+  - caption: "Switch Language"
+    chapters:
+      - url: https://jij-inc.github.io/OmmxQuantumBenchmarks/ja/
+        title: "日本語"
+
+  - caption: Getting Started
+    chapters:
+    - file: quickstart
+
+  - caption: Usage Guide
+    chapters:
+    - file: tutorial/usage/index_usage
+      sections:
+        - file: tutorial/usage/basic_usage
+        - file: tutorial/usage/dataset_overview
+
+  - caption: Examples
+    chapters:
+    - file: tutorial/examples/index_examples
+      sections:
+        - file: tutorial/examples/labs_example
+
+  - caption: API Reference
+    chapters:
+    - file: autoapi/index
+
+  # - caption: "Release Notes"
+  #   chapters:
+  #     - file: release_note/index
