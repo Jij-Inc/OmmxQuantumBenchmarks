@@ -23,14 +23,6 @@ def build_mis_problem() -> jm.Problem:
     v = jm.Element("v", belong_to=(0, N))
     obj = jm.sum(v, x[v])
 
-    # Problem
-    probem = jm.Problem("maximum_independent_set", sense=jm.ProblemSense.MAXIMIZE)
-    probem += obj
-
-    # Constraints: for all (u,v) in E, x[u] + x[v] <= 1
-    e = jm.Element("e", belong_to=E)
-    probem += jm.Constraint("no_adjacent", x[e[0]] + x[e[1]] <= 1, forall=e)
-
     problem = jm.Problem("maximum_independent_set", sense=jm.ProblemSense.MAXIMIZE)
     problem += obj
 
