@@ -1,5 +1,6 @@
 import jijmodeling as jm
 
+
 def build_ip_formulation() -> jm.Problem:
     """Create integer programming formulation for the arc-based flow problem.
 
@@ -42,7 +43,7 @@ def build_ip_formulation() -> jm.Problem:
     """
     # ---- Placeholders ----
     n = jm.Placeholder("n")
-    t = jm.Placeholder("t", ndim=2)   # (n,n)
+    t = jm.Placeholder("t", ndim=2)  # (n,n)
     M = jm.Placeholder("M")
     intscale = jm.Placeholder("intscale")
 
@@ -54,9 +55,11 @@ def build_ip_formulation() -> jm.Problem:
     # ---- Vars ----
     x = jm.BinaryVar("x", shape=(n, n), description="arc i->j selected")
     f = jm.IntegerVar(
-        "f", shape=(n, n, n),
-        lower_bound=0, upper_bound=intscale * M,
-        description="flow of commodity k on arc i->j"
+        "f",
+        shape=(n, n, n),
+        lower_bound=0,
+        upper_bound=intscale * M,
+        description="flow of commodity k on arc i->j",
     )
     z = jm.IntegerVar("z", lower_bound=0, upper_bound=intscale * M)
 
@@ -66,16 +69,12 @@ def build_ip_formulation() -> jm.Problem:
 
     # c1: ∀ i ∈ N :  Σ_{j ≠ i} x[i,j] = 2
     problem += jm.Constraint(
-        "c1_outdeg_eq_2",
-        jm.sum([(j, j != i)], x[i, j]) == 2,
-        forall=[i]
+        "c1_outdeg_eq_2", jm.sum([(j, j != i)], x[i, j]) == 2, forall=[i]
     )
-    
+
     # c2: ∀ j ∈ N :  Σ_{i ≠ j} x[i,j] = 2
     problem += jm.Constraint(
-        "c2_indeg_eq_2",
-        jm.sum([(i, i != j)], x[i, j]) == 2,
-        forall=[j]
+        "c2_indeg_eq_2", jm.sum([(i, i != j)], x[i, j]) == 2, forall=[j]
     )
 
     # c11: flow balance
@@ -84,21 +83,21 @@ def build_ip_formulation() -> jm.Problem:
         jm.sum([(j, j != i)], f[k, j, i])
         - jm.sum([(j, (j != i) & (j != k))], f[k, i, j])
         == t[k, i] * intscale,
-        forall=[k, (i, k != i)]
+        forall=[k, (i, k != i)],
     )
 
     # c14: capacity bound
     problem += jm.Constraint(
         "c14_capacity_by_x",
         f[k, i, j] <= M * intscale * x[i, j],
-        forall=[k, i, (j, (i != j) & (k != j))]
+        forall=[k, i, (j, (i != j) & (k != j))],
     )
 
     # c100: z upper bound on flow
     problem += jm.Constraint(
         "c100_z_upper_bounds_flow",
         jm.sum([(k, k != j)], f[k, i, j]) <= z,
-        forall=[i, (j, i != j)]
+        forall=[i, (j, i != j)],
     )
 
     return problem
