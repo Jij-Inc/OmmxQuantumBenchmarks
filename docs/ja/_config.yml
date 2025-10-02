@@ -59,6 +59,7 @@ sphinx:
         - show-module-summary
         - imported-members
         - no-index
+        - special-members
       autoapi_ignore:
         - "**/uploader.py"
         - "**/uploader/*"

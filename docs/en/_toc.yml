@@ -30,6 +30,6 @@ parts:
     chapters:
     - file: autoapi/index
 
-  - caption: "Release Notes"
-    chapters:
-      - file: release_note/index
+  # - caption: "Release Notes"
+  #   chapters:
+  #     - file: release_note/index

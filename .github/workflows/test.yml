@@ -2,14 +2,14 @@ name: Python Test
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   types:
-  #     - opened
-  #     - reopened
-  #     - synchronize
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 permissions:
   contents: read
