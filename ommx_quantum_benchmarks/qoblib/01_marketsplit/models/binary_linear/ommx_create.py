@@ -7,6 +7,11 @@ from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_to_ordered_dict
 from dat_reader import read_qoblib_dat_file
 from model import create_problem
+from ommx_quantum_benchmarks.qoblib.definitions import (
+    QOBLIB_AUTHORS,
+    QOBLIB_AUTHORS_STR,
+    LICENSE,
+)
 
 
 def batch_process_files(
@@ -120,10 +125,23 @@ def batch_process_files(
             if os.path.exists(output_filename):
                 os.remove(output_filename)
 
+            # Add annotations to the instance.
+            ommx_instance.title = base_name
+            ommx_instance.license = LICENSE
+            ommx_instance.dataset = "Market Split Problem"
+            ommx_instance.authors = QOBLIB_AUTHORS
+            ommx_instance.num_variables = len(ommx_instance.decision_variables)
+            ommx_instance.num_constraints = len(ommx_instance.constraints)
+            ommx_instance.annotations["org.ommx.qoblib.url"] = (
+                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/01-marketsplit?ref_type=heads"
+            )
+
             # Create OMMX Artifact
             builder = ArtifactBuilder.new_archive_unnamed(output_filename)
-            builder.add_instance(ommx_instance)
+            instance_desc = builder.add_instance(ommx_instance)
             if solution is not None:
+                solution.instance = instance_desc.digest
+                solution.annotations["org.ommx.qoblib.authors"] = QOBLIB_AUTHORS_STR
                 builder.add_solution(solution)
             builder.build()
 
