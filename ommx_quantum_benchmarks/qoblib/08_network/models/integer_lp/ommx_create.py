@@ -738,7 +738,7 @@ def batch_process(
             # Add annotations to the instance.
             ommx_instance.title = base
             ommx_instance.license = LICENSE
-            ommx_instance.dataset = "Maximum Independent Set Problem"
+            ommx_instance.dataset = "Network Design"
             ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
