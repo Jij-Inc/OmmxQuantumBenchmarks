@@ -1580,7 +1580,7 @@ class Portfolio(BaseDataset):
 class IndependentSet(BaseDataset):
     """Class representing an Independent Set dataset."""
 
-    name: str = "07_independent_set"
+    name: str = "07_independentset"
     description: str = (
         "Independent Set dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/07-independentset?ref_type=heads."
     )
