@@ -16,34 +16,40 @@ jobs:
         python-version: ["3.10"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
-      - name: poetry self add "poetry-dynamic-versioning[plugin]"
-        shell: bash
-        run:  |
-          set -eux
-          poetry self add "poetry-dynamic-versioning[plugin]"
-      - name: Install
+      - name: Install dependencies
         shell: bash
         run: |
-          poetry install
-      - name: Publish Dry Run
+          set -eux
+          uv sync
+      - name: Build package
+        shell: bash
+        run: |
+          set -eux
+          uv build
+      - name: Check package (Dry Run)
         if: ${{github.event_name != 'release'}}
         shell: bash
         run: |
           set -eux
-          poetry publish --build --dry-run 
-      - name: Publish
+          uv pip install twine
+          uv run twine check dist/*
+          echo "Dry run completed. Package would be published in a release."
+      - name: Publish to PyPI
         if: ${{github.event_name == 'release'}}
         shell: bash
         env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           set -eux
-          poetry publish --build
+          uv publish
