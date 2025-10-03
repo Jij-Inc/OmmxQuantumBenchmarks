@@ -5,7 +5,9 @@ from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_ta
 from .mock import *
 
 
-NUM_CASES = 1  # Limit the number of test cases (instances) for each instance test to reduce test time.
+# Define the variable to limit the number of test cases (instances) for each instance test to reduce test time.
+# Set to None to test all instances. Don't push with a large number of instances like None otherwise github actions won't pass.
+NUM_CASES = 1
 
 
 def test_base_dataset_creation():
