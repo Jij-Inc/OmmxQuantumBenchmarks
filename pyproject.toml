@@ -19,6 +19,9 @@ dependencies = [
 [tool.setuptools]
 packages = ["ommx_quantum_benchmarks"]
 
+[tool.setuptools_scm]
+version_file = "ommx_quantum_benchmarks/_version.py"
+
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
