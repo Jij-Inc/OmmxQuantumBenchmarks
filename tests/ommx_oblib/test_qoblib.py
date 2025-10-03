@@ -392,20 +392,20 @@ def test_portfolio():
                 assert evaluated_solution.state.entries == solution.state.entries
 
 
-def test_independent_set():
+def test_independentset():
     """Create a IndependentSet instance and check its basic properties.
 
     Check if
-    - its name is "07_independent_set",
+    - its name is "07_independentset",
     - its model_names is ["binary_linear", "binary_unconstrained"],
     - its available_instances is dict whose key are "binary_linear" and "binary_unconstrained",
     - each value of its available_instances is a list of str,
     - the length of its available_instances["binary_linear"] is 42,
     - the length of its available_instances["binary_unconstrained"] is 42,
     """
-    # - its name is "07_independent_set",
+    # - its name is "07_independentset",
     dataset = IndependentSet()
-    assert dataset.name == "07_independent_set"
+    assert dataset.name == "07_independentset"
     # - its model_names is ["binary_linear", "binary_unconstrained"],
     assert dataset.model_names == ["binary_linear", "binary_unconstrained"]
     # - its available_instances is dict whose key are "binary_linear" and "binary_unconstrained",
@@ -431,7 +431,7 @@ def test_independent_set():
         for instance_name in instances
     ][:NUM_CASES],
 )
-def test_independent_set_instance(model_name, instance_name):
+def test_independentset_instance(model_name, instance_name):
     """Test individual IndependentSet instance.
 
     Check if
