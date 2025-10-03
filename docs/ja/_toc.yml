@@ -17,18 +17,18 @@ parts:
     chapters:
     - file: tutorial/usage/index_usage
       sections:
-        - file: tutorial/usage/dataset_overview
+        - file: tutorial/usage/qoblib
 
   - caption: サンプル
     chapters:
     - file: tutorial/examples/index_examples
       sections:
-        - file: tutorial/examples/qoblib_example
+        - file: tutorial/examples/qoblib_scip
 
   - caption: APIリファレンス
     chapters:
     - file: autoapi/index
 
-  # - caption: "リリースノート"
-  #   chapters:
-  #     - file: release_note/index
+  - caption: "リリースノート"
+    chapters:
+      - file: release_note/0.1.0
