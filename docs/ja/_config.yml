@@ -1,7 +1,7 @@
 # Book settings
 # Learn more at https://jupyterbook.org/customize/config.html
 
-title: OMMX Quantum Benchmarks ドキュメント
+title: OMMX Quantum Benchmarks Documentation
 author: Jij Inc.
 
 # Force re-execution of notebooks on each build.
@@ -29,7 +29,7 @@ bibtex_bibfiles:
 # Information about where the book exists on the web
 repository:
   url: https://github.com/Jij-Inc/OmmxQuantumBenchmarks  # Online location of your book
-  path_to_book: docs/ja  # Optional path to your book, relative to the repository root
+  path_to_book: docs/en  # Optional path to your book, relative to the repository root
   branch: main  # Which branch of the repository should be used when creating links (optional)
 
 # Add GitHub buttons to your book
@@ -67,8 +67,8 @@ sphinx:
         - "**/qoblib/definitions.py"
         - "**/ommx_quantum_benchmarks/uploader/*"
       autoapi_python_class_content: 'both'
-      language: ja
-      html_search_language: ja
+      language: en
+      html_search_language: en
       suppress_warnings: ["etoc.toctree"]
       mathjax_path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
       bibtex_reference_style: author_year

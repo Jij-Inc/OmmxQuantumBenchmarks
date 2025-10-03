@@ -5,6 +5,11 @@ from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_ta
 from .mock import *
 
 
+# Define the variable to limit the number of test cases (instances) for each instance test to reduce test time.
+# Set to None to test all instances. Don't push with a large number of instances like None otherwise github actions won't pass.
+NUM_CASES = 1
+
+
 def test_base_dataset_creation():
     """Create a mock BaseDataset instance and check its member variables.
 
@@ -162,9 +167,7 @@ def test_labs():
         (model_name, instance_name)
         for model_name, instances in Labs().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_labs_instance(model_name, instance_name):
     """Test individual Labs instance.
@@ -222,9 +225,7 @@ def test_birkhoff():
         (model_name, instance_name)
         for model_name, instances in Birkhoff().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_birkhoff_instance(model_name, instance_name):
     """Test individual Birkhoff instance.
@@ -282,9 +283,7 @@ def test_steiner():
         (model_name, instance_name)
         for model_name, instances in Steiner().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_steiner_instance(model_name, instance_name):
     """Test individual Steiner instance.
@@ -395,20 +394,20 @@ def test_portfolio():
                 assert evaluated_solution.state.entries == solution.state.entries
 
 
-def test_independent_set():
-    """Create a IndependentSet instance and get each instances in its available_instances.
+def test_independentset():
+    """Create a IndependentSet instance and check its basic properties.
 
     Check if
-    - its name is "07_independent_set",
+    - its name is "07_independentset",
     - its model_names is ["binary_linear", "binary_unconstrained"],
     - its available_instances is dict whose key are "binary_linear" and "binary_unconstrained",
     - each value of its available_instances is a list of str,
-    - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
-    - the evaluated solution with its instance and solution is the same as the original solution.
+    - the length of its available_instances["binary_linear"] is 42,
+    - the length of its available_instances["binary_unconstrained"] is 42,
     """
-    # - its name is "07_independent_set",
+    # - its name is "07_independentset",
     dataset = IndependentSet()
-    assert dataset.name == "07_independent_set"
+    assert dataset.name == "07_independentset"
     # - its model_names is ["binary_linear", "binary_unconstrained"],
     assert dataset.model_names == ["binary_linear", "binary_unconstrained"]
     # - its available_instances is dict whose key are "binary_linear" and "binary_unconstrained",
@@ -420,76 +419,110 @@ def test_independent_set():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-    for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
-            result = dataset(model_name, instance_name)
-            # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
-            assert isinstance(result, tuple)
-            assert len(result) == 2
-            instance, solution = result
-            assert isinstance(instance, ommx.v1.Instance)
-            if solution is not None:
-                assert isinstance(solution, ommx.v1.Solution)
-                # - the evaluated solution with its instance and solution is the same as the original solution.
-                evaluated_solution = instance.evaluate(solution.state)
-                assert evaluated_solution.feasible == solution.feasible
-                assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state.entries == solution.state.entries
+    # - the length of its available_instances["binary_linear"] is 42,
+    assert len(dataset.available_instances["binary_linear"]) == 42
+    # - the length of its available_instances["binary_unconstrained"] is 42,
+    assert len(dataset.available_instances["binary_unconstrained"]) == 42
+
+
+@pytest.mark.parametrize(
+    "model_name,instance_name",
+    [
+        (model_name, instance_name)
+        for model_name, instances in IndependentSet().available_instances.items()
+        for instance_name in instances
+    ][:NUM_CASES],
+)
+def test_independentset_instance(model_name, instance_name):
+    """Test individual IndependentSet instance.
+
+    Check if
+    - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution),
+    - the evaluated solution with its instance and solution is the same as the original solution.
+    """
+    dataset = IndependentSet()
+    result = dataset(model_name, instance_name)
+    # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution)
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+    instance, solution = result
+    assert isinstance(instance, ommx.v1.Instance)
+    if solution is not None:
+        assert isinstance(solution, ommx.v1.Solution)
+        # - the evaluated solution with its instance and solution is the same as the original solution.
+        evaluated_solution = instance.evaluate(solution.state)
+        assert evaluated_solution.feasible == solution.feasible
+        assert evaluated_solution.objective == solution.objective
+        assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_network():
-    """Create a Network instance and get each instances in its available_instances.
+    """Create a Network instance and check its basic properties.
 
     Check if
     - its name is "08_network",
-    - its model_names is ["integer_linear"],
-    - its available_instances is dict whose key are "integer_linear",
+    - its model_names is ["integer_lp"],
+    - its available_instances is dict whose key are "integer_lp",
     - each value of its available_instances is a list of str,
-    - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
-    - the evaluated solution with its instance and solution is the same as the original solution.
+    - the length of its available_instances["integer_lp"] is 20,
     """
     # - its name is "08_network",
     dataset = Network()
     assert dataset.name == "08_network"
-    # - its model_names is ["integer_linear"],
-    assert dataset.model_names == ["integer_linear"]
-    # - its available_instances is dict whose key are "integer_linear",
+    # - its model_names is ["integer_lp"],
+    assert dataset.model_names == ["integer_lp"]
+    # - its available_instances is dict whose key are "integer_lp",
     assert isinstance(dataset.available_instances, dict)
-    assert "integer_linear" in dataset.available_instances
+    assert "integer_lp" in dataset.available_instances
     # - each value of its available_instances is a list of str,
     for model_name, instances in dataset.available_instances.items():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-    for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
-            result = dataset(model_name, instance_name)
-            # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
-            assert isinstance(result, tuple)
-            assert len(result) == 2
-            instance, solution = result
-            assert isinstance(instance, ommx.v1.Instance)
-            if solution is not None:
-                assert isinstance(solution, ommx.v1.Solution)
-                # - the evaluated solution with its instance and solution is the same as the original solution.
-                evaluated_solution = instance.evaluate(solution.state)
-                assert evaluated_solution.feasible == solution.feasible
-                assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state.entries == solution.state.entries
+    # - the length of its available_instances["integer_lp"] is 20,
+    assert len(dataset.available_instances["integer_lp"]) == 20
+
+
+@pytest.mark.parametrize(
+    "model_name,instance_name",
+    [
+        (model_name, instance_name)
+        for model_name, instances in Network().available_instances.items()
+        for instance_name in instances
+    ][:NUM_CASES],
+)
+def test_network_instance(model_name, instance_name):
+    """Test individual Network instance.
+
+    Check if
+    - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution),
+    - the evaluated solution with its instance and solution is the same as the original solution.
+    """
+    dataset = Network()
+    result = dataset(model_name, instance_name)
+    # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution)
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+    instance, solution = result
+    assert isinstance(instance, ommx.v1.Instance)
+    if solution is not None:
+        assert isinstance(solution, ommx.v1.Solution)
+        # - the evaluated solution with its instance and solution is the same as the original solution.
+        evaluated_solution = instance.evaluate(solution.state)
+        assert evaluated_solution.feasible == solution.feasible
+        assert evaluated_solution.objective == solution.objective
+        assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_routing():
-    """Create a Routing instance and get each instances in its available_instances.
+    """Create a Routing instance and check its basic properties.
 
     Check if
     - its name is "09_routing",
     - its model_names is ["integer_linear"],
     - its available_instances is dict whose key are "integer_linear",
     - each value of its available_instances is a list of str,
-    - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
-    - the evaluated solution with its instance and solution is the same as the original solution.
+    - the length of its available_instances["integer_linear"] is 55,
     """
     # - its name is "09_routing",
     dataset = Routing()
@@ -504,22 +537,39 @@ def test_routing():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-    for model_name, instances in dataset.available_instances.items():
-        if instances:  # Only test if instances are available
-            instance_name = instances[0]  # Test with first instance
-            result = dataset(model_name, instance_name)
-            # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
-            assert isinstance(result, tuple)
-            assert len(result) == 2
-            instance, solution = result
-            assert isinstance(instance, ommx.v1.Instance)
-            if solution is not None:
-                assert isinstance(solution, ommx.v1.Solution)
-                # - the evaluated solution with its instance and solution is the same as the original solution.
-                evaluated_solution = instance.evaluate(solution.state)
-                assert evaluated_solution.feasible == solution.feasible
-                assert evaluated_solution.objective == solution.objective
-                assert evaluated_solution.state.entries == solution.state.entries
+    # - the length of its available_instances["integer_linear"] is 55,
+    assert len(dataset.available_instances["integer_linear"]) == 55
+
+
+@pytest.mark.parametrize(
+    "model_name,instance_name",
+    [
+        (model_name, instance_name)
+        for model_name, instances in Routing().available_instances.items()
+        for instance_name in instances
+    ][:NUM_CASES],
+)
+def test_routing_instance(model_name, instance_name):
+    """Test individual Routing instance.
+
+    Check if
+    - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution),
+    - the evaluated solution with its instance and solution is the same as the original solution.
+    """
+    dataset = Routing()
+    result = dataset(model_name, instance_name)
+    # - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution)
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+    instance, solution = result
+    assert isinstance(instance, ommx.v1.Instance)
+    if solution is not None:
+        assert isinstance(solution, ommx.v1.Solution)
+        # - the evaluated solution with its instance and solution is the same as the original solution.
+        evaluated_solution = instance.evaluate(solution.state)
+        assert evaluated_solution.feasible == solution.feasible
+        assert evaluated_solution.objective == solution.objective
+        assert evaluated_solution.state.entries == solution.state.entries
 
 
 def test_topology():
@@ -563,9 +613,7 @@ def test_topology():
         (model_name, instance_name)
         for model_name, instances in Topology().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_topology_instance(model_name, instance_name):
     """Test individual Topology instance.

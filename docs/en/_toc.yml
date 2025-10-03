@@ -17,19 +17,18 @@ parts:
     chapters:
     - file: tutorial/usage/index_usage
       sections:
-        - file: tutorial/usage/basic_usage
-        - file: tutorial/usage/dataset_overview
+        - file: tutorial/usage/qoblib
 
   - caption: Examples
     chapters:
     - file: tutorial/examples/index_examples
       sections:
-        - file: tutorial/examples/labs_example
+        - file: tutorial/examples/qoblib_scip
 
   - caption: API Reference
     chapters:
     - file: autoapi/index
 
-  # - caption: "Release Notes"
-  #   chapters:
-  #     - file: release_note/index
+  - caption: "Release Notes"
+    chapters:
+      - file: release_note/0.1.0
