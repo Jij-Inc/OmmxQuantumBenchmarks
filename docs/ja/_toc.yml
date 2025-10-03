@@ -17,7 +17,6 @@ parts:
     chapters:
     - file: tutorial/usage/index_usage
       sections:
-        - file: tutorial/usage/basic_usage
         - file: tutorial/usage/dataset_overview
 
   - caption: サンプル
