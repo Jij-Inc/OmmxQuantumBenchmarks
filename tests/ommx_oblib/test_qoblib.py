@@ -5,6 +5,9 @@ from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_ta
 from .mock import *
 
 
+NUM_CASES = 1  # Limit the number of test cases (instances) for each instance test to reduce test time.
+
+
 def test_base_dataset_creation():
     """Create a mock BaseDataset instance and check its member variables.
 
@@ -162,9 +165,7 @@ def test_labs():
         (model_name, instance_name)
         for model_name, instances in Labs().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_labs_instance(model_name, instance_name):
     """Test individual Labs instance.
@@ -222,9 +223,7 @@ def test_birkhoff():
         (model_name, instance_name)
         for model_name, instances in Birkhoff().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_birkhoff_instance(model_name, instance_name):
     """Test individual Birkhoff instance.
@@ -282,9 +281,7 @@ def test_steiner():
         (model_name, instance_name)
         for model_name, instances in Steiner().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_steiner_instance(model_name, instance_name):
     """Test individual Steiner instance.
@@ -432,9 +429,7 @@ def test_independent_set():
         (model_name, instance_name)
         for model_name, instances in IndependentSet().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_independent_set_instance(model_name, instance_name):
     """Test individual IndependentSet instance.
@@ -492,9 +487,7 @@ def test_network():
         (model_name, instance_name)
         for model_name, instances in Network().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_network_instance(model_name, instance_name):
     """Test individual Network instance.
@@ -552,9 +545,7 @@ def test_routing():
         (model_name, instance_name)
         for model_name, instances in Routing().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_routing_instance(model_name, instance_name):
     """Test individual Routing instance.
@@ -620,9 +611,7 @@ def test_topology():
         (model_name, instance_name)
         for model_name, instances in Topology().available_instances.items()
         for instance_name in instances
-    ][
-        :1
-    ],  # Limit to the first instance for faster testing
+    ][:NUM_CASES],
 )
 def test_topology_instance(model_name, instance_name):
     """Test individual Topology instance.
