@@ -24,7 +24,7 @@ parts:
     chapters:
     - file: tutorial/examples/index_examples
       sections:
-        - file: tutorial/examples/labs_example
+        - file: tutorial/examples/qoblib_example
 
   - caption: API Reference
     chapters:
