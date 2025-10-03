@@ -4,7 +4,7 @@
 format: jb-book
 root: index
 parts:
-  - caption: "Switch Language"
+  - caption: "言語切り替え"
     chapters:
       - url: https://jij-inc.github.io/OmmxQuantumBenchmarks/en/
         title: "English"
@@ -20,13 +20,13 @@ parts:
         - file: tutorial/usage/basic_usage
         - file: tutorial/usage/dataset_overview
 
-  - caption: 例
+  - caption: サンプル
     chapters:
     - file: tutorial/examples/index_examples
       sections:
-        - file: tutorial/examples/labs_example
+        - file: tutorial/examples/qoblib_example
 
-  - caption: API リファレンス
+  - caption: APIリファレンス
     chapters:
     - file: autoapi/index
 
