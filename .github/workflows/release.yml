@@ -1,0 +1,63 @@
+name: Upload Python Package
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -eux
+          uv sync
+      - name: Build package
+        shell: bash
+        run: |
+          set -eux
+          uv build
+      - name: Check package (Dry Run)
+        if: ${{github.event_name != 'release'}}
+        shell: bash
+        run: |
+          set -eux
+          uv pip install twine
+          uv run twine check dist/*
+          echo "Dry run completed. Package would be published in a release."
+      # - name: Publish to PyPI
+      #   if: ${{github.event_name == 'release'}}
+      #   shell: bash
+      #   env:
+      #     UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      #   run: |
+      #     set -eux
+      #     uv publish
+      - name: Publish to TestPyPI
+        if: ${{github.event_name == 'workflow_dispatch'}}
+        shell: bash
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: |
+          set -eux
+          uv publish --publish-url https://test.pypi.org/legacy/ --token $UV_PUBLISH_TOKEN
