@@ -43,12 +43,12 @@ jobs:
           uv pip install twine
           uv run twine check dist/*
           echo "Dry run completed. Package would be published in a release."
-      # - name: Publish to PyPI
-      #   if: ${{github.event_name == 'release'}}
-      #   shell: bash
-      #   run: |
-      #     set -eux
-      #     uv publish
+      - name: Publish to PyPI
+        if: ${{github.event_name == 'release'}}
+        shell: bash
+        run: |
+          set -eux
+          uv publish
       - name: Publish to TestPyPI
         if: ${{github.event_name == 'workflow_dispatch'}}
         shell: bash
