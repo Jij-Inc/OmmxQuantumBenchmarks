@@ -2,6 +2,7 @@ name: Upload Python Package
 
 on:
   workflow_dispatch:
+  push:
   release:
     types: [published]
 
@@ -53,11 +54,11 @@ jobs:
       #   run: |
       #     set -eux
       #     uv publish
-      - name: Publish to TestPyPI
-        if: ${{github.event_name == 'workflow_dispatch'}}
-        shell: bash
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: |
-          set -eux
-          uv publish --publish-url https://test.pypi.org/legacy/ --token $UV_PUBLISH_TOKEN
+      # - name: Publish to TestPyPI
+      #   if: ${{github.event_name == 'workflow_dispatch'}}
+      #   shell: bash
+      #   env:
+      #     UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      #   run: |
+      #     set -eux
+      #     uv publish --publish-url https://test.pypi.org/legacy/ --token $UV_PUBLISH_TOKEN
