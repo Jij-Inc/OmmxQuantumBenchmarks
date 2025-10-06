@@ -21,6 +21,7 @@ packages = ["ommx_quantum_benchmarks"]
 
 [tool.setuptools_scm]
 version_file = "ommx_quantum_benchmarks/_version.py"
+local_scheme = "no-local-version"
 
 [dependency-groups]
 dev = [
