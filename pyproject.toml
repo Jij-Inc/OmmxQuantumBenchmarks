@@ -3,7 +3,7 @@ requires = ["setuptools >= 64", "setuptools_scm >= 8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ommx_quantum_benchmarks"
+name = "ommx-quantum-benchmarks"
 dynamic = ["version"]
 description = "Quantum Benchmark dataset in OMMX format"
 readme = "README.md"
@@ -21,6 +21,7 @@ packages = ["ommx_quantum_benchmarks"]
 
 [tool.setuptools_scm]
 version_file = "ommx_quantum_benchmarks/_version.py"
+local_scheme = "no-local-version"
 
 [dependency-groups]
 dev = [

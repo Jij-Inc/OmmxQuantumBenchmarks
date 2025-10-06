@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write  # For Trusted Publisher
 
 jobs:
   deploy:
@@ -20,12 +21,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         shell: bash
@@ -45,19 +43,15 @@ jobs:
           uv pip install twine
           uv run twine check dist/*
           echo "Dry run completed. Package would be published in a release."
-      # - name: Publish to PyPI
-      #   if: ${{github.event_name == 'release'}}
-      #   shell: bash
-      #   env:
-      #     UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-      #   run: |
-      #     set -eux
-      #     uv publish
+      - name: Publish to PyPI
+        if: ${{github.event_name == 'release'}}
+        shell: bash
+        run: |
+          set -eux
+          uv publish
       - name: Publish to TestPyPI
         if: ${{github.event_name == 'workflow_dispatch'}}
         shell: bash
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
           set -eux
-          uv publish --publish-url https://test.pypi.org/legacy/ --token $UV_PUBLISH_TOKEN
+          uv publish --publish-url https://test.pypi.org/legacy/
