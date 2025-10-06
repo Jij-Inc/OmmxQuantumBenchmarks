@@ -8,9 +8,7 @@ Documentation: https://jij-inc.github.io/OmmxQuantumBenchmarks/
 
 ```bash
 # Clone and install
-git clone https://github.com/Jij-Inc/OmmxQuantumBenchmarks.git
-cd OmmxQuantumBenchmarks
-pip install -e .
+pip install ommx-quantum-benchmarks
 ```
 
 ### Basic Usage
