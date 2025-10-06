@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write  # For Trusted Publisher
 
 jobs:
   deploy:
@@ -45,16 +46,12 @@ jobs:
       # - name: Publish to PyPI
       #   if: ${{github.event_name == 'release'}}
       #   shell: bash
-      #   env:
-      #     UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
       #   run: |
       #     set -eux
       #     uv publish
       - name: Publish to TestPyPI
         if: ${{github.event_name == 'workflow_dispatch'}}
         shell: bash
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
           set -eux
-          uv publish --publish-url https://test.pypi.org/legacy/ --token $UV_PUBLISH_TOKEN
+          uv publish --publish-url https://test.pypi.org/legacy/
