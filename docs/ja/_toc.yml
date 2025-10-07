@@ -31,4 +31,4 @@ parts:
 
   - caption: "リリースノート"
     chapters:
-      - file: release_note/0.1.0
+      - file: release_note/0.0.1
