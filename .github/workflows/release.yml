@@ -29,7 +29,6 @@ jobs:
         shell: bash
         run: |
           set -eux
-          uv sync
       - name: Build package
         shell: bash
         run: |
