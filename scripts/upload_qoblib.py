@@ -1,16 +1,23 @@
-"""Bulk-upload generated ``.ommx`` files under
-``ommx_quantum_benchmarks/qoblib/*/models/*/ommx_output/`` to GHCR via the
-``qoblib`` :class:`Uploader`, in parallel.
+"""Migrate qoblib (minto 1.x layout) on GHCR to qoblib_v2 (minto 2.x layout).
 
-The script enumerates every ``<dataset>/models/<model>/ommx_output/<instance>.ommx``
-file (optionally filtered by ``--datasets``), then pushes each one through the
-project's :class:`ommx_quantum_benchmarks.qoblib.uploader.Uploader` using a
-thread pool. Each failure is captured and reported at the end so a single bad
-instance does not stop the rest of the run.
+For every (dataset, model, instance) listed in the package's
+``available_instances``, this script:
 
-Authentication relies on the standard ommx env vars::
+1. Pulls the existing artifact from
+   ``ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib:<dataset>-<model>-<instance>``
+   via :meth:`minto.Experiment.load_from_registry`.
+2. Reads ``instance`` and ``solution`` out of the loaded experiment's
+   ``experiment_datastore`` (where minto 1.x had placed them).
+3. Builds a fresh :class:`minto.Experiment` with the 2.x layout
+   (instance at experiment level, solution inside a run).
+4. Pushes that experiment to
+   ``ghcr.io/jij-inc/ommxquantumbenchmarks/qoblib_v2:<same-tag>``.
 
-    OMMX_BASIC_AUTH_DOMAIN   (auto-set to ghcr.io by Uploader.__init__)
+No upstream qoblib source / ``ommx_create.py`` / jijmodeling are needed.
+
+Authentication uses the standard ommx env vars::
+
+    OMMX_BASIC_AUTH_DOMAIN   (auto-set to ghcr.io)
     OMMX_BASIC_AUTH_USERNAME
     OMMX_BASIC_AUTH_PASSWORD
 
@@ -27,71 +34,114 @@ Usage examples::
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from pathlib import Path
 
-from ommx_quantum_benchmarks.qoblib.uploader import Uploader
+import minto
+
+from ommx_quantum_benchmarks.qoblib import (
+    BaseDataset,
+    Birkhoff,
+    IndependentSet,
+    Labs,
+    Marketsplit,
+    Network,
+    Routing,
+    Steiner,
+    Topology,
+)
+from ommx_quantum_benchmarks.qoblib.definitions import (
+    BASE_URL,
+    IMAGE_NAME,
+    get_instance_tag,
+)
+from ommx_quantum_benchmarks.uploader import Uploader as BaseUploader
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-QOBLIB_DIR = REPO_ROOT / "ommx_quantum_benchmarks" / "qoblib"
+# The migration source lives at the legacy image name on the same registry.
+LEGACY_IMAGE_NAME = "qoblib"
+LEGACY_BASE_URL = BASE_URL.replace(f"/{IMAGE_NAME}", f"/{LEGACY_IMAGE_NAME}")
+
+
+DATASET_CLASSES: list[type[BaseDataset]] = [
+    Marketsplit,
+    Labs,
+    Birkhoff,
+    Steiner,
+    IndependentSet,
+    Network,
+    Routing,
+    Topology,
+]
 
 
 @dataclass(frozen=True)
-class PushEntry:
+class MigrationEntry:
     dataset: str
     model: str
     instance: str
-    path: Path
 
     def label(self) -> str:
         return f"{self.dataset}/{self.model}/{self.instance}"
 
+    @property
+    def tag(self) -> str:
+        return get_instance_tag(self.dataset, self.model, self.instance)
 
-def discover_ommx_files(datasets: list[str] | None) -> list[PushEntry]:
-    """Walk the repo and collect every generated ``.ommx`` file as a PushEntry."""
-    entries: list[PushEntry] = []
-    for dataset_dir in sorted(QOBLIB_DIR.iterdir()):
-        if not dataset_dir.is_dir() or not dataset_dir.name[:2].isdigit():
+    @property
+    def source_url(self) -> str:
+        return f"{LEGACY_BASE_URL}:{self.tag}"
+
+
+def discover_entries(datasets: list[str] | None) -> list[MigrationEntry]:
+    entries: list[MigrationEntry] = []
+    for cls in DATASET_CLASSES:
+        d = cls()
+        if datasets and d.name not in datasets:
             continue
-        if datasets and dataset_dir.name not in datasets:
-            continue
-        models_dir = dataset_dir / "models"
-        if not models_dir.is_dir():
-            continue
-        for model_dir in sorted(models_dir.iterdir()):
-            if not model_dir.is_dir():
-                continue
-            ommx_output = model_dir / "ommx_output"
-            if not ommx_output.is_dir():
-                continue
-            for ommx_file in sorted(ommx_output.glob("*.ommx")):
-                entries.append(
-                    PushEntry(
-                        dataset=dataset_dir.name,
-                        model=model_dir.name,
-                        instance=ommx_file.stem,
-                        path=ommx_file,
-                    )
-                )
+        for model_name, instance_names in d.available_instances.items():
+            for instance_name in instance_names:
+                entries.append(MigrationEntry(d.name, model_name, instance_name))
     return entries
 
 
-def push_one(entry: PushEntry, verification: bool, max_retries: int) -> PushEntry:
-    """Push a single artifact, retrying on transient failures."""
+def _migrate(entry: MigrationEntry) -> None:
+    old = minto.Experiment.load_from_registry(entry.source_url)
+    ds = old.dataspace.experiment_datastore
+    if entry.instance not in ds.instances:
+        raise RuntimeError(
+            f"Instance {entry.instance!r} not found in {entry.source_url}"
+        )
+    instance = ds.instances[entry.instance]
+    solution = ds.solutions.get(entry.instance)
+
+    new = minto.Experiment(
+        name=IMAGE_NAME,
+        auto_saving=False,
+        verbose_logging=False,
+        collect_environment=False,
+    )
+    new.log_global_instance(instance_name=entry.instance, instance=instance)
+    if solution is not None:
+        with new.run() as run:
+            run.log_solution(solution_name=entry.instance, solution=solution)
+
+    new.push_github(
+        org=BaseUploader.ORG,
+        repo=BaseUploader.REPO,
+        name=IMAGE_NAME,
+        tag=entry.tag,
+    )
+
+
+def migrate_one(entry: MigrationEntry, max_retries: int) -> MigrationEntry:
     last_exc: Exception | None = None
     for attempt in range(max_retries):
         try:
-            Uploader().push_ommx(
-                dataset_name=entry.dataset,
-                model_name=entry.model,
-                instance_name=entry.instance,
-                ommx_filepath=str(entry.path),
-                verification=verification,
-            )
+            _migrate(entry)
             return entry
         except Exception as exc:
             last_exc = exc
@@ -123,43 +173,45 @@ def main() -> int:
         help="Retry attempts per artifact on transient failures (default: 3).",
     )
     parser.add_argument(
-        "--verification",
-        action="store_true",
-        help="Enable per-artifact local verification before push (slower).",
-    )
-    parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="List planned uploads without pushing.",
+        help="List planned migrations without pushing.",
     )
     args = parser.parse_args()
 
-    entries = discover_ommx_files(args.datasets)
-    print(f"Discovered {len(entries)} .ommx files to push.", flush=True)
+    # The Uploader.__init__ side effect (setting OMMX_BASIC_AUTH_DOMAIN) is
+    # the convention this project follows, replicate it here without forcing
+    # consumers to import the Uploader.
+    os.environ.setdefault("OMMX_BASIC_AUTH_DOMAIN", "ghcr.io")
+
+    entries = discover_entries(args.datasets)
+    print(f"Discovered {len(entries)} entries to migrate.", flush=True)
     if not entries:
         print("Nothing to do.")
         return 0
 
     if args.dry_run:
         for e in entries:
-            print(f"  {e.label()} -> {e.path}")
+            print(f"  {e.label()}  source: {e.source_url}")
         return 0
 
-    successes: list[PushEntry] = []
-    failures: list[tuple[PushEntry, str]] = []
+    successes: list[MigrationEntry] = []
+    failures: list[tuple[MigrationEntry, str]] = []
     start = time.monotonic()
 
     with ThreadPoolExecutor(max_workers=args.max_workers) as ex:
         futures = {
-            ex.submit(push_one, e, args.verification, args.max_retries): e
-            for e in entries
+            ex.submit(migrate_one, e, args.max_retries): e for e in entries
         }
         for i, fut in enumerate(as_completed(futures), 1):
             entry = futures[fut]
             try:
                 fut.result()
                 successes.append(entry)
-                print(f"[{i}/{len(entries)}] OK   {entry.label()}", flush=True)
+                print(
+                    f"[{i}/{len(entries)}] OK   {entry.label()}",
+                    flush=True,
+                )
             except Exception as exc:
                 failures.append((entry, repr(exc)))
                 print(
@@ -171,7 +223,8 @@ def main() -> int:
     print()
     print(
         f"Done in {elapsed:.1f}s. "
-        f"Success: {len(successes)}/{len(entries)}, Failures: {len(failures)}"
+        f"Success: {len(successes)}/{len(entries)}, "
+        f"Failures: {len(failures)}"
     )
     if failures:
         print()

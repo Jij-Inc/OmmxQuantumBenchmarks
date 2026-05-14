@@ -1,19 +1,20 @@
 name: Upload qoblib_v2 to GHCR
 
-# Manual-only. Pushes the regenerated qoblib_v2 OMMX archives to GHCR using
-# the workflow's GITHUB_TOKEN (packages: write). Each dataset runs in its own
-# job in parallel; failures inside a job do not abort the others.
+# Manual-only. Migrates the existing qoblib (minto 1.x layout) artifacts on
+# GHCR to a new qoblib_v2 image with the minto 2.x layout, using the workflow's
+# GITHUB_TOKEN (packages: write). Each dataset runs in its own job in parallel;
+# failures inside a job do not abort the others.
 
 on:
   workflow_dispatch:
     inputs:
       datasets:
-        description: 'Datasets to push, space-separated (e.g. "02_labs 03_birkhoff"). Use "all" for every dataset.'
+        description: 'Datasets to migrate, space-separated (e.g. "02_labs 03_birkhoff"). Use "all" for every dataset.'
         type: string
         required: true
         default: '02_labs'
       max-workers:
-        description: 'Parallel push workers per dataset job.'
+        description: 'Parallel worker threads per dataset job.'
         type: number
         required: true
         default: 8
@@ -21,9 +22,6 @@ on:
 permissions:
   contents: read
   packages: write
-
-env:
-  QOBLIB_UPSTREAM: "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library.git"
 
 jobs:
   resolve-matrix:
@@ -70,44 +68,7 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Sparse-clone upstream qoblib dataset
-        shell: bash
-        run: |
-          set -eu
-          DS="${{ matrix.dataset }}"
-          UPSTREAM_SUBDIR="${DS/_/-}"   # e.g. 02_labs -> 02-labs
-          SRC=/tmp/qoblib-src
-          rm -rf "$SRC"
-          mkdir -p "$SRC"
-          cd "$SRC"
-          git init -q
-          git remote add origin "$QOBLIB_UPSTREAM"
-          git config core.sparseCheckout true
-          printf '%s\n' \
-            "$UPSTREAM_SUBDIR/instances/" \
-            "$UPSTREAM_SUBDIR/solutions/" \
-            > .git/info/sparse-checkout
-          git pull --depth=1 origin main
-          DEST="${{ github.workspace }}/ommx_quantum_benchmarks/qoblib/$DS"
-          cp -r "$UPSTREAM_SUBDIR/instances" "$DEST/"
-          cp -r "$UPSTREAM_SUBDIR/solutions" "$DEST/"
-          echo "Data prepared at $DEST"
-          ls -la "$DEST"
-
-      - name: Generate .ommx archives
-        working-directory: ommx_quantum_benchmarks/qoblib/${{ matrix.dataset }}/models
-        shell: bash
-        run: |
-          set -eu
-          for model_dir in */; do
-            MODEL="${model_dir%/}"
-            echo "=== Generating .ommx for $MODEL ==="
-            (cd "$MODEL" && uv run --project=${{ github.workspace }} python ommx_create.py)
-            echo "Sample output for $MODEL:"
-            ls -la "$MODEL/ommx_output" 2>/dev/null | head -5 || true
-          done
-
-      - name: Push to GHCR
+      - name: Migrate qoblib -> qoblib_v2 for ${{ matrix.dataset }}
         env:
           OMMX_BASIC_AUTH_USERNAME: ${{ github.actor }}
           OMMX_BASIC_AUTH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
@@ -123,6 +84,6 @@ jobs:
     steps:
       - name: Print result
         run: |
-          echo "Upload jobs finished."
+          echo "Migration jobs finished."
           echo "Check the matrix job results for per-dataset success/failure."
           echo "On success, see https://github.com/orgs/Jij-Inc/packages?repo_name=OmmxQuantumBenchmarks"
