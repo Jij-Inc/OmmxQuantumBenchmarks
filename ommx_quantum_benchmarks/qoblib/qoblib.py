@@ -108,7 +108,8 @@ class BaseDataset(ABC):
             model_name=model_name, instance_name=instance_name
         )
         # Load the only instance in the experiment.
-        instances = experiment.get_current_datastore().instances
+        # In minto 2.x, the experiment-level instance lives in dataspace.experiment_datastore.
+        instances = experiment.dataspace.experiment_datastore.instances
         # The uploaded instance should be only one. Thus, if this error is raised, it is a bug of the uploader.
         assert (
             len(instances) == 1
@@ -116,7 +117,10 @@ class BaseDataset(ABC):
         instance = list(instances.values())[0]
 
         # Load the only solution in the experiment if it exists.
-        solutions = experiment.get_current_datastore().solutions
+        # In minto 2.x, solutions are stored per run in dataspace.run_datastores.
+        solutions: dict[str, ommx.v1.Solution] = {}
+        for run_datastore in experiment.dataspace.run_datastores:
+            solutions.update(run_datastore.solutions)
         # The uploaded solutions should be at most one. Thus, if this error is raised, it is a bug of the uploader.
         assert (
             0 <= len(solutions) <= 1

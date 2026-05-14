@@ -40,11 +40,18 @@ class Uploader:
         experiment = minto.Experiment(name=image_name, auto_saving=False)
         key_name = Path(ommx_filepath).stem
         if artifact.instance is not None:
-            experiment.log_instance(instance_name=key_name, instance=artifact.instance)
+            experiment.log_global_instance(
+                instance_name=key_name, instance=artifact.instance
+            )
         else:
             raise ValueError(f"Instance is None for file: {ommx_filepath}")
+        # In minto 2.x, solutions are stored at the run level only.
+        # Create a single run per experiment to carry the reference solution.
         if artifact.solution is not None:
-            experiment.log_solution(solution_name=key_name, solution=artifact.solution)
+            with experiment.run() as run:
+                run.log_solution(
+                    solution_name=key_name, solution=artifact.solution
+                )
         else:
             print(f"Warning: Solution is None for file: {ommx_filepath}")
 
@@ -69,7 +76,8 @@ class Uploader:
         """
         # For now, expeiment must have only one instance.
         # Raise ValueError if the number of instances is not one.
-        instances = experiment.get_current_datastore().instances
+        # In minto 2.x, the experiment-level instance lives in dataspace.experiment_datastore.
+        instances = experiment.dataspace.experiment_datastore.instances
         if len(instances) != 1:
             raise ValueError(
                 f"Number of instances in the given experiment is not one: {len(instances)}."
@@ -85,8 +93,11 @@ class Uploader:
                 "The instance in the experiment is different from the loaded one."
             )
 
-        # For now, expeiment must have at most one solution.
-        solutions = experiment.get_current_datastore().solutions
+        # For now, expeiment must have at most one solution across all runs.
+        # In minto 2.x, solutions are stored per run in dataspace.run_datastores.
+        solutions: dict[str, ommx.v1.Solution] = {}
+        for run_datastore in experiment.dataspace.run_datastores:
+            solutions.update(run_datastore.solutions)
         if len(solutions) > 1:
             raise ValueError(
                 f"Number of solutions in the given experiment is more than one: {len(solutions)}."
