@@ -210,3 +210,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# setuptools_scm regenerates this on build
+/ommx_quantum_benchmarks/_version.py

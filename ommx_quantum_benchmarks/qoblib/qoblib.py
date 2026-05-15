@@ -118,17 +118,19 @@ class BaseDataset(ABC):
 
         # Load the only solution in the experiment if it exists.
         # In minto 2.x, solutions are stored per run in dataspace.run_datastores.
-        solutions: dict[str, ommx.v1.Solution] = {}
-        for run_datastore in experiment.dataspace.run_datastores:
-            solutions.update(run_datastore.solutions)
+        # Flatten across runs without merging dicts: merging would silently drop
+        # entries that happen to share a key across multiple runs, defeating the
+        # "at most one solution" invariant this assertion is meant to enforce.
+        all_solutions = [
+            sol
+            for run_datastore in experiment.dataspace.run_datastores
+            for sol in run_datastore.solutions.values()
+        ]
         # The uploaded solutions should be at most one. Thus, if this error is raised, it is a bug of the uploader.
         assert (
-            0 <= len(solutions) <= 1
-        ), f"[FOR DEVELOPER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(solutions)}."
-        if len(solutions) == 1:
-            solution = list(solutions.values())[0]
-        else:
-            solution = None
+            len(all_solutions) <= 1
+        ), f"[FOR DEVELOPER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(all_solutions)}."
+        solution = all_solutions[0] if all_solutions else None
 
         return (instance, solution)
 

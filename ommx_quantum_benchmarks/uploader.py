@@ -74,7 +74,7 @@ class Uploader:
         Raises:
             ValueError: if the loaded instance or solution is invalid
         """
-        # For now, expeiment must have only one instance.
+        # For now, experiment must have only one instance.
         # Raise ValueError if the number of instances is not one.
         # In minto 2.x, the experiment-level instance lives in dataspace.experiment_datastore.
         instances = experiment.dataspace.experiment_datastore.instances
@@ -93,17 +93,30 @@ class Uploader:
                 "The instance in the experiment is different from the loaded one."
             )
 
-        # For now, expeiment must have at most one solution across all runs.
+        # For now, experiment must have at most one solution across all runs.
         # In minto 2.x, solutions are stored per run in dataspace.run_datastores.
-        solutions: dict[str, ommx.v1.Solution] = {}
-        for run_datastore in experiment.dataspace.run_datastores:
-            solutions.update(run_datastore.solutions)
-        if len(solutions) > 1:
+        # Flatten across runs without merging dicts: a dict merge would silently
+        # drop entries that share a key across multiple runs and hide multi-run
+        # solution scenarios that this check is meant to catch.
+        all_solution_items: list[tuple[str, ommx.v1.Solution]] = [
+            (sol_name, sol)
+            for run_datastore in experiment.dataspace.run_datastores
+            for sol_name, sol in run_datastore.solutions.items()
+        ]
+        if len(all_solution_items) > 1:
             raise ValueError(
-                f"Number of solutions in the given experiment is more than one: {len(solutions)}."
+                f"Number of solutions in the given experiment is more than one: {len(all_solution_items)}."
             )
-        # Get the only solution in the experiment if it exists.
-        solution = solutions[name] if len(solutions) == 1 else None
+        # Get the only solution in the experiment if it exists; require its
+        # name to match the instance name as the uploader convention.
+        if len(all_solution_items) == 1:
+            sol_name, solution = all_solution_items[0]
+            if sol_name != name:
+                raise ValueError(
+                    f"Solution name {sol_name!r} does not match instance name {name!r}."
+                )
+        else:
+            solution = None
         # Load a solution data from an OMMX archive file.
         loaded_solution = loaded_artifact.solution
         # Verify if those solutions are same.
