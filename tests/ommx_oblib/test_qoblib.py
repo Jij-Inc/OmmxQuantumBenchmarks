@@ -402,7 +402,7 @@ def test_independentset():
     - its model_names is ["binary_linear", "binary_unconstrained"],
     - its available_instances is dict whose key are "binary_linear" and "binary_unconstrained",
     - each value of its available_instances is a list of str,
-    - the length of its available_instances["binary_linear"] is 42,
+    - the length of its available_instances["binary_linear"] is 41,
     - the length of its available_instances["binary_unconstrained"] is 42,
     """
     # - its name is "07_independentset",
@@ -419,8 +419,8 @@ def test_independentset():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
-    # - the length of its available_instances["binary_linear"] is 42,
-    assert len(dataset.available_instances["binary_linear"]) == 42
+    # - the length of its available_instances["binary_linear"] is 41,
+    assert len(dataset.available_instances["binary_linear"]) == 41
     # - the length of its available_instances["binary_unconstrained"] is 42,
     assert len(dataset.available_instances["binary_unconstrained"]) == 42
 

@@ -1596,7 +1596,6 @@ class IndependentSet(BaseDataset):
             "binary_linear": [
                 "aves-sparrow-social",
                 "brock200_2",
-                "brock400_1",
                 "brock800_1",
                 "C125-9",
                 "C125.9",

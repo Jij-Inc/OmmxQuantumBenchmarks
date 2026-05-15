@@ -35,10 +35,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from pathlib import Path
 
 import minto
 
@@ -108,7 +110,38 @@ def discover_entries(datasets: list[str] | None) -> list[MigrationEntry]:
     return entries
 
 
+def _ommx_oci_cache_dir(tag: str) -> Path:
+    """Path of the ommx SDK's local OCI scratch dir for our target image+tag.
+
+    The SDK refuses to push if this dir exists from a prior partial attempt,
+    so we clean it proactively before each push to make retries reliable.
+    """
+    if sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(
+            os.environ.get(
+                "XDG_DATA_HOME", str(Path.home() / ".local" / "share")
+            )
+        )
+    return (
+        base
+        / "org.ommx.ommx"
+        / "ghcr.io"
+        / BaseUploader.ORG.lower()
+        / BaseUploader.REPO.lower()
+        / IMAGE_NAME
+        / f"__{tag}"
+    )
+
+
 def _migrate(entry: MigrationEntry) -> None:
+    # Remove any leftover local OCI scratch dir from a prior failed/aborted
+    # attempt (the SDK errors out with "oci-dir ... already exists" otherwise).
+    stale = _ommx_oci_cache_dir(entry.tag)
+    if stale.exists():
+        shutil.rmtree(stale, ignore_errors=True)
+
     old = minto.Experiment.load_from_registry(entry.source_url)
     ds = old.dataspace.experiment_datastore
     if entry.instance not in ds.instances:
