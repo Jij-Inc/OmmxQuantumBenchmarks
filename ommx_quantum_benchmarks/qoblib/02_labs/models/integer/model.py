@@ -1,38 +1,41 @@
 import jijmodeling as jm
 
 
-def create_problem():
-    # Define sets
-    i_set = jm.Placeholder("I", ndim=1)  # Placeholder for set I
-    k_set = jm.Placeholder("K", ndim=1)  # Placeholder for set K
-    n = i_set.len_at(0, latex="n")
-
-    # Define decision variables
-    x = jm.BinaryVar("x", shape=i_set.shape, description="Variable x")
-    c = jm.IntegerVar(
-        "c",
-        shape=k_set.shape,
-        lower_bound=-(n - 1),
-        upper_bound=n - 1,
-        description="Variable c",
-    )
-
-    # Define elements
-    k = jm.Element("k", belong_to=k_set)
-    i = jm.Element("i", belong_to=(0, n - k - 1))
-
-    # Define the problem
+def create_problem() -> jm.Problem:
     problem = jm.Problem(
-        "Low Autocorrelation Binary Sequences (LABS)", sense=jm.ProblemSense.MINIMIZE
+        "Low Autocorrelation Binary Sequences (LABS)",
+        sense=jm.ProblemSense.MINIMIZE,
     )
 
-    # Define the objective function
-    problem += jm.sum(k, c[k] * c[k])
+    @problem.update
+    def _(problem: jm.DecoratedProblem):
+        # K[k_idx] = k is provided as data so that arithmetic involving the
+        # constraint-family lambda parameter `k_idx` (typed as ElementOf) can be
+        # carried out via natural-typed values K[k_idx]. The same applies to I.
+        I = problem.Natural("I", ndim=1)
+        K = problem.Natural("K", ndim=1)
+        N = problem.NamedExpr("N", I.len_at(0))
 
-    # Define constraint c1
-    problem += jm.Constraint(
-        "c1",
-        c[k] == jm.sum(i, (2 * x[i] - 1) * (2 * x[i + k + 1] - 1)),
-        forall=k,
-    )
+        x = problem.BinaryVar("x", shape=I.shape, description="Variable x")
+        c = problem.IntegerVar(
+            "c",
+            shape=K.shape,
+            lower_bound=-(N - 1),
+            upper_bound=N - 1,
+            description="Variable c",
+        )
+
+        problem += jm.sum(c[k_idx] * c[k_idx] for k_idx in K.shape[0])
+
+        problem += problem.Constraint(
+            "c1",
+            lambda k_idx: c[k_idx]
+            == jm.sum(
+                (2 * x[i] - 1) * (2 * x[i + K[k_idx] + 1] - 1)
+                for i in N
+                if i + K[k_idx] + 1 < N
+            ),
+            domain=K.shape[0],
+        )
+
     return problem

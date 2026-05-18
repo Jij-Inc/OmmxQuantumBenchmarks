@@ -77,9 +77,8 @@ def batch_process_files(
             # Generate instance_data using create_instance(n)
             instance_data = create_instance(n)
 
-            # Create an OMMX instance
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            # Create an OMMX instance via the JijModeling 2 Compiler API
+            ommx_instance = problem.eval(instance_data)
 
             # Read and evaluate the solution
             solution = None

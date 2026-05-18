@@ -1216,7 +1216,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jijmodeling", specifier = ">=1.13.0" },
+    { name = "jijmodeling", specifier = ">=2.0.0" },
     { name = "minto", specifier = ">=2.0.0" },
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "ommx", specifier = ">=2.0.4" },
