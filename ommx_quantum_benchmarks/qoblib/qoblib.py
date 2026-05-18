@@ -108,7 +108,8 @@ class BaseDataset(ABC):
             model_name=model_name, instance_name=instance_name
         )
         # Load the only instance in the experiment.
-        instances = experiment.get_current_datastore().instances
+        # In minto 2.x, the experiment-level instance lives in dataspace.experiment_datastore.
+        instances = experiment.dataspace.experiment_datastore.instances
         # The uploaded instance should be only one. Thus, if this error is raised, it is a bug of the uploader.
         assert (
             len(instances) == 1
@@ -116,15 +117,20 @@ class BaseDataset(ABC):
         instance = list(instances.values())[0]
 
         # Load the only solution in the experiment if it exists.
-        solutions = experiment.get_current_datastore().solutions
+        # In minto 2.x, solutions are stored per run in dataspace.run_datastores.
+        # Flatten across runs without merging dicts: merging would silently drop
+        # entries that happen to share a key across multiple runs, defeating the
+        # "at most one solution" invariant this assertion is meant to enforce.
+        all_solutions = [
+            sol
+            for run_datastore in experiment.dataspace.run_datastores
+            for sol in run_datastore.solutions.values()
+        ]
         # The uploaded solutions should be at most one. Thus, if this error is raised, it is a bug of the uploader.
         assert (
-            0 <= len(solutions) <= 1
-        ), f"[FOR DEVELOPER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(solutions)}."
-        if len(solutions) == 1:
-            solution = list(solutions.values())[0]
-        else:
-            solution = None
+            len(all_solutions) <= 1
+        ), f"[FOR DEVELOPER] Number of solutions obtained by model_name={model_name} and instance_name={instance_name} is more than one: {len(all_solutions)}."
+        solution = all_solutions[0] if all_solutions else None
 
         return (instance, solution)
 
@@ -1592,7 +1598,6 @@ class IndependentSet(BaseDataset):
             "binary_linear": [
                 "aves-sparrow-social",
                 "brock200_2",
-                "brock400_1",
                 "brock800_1",
                 "C125-9",
                 "C125.9",

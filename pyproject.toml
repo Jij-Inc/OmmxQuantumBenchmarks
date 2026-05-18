@@ -7,10 +7,10 @@ name = "ommx-quantum-benchmarks"
 dynamic = ["version"]
 description = "Quantum Benchmark dataset in OMMX format"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "jijmodeling>=1.13.0",
-    "minto>=1.3.0",
+    "minto>=2.0.0",
     "numpy>=2.2.6",
     "ommx>=2.0.4",
     "requests>=2.32.4",

@@ -34,7 +34,7 @@ QOBLIB_AUTHORS_STR: Final[str] = ", ".join(QOBLIB_AUTHORS)
 LICENSE: Final[str] = "CC BY 4.0"
 
 # Constants for Docker image
-IMAGE_NAME: Final[str] = "qoblib"
+IMAGE_NAME: Final[str] = "qoblib_v2"
 BASE_URL: Final[str] = f"ghcr.io/jij-inc/ommxquantumbenchmarks/{IMAGE_NAME}"
 
 
