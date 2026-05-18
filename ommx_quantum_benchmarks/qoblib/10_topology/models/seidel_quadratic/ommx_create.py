@@ -8,6 +8,7 @@ import traceback
 
 from dateutil.tz import tzlocal
 import jijmodeling as jm
+import numpy as np
 import ommx.v1
 from ommx.artifact import ArtifactBuilder
 
@@ -210,15 +211,19 @@ def process_single_instance(
     print("Creating OMMX instance...", flush=True)
     problem = create_topology_model()
 
-    # Create instance data mapping for JijModeling Interpreter
-    # This approach is more robust and explicit than passing the full dict
+    # Build instance_data, including derived index arrays required by the
+    # JijModeling 2 type-safe formulation.
     used_placeholders = problem.used_placeholders()
     instance_data = {
         ph.name: data[ph.name] for ph in used_placeholders if ph.name in data
     }
-    interpreter = jm.Interpreter(instance_data)
+    if (
+        "N_arr" in {ph.name for ph in used_placeholders}
+        and "N_arr" not in instance_data
+    ):
+        instance_data["N_arr"] = np.arange(data["nodes"])
     print("Evaluating problem...", flush=True)
-    ommx_instance = interpreter.eval_problem(problem)
+    ommx_instance = problem.eval(instance_data)
 
     # Verify solution quality if solution directory is provided
     print(f"Verifying solutions qualities...", flush=True)

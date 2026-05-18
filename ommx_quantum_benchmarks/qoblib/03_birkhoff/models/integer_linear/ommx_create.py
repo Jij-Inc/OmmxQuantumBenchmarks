@@ -103,8 +103,7 @@ def batch_process_from_qbench_json(
         try:
             print(f"[{base_name}] Processing solution: {sol_file}")
 
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            ommx_instance = problem.eval(instance_data)
 
             solution = None
             try:

@@ -58,8 +58,7 @@ def batch_process(
             print(f"[{base}] Reading: {vrp_path}")
             instance_data = read_vrp_tsplib(vrp_path, vehicle_limit=4, euc2d_round=True)
 
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            ommx_instance = problem.eval(instance_data)
 
             sol_path = _pick_solution_file(sol_root, base)
             solution = None

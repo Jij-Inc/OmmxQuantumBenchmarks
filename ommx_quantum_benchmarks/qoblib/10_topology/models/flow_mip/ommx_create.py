@@ -224,9 +224,8 @@ def process_single_instance(
     instance_data = {
         ph.name: data[ph.name] for ph in used_placeholders if ph.name in data
     }
-    interpreter = jm.Interpreter(instance_data)
     print("Evaluating problem...", flush=True)
-    ommx_instance = interpreter.eval_problem(problem)
+    ommx_instance = problem.eval(instance_data)
 
     # Verify solution quality if solution directory is provided
     print(f"Verifying solutions qualities...", flush=True)

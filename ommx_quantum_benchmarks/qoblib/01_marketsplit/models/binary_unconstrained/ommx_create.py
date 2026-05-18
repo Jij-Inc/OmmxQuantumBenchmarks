@@ -79,9 +79,8 @@ def batch_process_files(
             # Read the .dat file
             instance_data = read_qoblib_dat_file(dat_file)
 
-            # Create an OMMX instance
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            # Create an OMMX instance via the JijModeling 2 Compiler API
+            ommx_instance = problem.eval(instance_data)
 
             # Read and evaluate the solution
             solution = None

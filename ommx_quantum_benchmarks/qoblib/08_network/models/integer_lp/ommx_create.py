@@ -705,8 +705,7 @@ def batch_process(
                 "intscale": 1000,
             }
 
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            ommx_instance = problem.eval(instance_data)
 
             sol_path = _pick_solution_file(sol_root, base)
             solution = None

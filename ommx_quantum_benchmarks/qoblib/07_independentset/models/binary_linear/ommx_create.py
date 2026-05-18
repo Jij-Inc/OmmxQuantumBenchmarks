@@ -59,8 +59,7 @@ def batch_process(
             N, E = read_dimacs_gph(gph_path)
             instance_data = {"N": N, "E": E}
 
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            ommx_instance = problem.eval(instance_data)
 
             sol_path = _pick_solution_file(sol_root, base)
             solution = None
