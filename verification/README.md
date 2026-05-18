@@ -95,13 +95,15 @@ verification/compare_<dataset>.py` from the repo root once `/tmp/qoblib_upstream
 is set up (see `Reproducing the run` above, but pointing at the relevant
 subdirectory of <https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library>).
 
-### Phase 1 results
+### Phase 1 + Phase 2 results
 
 | Dataset                                               | Comparisons                                              | Result                |
 | ----------------------------------------------------- | -------------------------------------------------------- | --------------------- |
 | marketsplit (binary_linear + binary_unconstrained)    | 312                                                      | 312 EQUIV             |
 | network (integer_lp)                                  | 20                                                       | 20 EQUIV              |
 | independentset (binary_linear + binary_unconstrained) | 83                                                       | 83 EQUIV              |
+| labs (integer + quadratic_unconstrained)              | 198                                                      | 198 EQUIV             |
+| routing (integer_linear)                              | 55                                                       | 55 EQUIV              |
 | birkhoff (integer_linear)                             | 80 (out of 800 declared; rest are not in upstream 1.1.0) | data drift, see below |
 
 For each EQUIV case the deployed reference solution evaluates to the same
