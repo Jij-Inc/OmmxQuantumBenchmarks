@@ -1,8 +1,25 @@
+import ommx.v1
 import pytest
 
-from ommx_quantum_benchmarks.qoblib.qoblib import *
+from ommx_quantum_benchmarks.qoblib.qoblib import (
+    Birkhoff,
+    IndependentSet,
+    Labs,
+    Marketsplit,
+    Network,
+    Portfolio,
+    Routing,
+    Sports,
+    Steiner,
+    Topology,
+)
 from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_tag
-from .mock import *
+
+from .mock import (
+    MockDataset,
+    MockDatasetWithEmptyModelNames,
+    MockDatasetWithEmptyName,
+)
 
 
 # Define the variable to limit the number of test cases (instances) for each instance test to reduce test time.
