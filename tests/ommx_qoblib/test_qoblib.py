@@ -28,13 +28,15 @@ NUM_CASES = 1
 
 
 def test_base_dataset_creation():
-    """Create a mock BaseDataset instance and check its member variables.
-
-    Check if
-    - no assertion error is raised during the creation of the instance,
-    """
-    # - no assertion error is raised during the creation of the instance,
+    """Create a mock BaseDataset instance and check its member variables."""
     dataset = MockDataset()
+    assert dataset.name == "mock"
+    assert dataset.description == "This is a mock dataset."
+    assert dataset.model_names == ["model1", "model2"]
+    assert dataset.available_instances == {
+        "model1": ["instance1", "instance2"],
+        "model2": ["instanceA", "instanceB"],
+    }
 
 
 def test_base_dataset_creation_with_invalid_name():
