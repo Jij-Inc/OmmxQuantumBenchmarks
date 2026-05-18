@@ -35,33 +35,33 @@ def create_problem():
 
         x = problem.IntegerVar(
             "x",
-            shape=(I.shape[0],),
+            shape=(I.len_at(0),),
             lower_bound=0,
             upper_bound=scale,
             description="Integer weights for each permutation matrix",
         )
         z = problem.BinaryVar(
             "z",
-            shape=(I.shape[0],),
+            shape=(I.len_at(0),),
             description="Binary activation variable for each permutation matrix",
         )
 
-        problem += jm.sum(z[i] for i in I.shape[0])
+        problem += jm.sum(z[i] for i in I.len_at(0))
 
         problem += problem.Constraint(
-            "c1", jm.sum(x[i] for i in I.shape[0]) == scale
+            "c1", jm.sum(x[i] for i in I.len_at(0)) == scale
         )
 
         problem += problem.Constraint(
             "c2",
-            lambda m, n: jm.sum(x[i] * P_i[i, m, n] for i in I.shape[0]) == A_mn[m, n],
-            domain=(J.shape[0], J.shape[0]),
+            lambda m, n: jm.sum(x[i] * P_i[i, m, n] for i in I.len_at(0)) == A_mn[m, n],
+            domain=(J.len_at(0), J.len_at(0)),
         )
 
         problem += problem.Constraint(
             "c3",
             lambda i: x[i] <= scale * z[i],
-            domain=I.shape[0],
+            domain=I.len_at(0),
         )
 
     return problem

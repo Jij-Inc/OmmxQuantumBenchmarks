@@ -66,7 +66,7 @@ def create_topology_model() -> jm.Problem:
                 if i != N_arr[j_idx]
             )
             == d,
-            domain=jm.set(N_arr.shape[0]).filter(
+            domain=jm.set(N_arr.len_at(0)).filter(
                 lambda j_idx: N_arr[j_idx] != n - 1
             ),
         )

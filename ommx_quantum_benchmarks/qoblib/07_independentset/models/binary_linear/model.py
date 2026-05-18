@@ -28,7 +28,7 @@ def build_mis_problem() -> jm.Problem:
         problem += problem.Constraint(
             "no_adjacent",
             lambda idx: x[E[idx, 0]] + x[E[idx, 1]] <= 1,
-            domain=E.shape[0],
+            domain=E.len_at(0),
         )
 
     return problem

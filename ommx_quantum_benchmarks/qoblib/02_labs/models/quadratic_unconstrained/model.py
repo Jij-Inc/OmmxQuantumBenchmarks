@@ -14,7 +14,7 @@ def create_problem():
         x = problem.BinaryVar("x", shape=I.shape, description="Binary variable x")
         z = problem.BinaryVar(
             "z",
-            shape=(I.shape[0], K.shape[0]),
+            shape=(I.len_at(0), K.len_at(0)),
             description="Binary variable z",
         )
 
@@ -28,7 +28,7 @@ def create_problem():
                 )
             )
             ** 2
-            for k_idx in K.shape[0]
+            for k_idx in K.len_at(0)
         )
 
         second_term = P * jm.sum(
@@ -40,7 +40,7 @@ def create_problem():
                 for i in N
                 if i + K[k_idx] + 1 < N
             )
-            for k_idx in K.shape[0]
+            for k_idx in K.len_at(0)
         )
 
         problem += first_term + second_term

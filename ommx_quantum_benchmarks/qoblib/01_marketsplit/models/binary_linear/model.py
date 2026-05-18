@@ -23,12 +23,12 @@ def create_problem() -> jm.Problem:
             description="Variable s",
         )
 
-        problem += jm.sum(s[i] for i in I.shape[0])
+        problem += jm.sum(s[i] for i in I.len_at(0))
 
         problem += problem.Constraint(
             "c1",
-            lambda i: s[i] + jm.sum(a[i, j] * x[j] for j in J.shape[0]) == b[i],
-            domain=I.shape[0],
+            lambda i: s[i] + jm.sum(a[i, j] * x[j] for j in J.len_at(0)) == b[i],
+            domain=I.len_at(0),
         )
 
     return problem

@@ -25,7 +25,7 @@ def create_problem() -> jm.Problem:
             description="Variable c",
         )
 
-        problem += jm.sum(c[k_idx] * c[k_idx] for k_idx in K.shape[0])
+        problem += jm.sum(c[k_idx] * c[k_idx] for k_idx in K.len_at(0))
 
         problem += problem.Constraint(
             "c1",
@@ -35,7 +35,7 @@ def create_problem() -> jm.Problem:
                 for i in N
                 if i + K[k_idx] + 1 < N
             ),
-            domain=K.shape[0],
+            domain=K.len_at(0),
         )
 
     return problem

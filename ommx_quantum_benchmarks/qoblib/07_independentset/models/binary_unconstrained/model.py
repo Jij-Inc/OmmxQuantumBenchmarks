@@ -31,7 +31,7 @@ def build_mis_unconstrained() -> jm.Problem:
         x = problem.BinaryVar("x", shape=(N,), description="1 if vertex i is chosen")
 
         problem += jm.sum(x[v] for v in N) - 2 * jm.sum(
-            x[E[idx, 0]] * x[E[idx, 1]] for idx in E.shape[0]
+            x[E[idx, 0]] * x[E[idx, 1]] for idx in E.len_at(0)
         )
 
     return problem
