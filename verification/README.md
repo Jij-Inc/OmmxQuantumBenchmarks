@@ -176,3 +176,56 @@ assignments) differs. The underlying graph topology is identical between
 upstream 1.1.0 and the deployed snapshot — only the supplementary node
 labelling was regenerated. The migration is correct; the gap is purely
 in the deployed dataset's provenance.
+
+### Pinpointing when the drift happened (upstream git archaeology)
+
+Walking the upstream qoblib repository history commit-by-commit and
+re-applying the steiner data reader to each snapshot lets us identify
+the drift event exactly:
+
+| Upstream commit             | Date           | terms.dat / param.dat dims | Missing instances         |
+| --------------------------- | -------------- | -------------------------- | ------------------------- |
+| `fcbe9c5` Initial commit    | 2025-04-01     | match deployed registry    | all present               |
+| `872e16d` UPDATE: Licensing | 2025-06-03     | match deployed registry    | all present               |
+| **`9188382` Version 1.0.0** | **2025-09-10** | **regenerated**            | **6 directories deleted** |
+| `abc3f6c` Version 1.0.1     | 2025-10-17     | (unchanged from 1.0.0)     | (still missing)           |
+| `9b0731b` Version 1.0.2     | 2025-12-20     | (unchanged)                | (still missing)           |
+| `1842626` Version 1.1.0     | 2026-01-20     | (unchanged)                | (still missing)           |
+
+Concretely, applying the reader to `stp_s020_l2_t3_h3_rs97531` at each
+snapshot reproduces the deployed registry's `(nA=3660, nL=10, nR=10,
+nT=16)` for **both** `fcbe9c5` and `872e16d` and diverges to
+`(nA=3660, nL=12, nR=12, nT=24)` starting at `9188382`. The same flip
+holds across all 7 VAR_MISMATCH cases, and the three MISSING_DAT
+directories (`stp_s020_l4_t3_h3_rs97531`,
+`stp_s020_l5_t4_h3_rs24098`, `stp_s030_l3_t4_h0_rs97531`) are
+**present** in `fcbe9c5` and `872e16d` but **deleted** by `9188382`.
+
+So the steiner data drift can be attributed precisely to:
+
+- **Drift event**: the upstream Version 1.0.0 release on **2025-09-10**
+  silently regenerated `terms.dat` / `param.dat` for the surviving
+  instances and removed 6 instance directories. The 1.1.0 CHANGELOG
+  describes other 1.1.0-era changes but does not mention this 1.0.0
+  data overhaul.
+- **Deploy snapshot**: somewhere in **2025-04-01 to 2025-09-09**
+  (between Initial and 1.0.0). Initial and Licensing commits have
+  byte-identical content for the steiner files we checked, so git log
+  alone cannot narrow further.
+
+### Birkhoff drift: locally-generated dataset
+
+For birkhoff the deployed `bhD-3-001` carries a doubly stochastic
+matrix whose first row is `(197, 275, 528)`. Scanning every version of
+`03-birkhoff/instances/qbench_3_dense.json` and
+`03-birkhoff/instances/old_instances/qbench_3_dense.json` across
+upstream history yields **zero entries that start with `(197, 275,
+528)`** — even with the 100-entry pre-1.0.0 old_instances dataset.
+Combined with the fact that `Birkhoff().available_instances` declares
+800 instances (100 per `(kind, n)` for n=3..6) while upstream 1.1.0
+ships only 280 across all sizes, the deployed birkhoff data was
+**generated locally at upload time, not pulled from any public
+upstream snapshot**. This makes the deployment's exact provenance
+untraceable through upstream git history — fixing the drift would
+require re-running the original generator on the current upstream and
+re-uploading.
