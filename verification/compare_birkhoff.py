@@ -18,7 +18,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-REPO = Path("/Users/yuichironakano/マイドライブ/40_Qamomile/OmmxQuantumBenchmarks")
+REPO = Path(__file__).resolve().parents[1]
 UPSTREAM = Path("/tmp/qoblib_upstream/03-birkhoff/instances")
 sys.path.insert(0, str(REPO))
 

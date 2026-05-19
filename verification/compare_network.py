@@ -11,7 +11,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-REPO = Path("/Users/yuichironakano/マイドライブ/40_Qamomile/OmmxQuantumBenchmarks")
+REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from ommx_quantum_benchmarks.qoblib.qoblib import Network  # noqa: E402

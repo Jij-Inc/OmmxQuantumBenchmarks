@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import numpy as np
+
 
 def load_topology_instance(instance_path: str | Path) -> dict[str, object]:
     """Load a Topology instance from the given directory.
@@ -48,4 +50,8 @@ def load_topology_instance(instance_path: str | Path) -> dict[str, object]:
         "degree": degree,
         "minDiameter": min_diameter,
         "maxDiameter": max_diameter,
+        # Identity index array used by the JijModeling 2 model to obtain a
+        # natural-typed node index from a constraint-family lambda parameter.
+        # See model.py for context.
+        "N_arr": np.arange(nodes),
     }

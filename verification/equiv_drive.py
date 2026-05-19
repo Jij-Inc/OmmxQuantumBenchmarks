@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 
 JM1_ROOT = Path("/tmp/jm1_baseline")
-JM2_ROOT = Path("/Users/yuichironakano/マイドライブ/40_Qamomile/OmmxQuantumBenchmarks")
+JM2_ROOT = Path(__file__).resolve().parents[1]
 RUNNER = Path("/tmp/equiv_runner.py")
 
 OUT_DIR = Path("/tmp/equiv_out")

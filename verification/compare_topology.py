@@ -9,9 +9,7 @@ import time
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
-
-REPO = Path("/Users/yuichironakano/マイドライブ/40_Qamomile/OmmxQuantumBenchmarks")
+REPO = Path(__file__).resolve().parents[1]
 UPSTREAM = Path("/tmp/qoblib_upstream/10-topology/instances")
 sys.path.insert(0, str(REPO))
 
@@ -27,8 +25,14 @@ def _load(name, path):
     return mod
 
 
-# Each sub-model has its own dat_reader (same content but in separate dirs).
-READER = _load("topo_reader", ROOT / "seidel_quadratic/dat_reader.py").load_topology_instance
+# Each sub-model ships its own dat_reader returning exactly the fields its
+# model declares (flow_mip returns {nodes, degree}; seidel_* additionally
+# return minDiameter/maxDiameter/N_arr).
+READERS = {
+    "flow_mip": _load("topo_flow_rd", ROOT / "flow_mip/dat_reader.py").load_topology_instance,
+    "seidel_linear": _load("topo_sl_rd", ROOT / "seidel_linear/dat_reader.py").load_topology_instance,
+    "seidel_quadratic": _load("topo_sq_rd", ROOT / "seidel_quadratic/dat_reader.py").load_topology_instance,
+}
 MODELS = {
     "flow_mip": _load("topo_flow", ROOT / "flow_mip/model.py").create_topology_model,
     "seidel_linear": _load("topo_sl", ROOT / "seidel_linear/model.py").create_topology_model,
@@ -36,25 +40,18 @@ MODELS = {
 }
 
 
-def build_instance_data(instance_name, model_name, problem):
+def build_instance_data(instance_name, model_name):
     dat_path = UPSTREAM / f"{instance_name}.dat"
     if not dat_path.exists():
         return None
-    raw = READER(str(dat_path))
-    # seidel_* models need the N_arr index placeholder we introduced for
-    # the JijModeling 2 migration.
-    if model_name in ("seidel_linear", "seidel_quadratic"):
-        raw["N_arr"] = np.arange(raw["nodes"])
-    # Drop any keys not declared by the model (flow_mip doesn't use min/maxDiameter)
-    used = {ph.name for ph in problem.used_placeholders}
-    return {k: v for k, v in raw.items() if k in used}
+    return READERS[model_name](str(dat_path))
 
 
 def compare_one(model_name, instance_name):
     create_problem = MODELS[model_name]
     t0 = time.time()
     problem = create_problem()
-    instance_data = build_instance_data(instance_name, model_name, problem)
+    instance_data = build_instance_data(instance_name, model_name)
     if instance_data is None:
         return "MISSING_DAT", "", 0.0
     try:
