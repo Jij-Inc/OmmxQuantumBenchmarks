@@ -94,7 +94,7 @@ verification/compare_<dataset>.py` from the repo root once `/tmp/qoblib_upstream
 is set up (see `Reproducing the run` above, but pointing at the relevant
 subdirectory of <https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library>).
 
-### Phase 1 + Phase 2 + Phase 3 results
+### Results
 
 | Dataset                                                | Comparisons                                                                       | Result                                          |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------- |
