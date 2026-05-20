@@ -218,8 +218,9 @@ def process_single_instance(
     print("Creating OMMX instance...", flush=True)
     problem = create_topology_model()
 
-    # Create instance data mapping for JijModeling Interpreter
-    # This approach is more robust and explicit than passing the full dict
+    # Build the instance-data mapping passed to problem.eval(...).
+    # Selecting only the placeholders the problem actually uses keeps the
+    # call explicit and avoids surfacing unrelated reader fields.
     used_placeholders = problem.used_placeholders
     instance_data = {
         ph.name: data[ph.name] for ph in used_placeholders if ph.name in data

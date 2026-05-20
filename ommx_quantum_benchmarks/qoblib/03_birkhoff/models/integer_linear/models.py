@@ -55,7 +55,7 @@ def create_problem():
         problem += problem.Constraint(
             "c2",
             lambda m, n: jm.sum(x[i] * P_i[i, m, n] for i in I.len_at(0)) == A_mn[m, n],
-            domain=(J.len_at(0), J.len_at(0)),
+            domain=jm.product(J.len_at(0), J.len_at(0)),
         )
 
         problem += problem.Constraint(
