@@ -401,6 +401,7 @@ def main():
 
     print("\n=== Equivalence summary ===")
     hard_fail = 0
+    run_fail = 0
     for name, status, detail in results:
         line = f"{status:10s} {name}"
         if detail:
@@ -408,8 +409,13 @@ def main():
         print(line)
         if status == "DIFF":
             hard_fail += 1
-    print(f"\n{hard_fail} hard differences across {len(results)} models")
-    return 0 if hard_fail == 0 else 1
+        elif status in ("JM1 FAIL", "JM2 FAIL"):
+            run_fail += 1
+    print(
+        f"\n{hard_fail} hard differences, {run_fail} run failures "
+        f"across {len(results)} models"
+    )
+    return 0 if (hard_fail == 0 and run_fail == 0) else 1
 
 
 if __name__ == "__main__":

@@ -17,15 +17,27 @@ equivalent OMMX instance to the original JijModeling 1 implementation.
 The driver distinguishes:
 
 - **Hard differences**: changes to the actual mathematical content (sense,
-  variable set, constraint count per name, evaluated objective, feasibility
-  flag).
+  variable set, constraint count per name). When a `sample_solution` is
+  supplied in the spec, the evaluated objective and feasibility flag are
+  also compared and counted as hard differences.
 - **Soft differences**: changes only to OMMX metadata annotations such as
   the `subscripts` tags attached to constraint families.
 
+For 6 of the 13 specs (`network`, `routing`, `topo_flow`, `topo_sq`,
+`topo_sl`, `steiner`), constructing a feasible sample solution by hand for
+the tiny toy instance is non-trivial and `sample` is set to `None`, so the
+driver only performs the structural check. The deployed-registry harness
+(`compare_<dataset>.py` below) closes this gap by evaluating each model
+with the reference solution shipped in `qoblib_v2`, covering the
+objective/feasibility comparison for all 13 models.
+
 The migration is considered correct if the harness reports **zero hard
-differences** across all models. A `SOFT-DIFF` row is acceptable: it means
-the constraint counts and evaluations match but JijModeling 2 attaches
-richer metadata.
+differences and zero run failures** across all models. A `SOFT-DIFF` row
+is acceptable: it means the constraint counts (and, where applicable,
+evaluations) match but JijModeling 2 attaches richer metadata. `JM1 FAIL`
+and `JM2 FAIL` rows indicate that one of the two baseline runs could not
+produce a JSON summary at all (e.g. broken worktree, evaluation error)
+and are counted as failures in the exit code.
 
 ## Reproducing the run
 
@@ -45,7 +57,8 @@ Then from the migrated repo root:
 uv run --project . python verification/equiv_drive.py
 ```
 
-The driver exits 0 if and only if there are no hard differences.
+The driver exits 0 if and only if there are no hard differences and no
+run failures.
 
 ## Result on `feat/support-jijmodeling-2`
 
