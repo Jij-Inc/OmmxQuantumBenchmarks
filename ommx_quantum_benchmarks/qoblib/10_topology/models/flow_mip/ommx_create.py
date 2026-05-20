@@ -220,7 +220,7 @@ def process_single_instance(
 
     # Create instance data mapping for JijModeling Interpreter
     # This approach is more robust and explicit than passing the full dict
-    used_placeholders = problem.used_placeholders()
+    used_placeholders = problem.used_placeholders
     instance_data = {
         ph.name: data[ph.name] for ph in used_placeholders if ph.name in data
     }

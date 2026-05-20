@@ -115,7 +115,8 @@ def main():
         print(f"\nNon-EQUIV (up to 5):")
         for f in failures[:5]:
             print(" ", f)
+    return 0 if not failures else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

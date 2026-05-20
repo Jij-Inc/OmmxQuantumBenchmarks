@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import pickle
 import subprocess
 import sys
@@ -10,9 +11,9 @@ from pathlib import Path
 
 import numpy as np
 
-JM1_ROOT = Path("/tmp/jm1_baseline")
 JM2_ROOT = Path(__file__).resolve().parents[1]
-RUNNER = Path("/tmp/equiv_runner.py")
+RUNNER = JM2_ROOT / "verification" / "equiv_runner.py"
+JM1_ROOT = Path(os.environ.get("JM1_BASELINE", "/tmp/jm1_baseline"))
 
 OUT_DIR = Path("/tmp/equiv_out")
 OUT_DIR.mkdir(exist_ok=True)

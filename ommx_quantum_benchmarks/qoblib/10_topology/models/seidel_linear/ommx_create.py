@@ -215,7 +215,7 @@ def process_single_instance(
     problem = create_topology_model()
 
     # Create instance data mapping for JijModeling Compiler
-    used_placeholders = problem.used_placeholders()
+    used_placeholders = problem.used_placeholders
     instance_data = {
         ph.name: data[ph.name] for ph in used_placeholders if ph.name in data
     }

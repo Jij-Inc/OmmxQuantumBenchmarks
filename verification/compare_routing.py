@@ -90,7 +90,8 @@ def main():
         print(f"\nNon-EQUIV (up to 10):")
         for f in failures[:10]:
             print(" ", f)
+    return 0 if not failures else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
