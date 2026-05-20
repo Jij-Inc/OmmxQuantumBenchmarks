@@ -3,8 +3,9 @@
 For each declared instance `bh{D|S}-{n}-{idx}`:
 - Map to upstream JSON file `qbench_<NN>_<dense|sparse>.json` (with the n
   expressed as 2 digits, e.g. n=3 -> "03").
-- Look up entry by key=int(idx); skip if not present in upstream (upstream
-  only ships 10 entries per (n, kind), but `available_instances` lists 100).
+- Look up the entry by the zero-stripped index string (JSON object keys
+  are strings); skip if not present in upstream — upstream only ships 10
+  entries per (n, kind), but `available_instances` lists 100.
 - Build instance_data via the existing dat_reader.process_entry (requires
   p{n}.dat files; we cd into the model directory).
 """
