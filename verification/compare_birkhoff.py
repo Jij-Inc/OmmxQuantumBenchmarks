@@ -11,6 +11,7 @@ For each declared instance `bh{D|S}-{n}-{idx}`:
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import json
 import os
@@ -26,8 +27,17 @@ from ommx_quantum_benchmarks.qoblib.qoblib import Birkhoff  # noqa: E402
 
 MODEL_DIR = REPO / "ommx_quantum_benchmarks/qoblib/03_birkhoff/models/integer_linear"
 
-# We need to chdir for dat_reader to find p{n}.dat
-os.chdir(MODEL_DIR)
+
+@contextlib.contextmanager
+def _in_model_dir():
+    """dat_reader.process_entry resolves `p{n}.dat` via a relative path, so
+    we briefly chdir into the model directory and restore the previous CWD."""
+    prev = os.getcwd()
+    os.chdir(MODEL_DIR)
+    try:
+        yield
+    finally:
+        os.chdir(prev)
 
 
 def _load(name, path):
@@ -65,7 +75,8 @@ def build_instance_data(instance_name):
         data = json.load(f)
     if key not in data:
         return None
-    return READER.process_entry(data[key])
+    with _in_model_dir():
+        return READER.process_entry(data[key])
 
 
 def compare_one(instance_name):

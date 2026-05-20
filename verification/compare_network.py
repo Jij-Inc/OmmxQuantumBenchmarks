@@ -41,7 +41,11 @@ for node in ast.walk(_tree):
         if isinstance(node.targets[0], ast.Name) and node.targets[0].id == "your_t_0based":
             T_BASED = ast.literal_eval(node.value)
             break
-assert T_BASED is not None and len(T_BASED) == 24
+if T_BASED is None or len(T_BASED) != 24:
+    raise RuntimeError(
+        f"Failed to extract `your_t_0based` (24x24 demand matrix) from "
+        f"{NET_ROOT / 'ommx_create.py'}: got {None if T_BASED is None else len(T_BASED)} rows"
+    )
 
 
 def cut_matrix(t, n):

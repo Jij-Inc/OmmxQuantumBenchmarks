@@ -47,11 +47,8 @@ def jm1_dims(name):
     """Decode jm1's variable encoding to infer nA / nL / nR / nT."""
     inst, _ = Steiner()("integer_linear", name)
     counts = Counter(v.name for v in inst.decision_variables)
-    # x.shape = (nA, nT) ; y.shape = (nA, nL) ; z.shape = (nR, nT)
-    nx = counts.get("x", 0)
-    ny = counts.get("y", 0)
-    nz = counts.get("z", 0)
-    # Infer nA from subscripts: max(a)+1 in x
+    # Infer nA / nL / nR / nT from variable subscripts (x has shape (nA, nT),
+    # y has shape (nA, nL), z has shape (nR, nT)).
     sub_a_x = max((v.subscripts[0] for v in inst.decision_variables if v.name == "x"), default=-1) + 1
     sub_t_x = max((v.subscripts[1] for v in inst.decision_variables if v.name == "x"), default=-1) + 1
     sub_l_y = max((v.subscripts[1] for v in inst.decision_variables if v.name == "y"), default=-1) + 1
