@@ -12,8 +12,7 @@ import pickle
 import sys
 from pathlib import Path
 
-import jijmodeling as jm  # noqa: F401  -- imported for hasattr check
-import numpy as np
+import jijmodeling as jm
 
 
 def _load_module(module_path: Path):

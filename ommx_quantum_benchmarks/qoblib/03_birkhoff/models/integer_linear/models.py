@@ -11,7 +11,13 @@ def create_problem():
 
     @problem.update
     def _(problem: jm.DecoratedProblem):
-        msize = problem.Natural(
+        # msize is intentionally declared but unreferenced: it is part of the
+        # qoblib_v2 instance_data contract (every published birkhoff instance
+        # carries an `msize` field), and dimensions are driven from the
+        # index set `J` and the matrices `A`/`P` instead. Keeping it as an
+        # explicit placeholder documents the contract and reserves it for a
+        # future shape-validation pass.
+        msize = problem.Natural(  # noqa: F841 -- contract-only placeholder
             "msize", description="Size of the square matrix (n x n)"
         )
         scale = problem.Natural(

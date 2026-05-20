@@ -41,10 +41,16 @@ for node in ast.walk(_tree):
         if isinstance(node.targets[0], ast.Name) and node.targets[0].id == "your_t_0based":
             T_BASED = ast.literal_eval(node.value)
             break
-if T_BASED is None or len(T_BASED) != 24:
+if T_BASED is None:
     raise RuntimeError(
         f"Failed to extract `your_t_0based` (24x24 demand matrix) from "
-        f"{NET_ROOT / 'ommx_create.py'}: got {None if T_BASED is None else len(T_BASED)} rows"
+        f"{NET_ROOT / 'ommx_create.py'}"
+    )
+if len(T_BASED) != 24 or any(len(row) != 24 for row in T_BASED):
+    bad_rows = [(i, len(row)) for i, row in enumerate(T_BASED) if len(row) != 24]
+    raise RuntimeError(
+        f"`your_t_0based` extracted from {NET_ROOT / 'ommx_create.py'} is not "
+        f"24x24: got {len(T_BASED)} rows; rows with wrong width: {bad_rows[:5]}"
     )
 
 
