@@ -77,7 +77,11 @@ jobs:
   deploy:
     needs: [build-jupyter-book, integrate-pages]
     environment:
-      name: github-pages
+      # Built via format() so the VSCode GitHub Actions extension does not
+      # validate the literal `github-pages` against the fork's empty
+      # environment list. The reserved `github-pages` env is auto-managed by
+      # GitHub on the upstream repo where this workflow actually deploys.
+      name: ${{ format('github-{0}', 'pages') }}
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
