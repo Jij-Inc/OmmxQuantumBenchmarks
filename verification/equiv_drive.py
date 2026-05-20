@@ -41,8 +41,7 @@ def labs_integer():
         "model_relpath": "ommx_quantum_benchmarks/qoblib/02_labs/models/integer/model.py",
         "create_fn": "create_problem",
         "data": {"I": np.arange(n), "K": np.arange(n - 1)},
-        "sample": _mk_sample("x", [((i,), v) for i, v in enumerate(x_vals)])
-        + _mk_sample("c", [((k,), v) for k, v in enumerate(expected_c)]),
+        "sample": _mk_sample("x", [((i,), v) for i, v in enumerate(x_vals)]) + _mk_sample("c", [((k,), v) for k, v in enumerate(expected_c)]),
     }
 
 
@@ -58,8 +57,7 @@ def labs_qubo():
         "model_relpath": "ommx_quantum_benchmarks/qoblib/02_labs/models/quadratic_unconstrained/model.py",
         "create_fn": "create_problem",
         "data": {"I": np.arange(n), "K": np.arange(n - 1), "P": 10000.0},
-        "sample": _mk_sample("x", [((i,), v) for i, v in enumerate(x_vals)])
-        + _mk_sample("z", z_entries),
+        "sample": _mk_sample("x", [((i,), v) for i, v in enumerate(x_vals)]) + _mk_sample("z", z_entries),
     }
 
 
@@ -74,8 +72,7 @@ def marketsplit_bl():
             "b": np.array([1, 1]),
         },
         # x = [1, 0, 0], s = [0, 1]: c1[0]: 0 + 1 = 1 OK; c1[1]: 1 + 0 = 1 OK
-        "sample": _mk_sample("x", [((0,), 1), ((1,), 0), ((2,), 0)])
-        + _mk_sample("s", [((0,), 0), ((1,), 1)]),
+        "sample": _mk_sample("x", [((0,), 1), ((1,), 0), ((2,), 0)]) + _mk_sample("s", [((0,), 0), ((1,), 1)]),
     }
 
 
@@ -109,8 +106,7 @@ def birkhoff():
             "P": P,
             "A": A,
         },
-        "sample": _mk_sample("x", [((0,), 1), ((1,), 1)])
-        + _mk_sample("z", [((0,), 1), ((1,), 1)]),
+        "sample": _mk_sample("x", [((0,), 1), ((1,), 1)]) + _mk_sample("z", [((0,), 1), ((1,), 1)]),
     }
 
 
@@ -144,9 +140,7 @@ def network():
         "create_fn": "build_ip_formulation",
         "data": {
             "n": n,
-            "t": np.array(
-                [[0.0, 1.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]]
-            ),
+            "t": np.array([[0.0, 1.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]]),
             "M": 1000,
             "intscale": 100,
         },
@@ -225,9 +219,7 @@ def steiner():
             "L": np.array([0, 1]),
             "V": np.arange(5),
             "R": np.array([0, 1]),
-            "A": np.array(
-                [[0, 2], [2, 0], [0, 3], [3, 0], [1, 4], [4, 1]]
-            ),
+            "A": np.array([[0, 2], [2, 0], [0, 3], [3, 0], [1, 4], [4, 1]]),
             "T": np.array([2, 3, 4]),
             "N": np.array([], dtype=np.int64),
             "VNR": np.array([2, 3, 4]),
@@ -316,38 +308,27 @@ def _compare(name, jm1_path, jm2_path):
     a_c_names = Counter(c["name"] for c in a["constraints"])
     b_c_names = Counter(c["name"] for c in b["constraints"])
     if a_c_names != b_c_names:
-        hard.append(
-            f"constraint counts per name: {dict(a_c_names)} vs {dict(b_c_names)}"
-        )
+        hard.append(f"constraint counts per name: {dict(a_c_names)} vs {dict(b_c_names)}")
     # Variables: name+subscripts must match exactly (these define the model)
     a_var_keys = {(v["name"], tuple(v["subscripts"])) for v in a["vars"]}
     b_var_keys = {(v["name"], tuple(v["subscripts"])) for v in b["vars"]}
     if a_var_keys != b_var_keys:
         only_a = a_var_keys - b_var_keys
         only_b = b_var_keys - a_var_keys
-        hard.append(
-            f"vars: only_jm1={sorted(only_a)[:5]}... only_jm2={sorted(only_b)[:5]}..."
-        )
+        hard.append(f"vars: only_jm1={sorted(only_a)[:5]}... only_jm2={sorted(only_b)[:5]}...")
     # Constraint subscript annotations — soft (cosmetic)
     a_c_keys = {(c["name"], tuple(c["subscripts"])) for c in a["constraints"]}
     b_c_keys = {(c["name"], tuple(c["subscripts"])) for c in b["constraints"]}
     if a_c_keys != b_c_keys:
         only_a = a_c_keys - b_c_keys
         only_b = b_c_keys - a_c_keys
-        soft.append(
-            f"constraint subscript annotations differ: only_jm1={sorted(only_a)[:3]}..."
-            f" only_jm2={sorted(only_b)[:3]}..."
-        )
+        soft.append(f"constraint subscript annotations differ: only_jm1={sorted(only_a)[:3]}... only_jm2={sorted(only_b)[:3]}...")
     # Sample evaluation (hard — semantic check)
     if "sample_objective" in a and "sample_objective" in b:
         if abs(a["sample_objective"] - b["sample_objective"]) > 1e-6:
-            hard.append(
-                f"sample objective: {a['sample_objective']} vs {b['sample_objective']}"
-            )
+            hard.append(f"sample objective: {a['sample_objective']} vs {b['sample_objective']}")
         if a["sample_feasible"] != b["sample_feasible"]:
-            hard.append(
-                f"sample feasible: {a['sample_feasible']} vs {b['sample_feasible']}"
-            )
+            hard.append(f"sample feasible: {a['sample_feasible']} vs {b['sample_feasible']}")
     return hard, soft
 
 
@@ -411,10 +392,7 @@ def main():
             hard_fail += 1
         elif status in ("JM1 FAIL", "JM2 FAIL"):
             run_fail += 1
-    print(
-        f"\n{hard_fail} hard differences, {run_fail} run failures "
-        f"across {len(results)} models"
-    )
+    print(f"\n{hard_fail} hard differences, {run_fail} run failures across {len(results)} models")
     return 0 if (hard_fail == 0 and run_fail == 0) else 1
 
 

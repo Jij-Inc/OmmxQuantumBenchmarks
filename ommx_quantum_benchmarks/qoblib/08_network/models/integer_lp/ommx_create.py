@@ -1,13 +1,14 @@
-import os
-import jijmodeling as jm
 import glob
-from ommx.artifact import ArtifactBuilder
+import os
+
 from model import build_ip_formulation
+from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_solution_zfx
+
 from ommx_quantum_benchmarks.qoblib.definitions import (
+    LICENSE,
     QOBLIB_AUTHORS,
     QOBLIB_AUTHORS_STR,
-    LICENSE,
 )
 
 
@@ -714,17 +715,10 @@ def batch_process(
                     print(f"  → Evaluating solution: {sol_path}")
                     solution_dict = parse_solution_zfx(sol_path, n_val)
                     solution = ommx_instance.evaluate(solution_dict)
-                    if (
-                        solution.feasible
-                        and abs(solution.objective - solution_dict[0]) < 1e-6
-                    ):
-                        print(
-                            f"    objective={solution.objective}, feasible={solution.feasible}"
-                        )
+                    if solution.feasible and abs(solution.objective - solution_dict[0]) < 1e-6:
+                        print(f"    objective={solution.objective}, feasible={solution.feasible}")
                     else:
-                        print(
-                            "    ! Objective mismatch or infeasible; will save instance only."
-                        )
+                        print("    ! Objective mismatch or infeasible; will save instance only.")
                         solution = None
                 except Exception as sol_err:
                     print(f"    ! Solution evaluation failed: {sol_err}")
@@ -741,9 +735,7 @@ def batch_process(
             ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
-            ommx_instance.annotations["org.ommx.qoblib.url"] = (
-                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads"
-            )
+            ommx_instance.annotations["org.ommx.qoblib.url"] = "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/08-network?ref_type=heads"
 
             builder = ArtifactBuilder.new_archive_unnamed(out_path)
             instance_desc = builder.add_instance(ommx_instance)

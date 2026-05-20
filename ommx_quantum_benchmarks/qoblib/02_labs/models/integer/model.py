@@ -29,12 +29,7 @@ def create_problem() -> jm.Problem:
 
         problem += problem.Constraint(
             "c1",
-            lambda k_idx: c[k_idx]
-            == jm.sum(
-                (2 * x[i] - 1) * (2 * x[i + K[k_idx] + 1] - 1)
-                for i in N
-                if i + K[k_idx] + 1 < N
-            ),
+            lambda k_idx: c[k_idx] == jm.sum((2 * x[i] - 1) * (2 * x[i + K[k_idx] + 1] - 1) for i in N if i + K[k_idx] + 1 < N),
             domain=K.len_at(0),
         )
 

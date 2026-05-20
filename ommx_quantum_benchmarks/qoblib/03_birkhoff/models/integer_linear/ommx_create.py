@@ -1,16 +1,17 @@
-import os
 import json
-import re
-import jijmodeling as jm
 import math
-from ommx.artifact import ArtifactBuilder
-from models import create_problem
+import os
+import re
+
 from dat_reader import load_and_process_all
+from models import create_problem
+from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
+
 from ommx_quantum_benchmarks.qoblib.definitions import (
+    LICENSE,
     QOBLIB_AUTHORS,
     QOBLIB_AUTHORS_STR,
-    LICENSE,
 )
 
 
@@ -110,20 +111,13 @@ def batch_process_from_qbench_json(
                 # Using the updated parse_sol_file (z1..zn, x1..xn)
                 energy_dict, solution_dict = parse_sol_file(sol_file, math.factorial(n))
                 solution = ommx_instance.evaluate(solution_dict)
-                if (
-                    energy_dict.get("Energy") == solution.objective
-                    and solution.feasible
-                ):
-                    print(
-                        f"  → objective={solution.objective}, feasible={solution.feasible}"
-                    )
+                if energy_dict.get("Energy") == solution.objective and solution.feasible:
+                    print(f"  → objective={solution.objective}, feasible={solution.feasible}")
                 else:
                     print("  ! Objective or feasible mismatch")
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
-                print(
-                    "    Skipping solution evaluation and only saving the instance..."
-                )
+                print("    Skipping solution evaluation and only saving the instance...")
 
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
             if os.path.exists(output_filename):
@@ -136,9 +130,7 @@ def batch_process_from_qbench_json(
             ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
-            ommx_instance.annotations["org.ommx.qoblib.url"] = (
-                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/03-birkhoff?ref_type=heads"
-            )
+            ommx_instance.annotations["org.ommx.qoblib.url"] = "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/03-birkhoff?ref_type=heads"
             builder = ArtifactBuilder.new_archive_unnamed(output_filename)
             instance_desc = builder.add_instance(ommx_instance)
             if solution is not None:

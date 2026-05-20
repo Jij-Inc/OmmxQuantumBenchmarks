@@ -1,28 +1,26 @@
-from datetime import datetime
 import gc
 import glob
 import os
-from pathlib import Path
 import time
 import traceback
+from datetime import datetime
+from pathlib import Path
 
-from dateutil.tz import tzlocal
-import jijmodeling as jm
 import ommx.v1
-from ommx.artifact import ArtifactBuilder
-
 from dat_reader import load_topology_instance
+from dateutil.tz import tzlocal
 from model import create_topology_model
+from ommx.artifact import ArtifactBuilder
 from sol_reader import (
     parse_topology_sol_file,
     read_topology_solution_file_as_jijmodeling_format,
 )
+
 from ommx_quantum_benchmarks.qoblib.definitions import (
+    LICENSE,
     QOBLIB_AUTHORS,
     QOBLIB_AUTHORS_STR,
-    LICENSE,
 )
-
 
 # Global optimization: reuse timestamp for better performance
 _CREATION_TIME = datetime.now(tzlocal())
@@ -69,9 +67,7 @@ def verify_solution_quality(
     result["file_objective"] = solution_data.get("diameter")
 
     # Load solution in JijModeling format.
-    jm_solution = read_topology_solution_file_as_jijmodeling_format(
-        solution_path, instance_data
-    )
+    jm_solution = read_topology_solution_file_as_jijmodeling_format(solution_path, instance_data)
 
     # Get decision variables from OMMX instance using the correct API
     print("Getting OMMX decision variables...")
@@ -124,10 +120,7 @@ def verify_solution_quality(
 
     # Compute the difference between file objective and computed objective
     # and check if they match.
-    if (
-        result["file_objective"] is not None
-        and result["computed_objective"] is not None
-    ):
+    if result["file_objective"] is not None and result["computed_objective"] is not None:
         diff = abs(result["computed_objective"] - result["file_objective"])
         result["objective_match"] = diff < epsilon
 
@@ -160,9 +153,7 @@ def verify_solution_qualities(
     results = dict()
 
     # Look for solution file with different extensions
-    solution_paths = glob.glob(
-        os.path.join(solution_directory, f"{instance_name}*.gph")
-    ) + glob.glob(os.path.join(solution_directory, f"{instance_name}*.gph.gz"))
+    solution_paths = glob.glob(os.path.join(solution_directory, f"{instance_name}*.gph")) + glob.glob(os.path.join(solution_directory, f"{instance_name}*.gph.gz"))
 
     for solution_path in solution_paths:
         results[solution_path] = verify_solution_quality(
@@ -178,9 +169,7 @@ def verify_solution_qualities(
     return (is_feasible, is_objective_match, results)
 
 
-def process_single_instance(
-    instance_path: str, output_directory: str, solution_directory: str | None = None
-) -> None:
+def process_single_instance(instance_path: str, output_directory: str, solution_directory: str | None = None) -> None:
     """Process a single Topology instance and create OMMX file.
 
     This function handles the complete pipeline for processing a single instance:
@@ -212,9 +201,7 @@ def process_single_instance(
 
     # Create instance data mapping for JijModeling Compiler
     used_placeholders = problem.used_placeholders
-    instance_data = {
-        ph.name: data[ph.name] for ph in used_placeholders if ph.name in data
-    }
+    instance_data = {ph.name: data[ph.name] for ph in used_placeholders if ph.name in data}
     print("Evaluating problem...", flush=True)
     ommx_instance = problem.eval(instance_data)
 
@@ -230,33 +217,21 @@ def process_single_instance(
             solution_directory=solution_directory,
         )
         if not is_feasible:
-            raise ValueError(
-                f"There is a not feasible solution for instance {instance_name}."
-                f" Results: {results}"
-            )
+            raise ValueError(f"There is a not feasible solution for instance {instance_name}. Results: {results}")
         if not is_objective_match:
-            raise ValueError(
-                f"Computed objective does not match file objective for instance {instance_name}."
-                f" Results: {results}"
-            )
+            raise ValueError(f"Computed objective does not match file objective for instance {instance_name}. Results: {results}")
 
         # Try to store the optimal solution first.
-        opt_solution_paths = glob.glob(
-            os.path.join(solution_directory, f"{instance_name}*.opt.gph*")
-        )
+        opt_solution_paths = glob.glob(os.path.join(solution_directory, f"{instance_name}*.opt.gph*"))
         if len(opt_solution_paths) > 0:
             solution = results[opt_solution_paths[0]]["ommx_solution"]
         # If no optimal solution, try the regular solution file.
         else:
-            solution_paths = glob.glob(
-                os.path.join(solution_directory, f"{instance_name}*.gph*")
-            )
+            solution_paths = glob.glob(os.path.join(solution_directory, f"{instance_name}*.gph*"))
             if solution_paths:
                 solution = results[solution_paths[0]]["ommx_solution"]
             else:
-                print(
-                    f"No solution files found for {instance_name}, skipping solution attachment."
-                )
+                print(f"No solution files found for {instance_name}, skipping solution attachment.")
 
     # Add annotations to the instance.
     ommx_instance.title = instance_name
@@ -265,9 +240,7 @@ def process_single_instance(
     ommx_instance.authors = QOBLIB_AUTHORS
     ommx_instance.num_variables = len(ommx_instance.decision_variables)
     ommx_instance.num_constraints = len(ommx_instance.constraints)
-    ommx_instance.annotations["org.ommx.qoblib.url"] = (
-        "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/10-topology?ref_type=heads"
-    )
+    ommx_instance.annotations["org.ommx.qoblib.url"] = "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/10-topology?ref_type=heads"
     ommx_instance.created = _CREATION_TIME
 
     # Create output filename
@@ -285,9 +258,7 @@ def process_single_instance(
         solution.annotations["org.ommx.qoblib.authors"] = QOBLIB_AUTHORS_STR
         builder.add_solution(solution)
     else:
-        print(
-            f"No solution provided for {instance_name}, skipping solution attachment."
-        )
+        print(f"No solution provided for {instance_name}, skipping solution attachment.")
     builder.build()
 
     # Aggressive memory cleanup
@@ -383,14 +354,14 @@ def batch_process_instances(
 
             processed_count += 1
             print(
-                f"✓ [{i+1:3d}/{len(dat_files)}] ({progress:5.1f}%) {instance_name}",
+                f"✓ [{i + 1:3d}/{len(dat_files)}] ({progress:5.1f}%) {instance_name}",
                 flush=True,
             )
 
         except Exception as e:
             error_count += 1
             print(
-                f"✗ [{i+1:3d}/{len(dat_files)}] ({progress:5.1f}%) {instance_name} - Exception: {e}",
+                f"✗ [{i + 1:3d}/{len(dat_files)}] ({progress:5.1f}%) {instance_name} - Exception: {e}",
                 flush=True,
             )
 
@@ -406,8 +377,8 @@ def batch_process_instances(
     print(f"  Errors: {error_count}")
     print(f"  Processing time: {elapsed_time:.2f} seconds")
     if len(dat_files) > 0:
-        print(f"  Average time per instance: {elapsed_time/len(dat_files):.2f} seconds")
-        print(f"  Throughput: {len(dat_files)/elapsed_time:.2f} instances/second")
+        print(f"  Average time per instance: {elapsed_time / len(dat_files):.2f} seconds")
+        print(f"  Throughput: {len(dat_files) / elapsed_time:.2f} instances/second")
     print(f"  Output files saved to: {os.path.abspath(output_directory)}")
 
 

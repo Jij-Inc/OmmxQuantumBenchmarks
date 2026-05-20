@@ -45,9 +45,7 @@ def build_ip_formulation() -> jm.Problem:
         # c11: flow balance
         problem += problem.Constraint(
             "c11_flow_balance",
-            lambda k, i: jm.sum(f[k, j, i] for j in n if j != i)
-            - jm.sum(f[k, i, j] for j in n if (j != i) & (j != k))
-            == t[k, i] * intscale,
+            lambda k, i: jm.sum(f[k, j, i] for j in n if j != i) - jm.sum(f[k, i, j] for j in n if (j != i) & (j != k)) == t[k, i] * intscale,
             domain=jm.product(n, n).filter(lambda k, i: k != i),
         )
 
@@ -55,9 +53,7 @@ def build_ip_formulation() -> jm.Problem:
         problem += problem.Constraint(
             "c14_capacity_by_x",
             lambda k, i, j: f[k, i, j] <= M * intscale * x[i, j],
-            domain=jm.product(n, n, n).filter(
-                lambda k, i, j: (i != j) & (k != j)
-            ),
+            domain=jm.product(n, n, n).filter(lambda k, i, j: (i != j) & (k != j)),
         )
 
         # c100: z upper bound on flow

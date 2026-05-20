@@ -16,9 +16,6 @@ def create_problem() -> jm.Problem:
 
         x = problem.BinaryVar("x", shape=J.shape, description="Variable x")
 
-        problem += jm.sum(
-            (b[i] - jm.sum(a[i, j] * x[j] for j in J.len_at(0))) ** 2
-            for i in I.len_at(0)
-        )
+        problem += jm.sum((b[i] - jm.sum(a[i, j] * x[j] for j in J.len_at(0))) ** 2 for i in I.len_at(0))
 
     return problem

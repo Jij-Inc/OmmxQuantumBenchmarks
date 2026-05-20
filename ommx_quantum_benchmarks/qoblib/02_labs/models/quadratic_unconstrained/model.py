@@ -19,29 +19,9 @@ def create_problem():
         )
 
         # K[k_idx] gives a natural-typed lag value usable in arithmetic.
-        first_term = jm.sum(
-            (
-                jm.sum(
-                    4 * z[i, k_idx] - 2 * x[i] - 2 * x[i + K[k_idx] + 1] + 1
-                    for i in N
-                    if i + K[k_idx] + 1 < N
-                )
-            )
-            ** 2
-            for k_idx in K.len_at(0)
-        )
+        first_term = jm.sum((jm.sum(4 * z[i, k_idx] - 2 * x[i] - 2 * x[i + K[k_idx] + 1] + 1 for i in N if i + K[k_idx] + 1 < N)) ** 2 for k_idx in K.len_at(0))
 
-        second_term = P * jm.sum(
-            jm.sum(
-                3 * z[i, k_idx]
-                - 2 * z[i, k_idx] * x[i]
-                - 2 * z[i, k_idx] * x[i + K[k_idx] + 1]
-                + x[i] * x[i + K[k_idx] + 1]
-                for i in N
-                if i + K[k_idx] + 1 < N
-            )
-            for k_idx in K.len_at(0)
-        )
+        second_term = P * jm.sum(jm.sum(3 * z[i, k_idx] - 2 * z[i, k_idx] * x[i] - 2 * z[i, k_idx] * x[i + K[k_idx] + 1] + x[i] * x[i + K[k_idx] + 1] for i in N if i + K[k_idx] + 1 < N) for k_idx in K.len_at(0))
 
         problem += first_term + second_term
 

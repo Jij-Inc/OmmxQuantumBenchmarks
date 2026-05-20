@@ -45,44 +45,29 @@ def create_topology_model() -> jm.Problem:
         # DistCalc
         problem += problem.Constraint(
             "DistCalc",
-            lambda s, t, k: dist[s, t, k + 1]
-            <= dist[s, t, k]
-            + jm.sum(y[s, t, i, k] for i in n if (i != s) & (i != t)),
-            domain=jm.product(n, n, max_d).filter(
-                lambda s, t, k: (s < t) & (k != max_d - 1)
-            ),
+            lambda s, t, k: dist[s, t, k + 1] <= dist[s, t, k] + jm.sum(y[s, t, i, k] for i in n if (i != s) & (i != t)),
+            domain=jm.product(n, n, max_d).filter(lambda s, t, k: (s < t) & (k != max_d - 1)),
         )
 
         # DistLinearize_si
         problem += problem.Constraint(
             "DistLinearize_si",
             lambda s, t, i, k: y[s, t, i, k] <= dist[jm.min(s, i), jm.max(s, i), k],
-            domain=jm.product(n, n, n, max_d).filter(
-                lambda s, t, i, k: (s < t) & (i != s) & (i != t) & (k != max_d - 1)
-            ),
+            domain=jm.product(n, n, n, max_d).filter(lambda s, t, i, k: (s < t) & (i != s) & (i != t) & (k != max_d - 1)),
         )
 
         # DistLinearize_it
         problem += problem.Constraint(
             "DistLinearize_it",
             lambda s, t, i, k: y[s, t, i, k] <= dist[jm.min(i, t), jm.max(i, t), 0],
-            domain=jm.product(n, n, n, max_d).filter(
-                lambda s, t, i, k: (s < t) & (i != s) & (i != t) & (k != max_d - 1)
-            ),
+            domain=jm.product(n, n, n, max_d).filter(lambda s, t, i, k: (s < t) & (i != s) & (i != t) & (k != max_d - 1)),
         )
 
         # degreeButLast
         problem += problem.Constraint(
             "degreeButLast",
-            lambda j_idx: jm.sum(
-                dist[jm.min(N_arr[j_idx], i), jm.max(N_arr[j_idx], i), 0]
-                for i in n
-                if i != N_arr[j_idx]
-            )
-            == d,
-            domain=jm.set(N_arr.len_at(0)).filter(
-                lambda j_idx: N_arr[j_idx] != n - 1
-            ),
+            lambda j_idx: jm.sum(dist[jm.min(N_arr[j_idx], i), jm.max(N_arr[j_idx], i), 0] for i in n if i != N_arr[j_idx]) == d,
+            domain=jm.set(N_arr.len_at(0)).filter(lambda j_idx: N_arr[j_idx] != n - 1),
         )
 
         # degreeLast

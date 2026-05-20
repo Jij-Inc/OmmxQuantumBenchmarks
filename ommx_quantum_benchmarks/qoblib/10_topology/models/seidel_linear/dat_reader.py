@@ -22,9 +22,7 @@ def load_topology_instance(instance_path: str | Path) -> dict[str, object]:
     if path.is_file() and path.suffix == ".dat":
         dat_file = path
     else:
-        raise FileNotFoundError(
-            f"Path does not exist or is not a valid .dat file: {path}"
-        )
+        raise FileNotFoundError(f"Path does not exist or is not a valid .dat file: {path}")
 
     # Read the .dat file
     with open(dat_file, "r") as f:
@@ -33,9 +31,7 @@ def load_topology_instance(instance_path: str | Path) -> dict[str, object]:
     # Parse the content: format is "nodes degree"
     parts = content.split()
     if len(parts) != 2:
-        raise ValueError(
-            f"Invalid .dat file format. Expected 'nodes degree', got: {content}"
-        )
+        raise ValueError(f"Invalid .dat file format. Expected 'nodes degree', got: {content}")
 
     # Extract nodes and degree
     nodes = int(parts[0])

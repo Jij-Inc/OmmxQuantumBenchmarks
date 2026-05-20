@@ -24,14 +24,10 @@ def build_mis_unconstrained() -> jm.Problem:
     @problem.update
     def _(problem: jm.DecoratedProblem):
         N = problem.Length("N", description="number of nodes")
-        E = problem.Natural(
-            "E", ndim=2, description="edge list as pairs (u,v), 0-based"
-        )
+        E = problem.Natural("E", ndim=2, description="edge list as pairs (u,v), 0-based")
 
         x = problem.BinaryVar("x", shape=(N,), description="1 if vertex i is chosen")
 
-        problem += jm.sum(x[v] for v in N) - 2 * jm.sum(
-            x[E[idx, 0]] * x[E[idx, 1]] for idx in E.len_at(0)
-        )
+        problem += jm.sum(x[v] for v in N) - 2 * jm.sum(x[E[idx, 0]] * x[E[idx, 1]] for idx in E.len_at(0))
 
     return problem

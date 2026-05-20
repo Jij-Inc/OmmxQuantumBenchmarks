@@ -37,14 +37,10 @@ def _load_module(name: str, path: Path):
 
 
 # Both binary_linear and binary_unconstrained share read_qoblib_dat_file.
-DAT_READER = _load_module(
-    "dat_reader_bl", MS_ROOT / "binary_linear/dat_reader.py"
-).read_qoblib_dat_file
+DAT_READER = _load_module("dat_reader_bl", MS_ROOT / "binary_linear/dat_reader.py").read_qoblib_dat_file
 
 MODEL_BL = _load_module("model_bl", MS_ROOT / "binary_linear/model.py").create_problem
-MODEL_BU = _load_module(
-    "model_bu", MS_ROOT / "binary_unconstrained/model.py"
-).create_problem
+MODEL_BU = _load_module("model_bu", MS_ROOT / "binary_unconstrained/model.py").create_problem
 
 
 def _build_var_key_to_id(inst):
@@ -81,8 +77,7 @@ def compare_one(model_name: str, instance_name: str, create_problem):
     if jm1_var_keys != jm2_var_keys:
         return (
             "VAR_MISMATCH",
-            f"jm1\\jm2={sorted(jm1_var_keys - jm2_var_keys)[:3]}..."
-            f" jm2\\jm1={sorted(jm2_var_keys - jm1_var_keys)[:3]}...",
+            f"jm1\\jm2={sorted(jm1_var_keys - jm2_var_keys)[:3]}... jm2\\jm1={sorted(jm2_var_keys - jm1_var_keys)[:3]}...",
         )
 
     jm1_c = Counter(c.name for c in jm1_inst.constraints)

@@ -5,9 +5,7 @@ def create_problem():
     """
     Create the JijModeling problem definition.
     """
-    problem = jm.Problem(
-        "Birkhoff Integer Decomposition", sense=jm.ProblemSense.MINIMIZE
-    )
+    problem = jm.Problem("Birkhoff Integer Decomposition", sense=jm.ProblemSense.MINIMIZE)
 
     @problem.update
     def _(problem: jm.DecoratedProblem):
@@ -20,13 +18,9 @@ def create_problem():
         msize = problem.Natural(  # noqa: F841 -- contract-only placeholder
             "msize", description="Size of the square matrix (n x n)"
         )
-        scale = problem.Natural(
-            "scale", description="Scaling factor for the decomposition"
-        )
+        scale = problem.Natural("scale", description="Scaling factor for the decomposition")
 
-        J = problem.Natural(
-            "J", ndim=1, description="Index set for matrix rows and columns"
-        )
+        J = problem.Natural("J", ndim=1, description="Index set for matrix rows and columns")
         A_mn = problem.Integer(
             "A",
             ndim=2,
@@ -54,9 +48,7 @@ def create_problem():
 
         problem += jm.sum(z[i] for i in I.len_at(0))
 
-        problem += problem.Constraint(
-            "c1", jm.sum(x[i] for i in I.len_at(0)) == scale
-        )
+        problem += problem.Constraint("c1", jm.sum(x[i] for i in I.len_at(0)) == scale)
 
         problem += problem.Constraint(
             "c2",

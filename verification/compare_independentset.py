@@ -37,14 +37,8 @@ def _upstream_files() -> set[str]:
     global _UPSTREAM_FILES_CACHE
     if _UPSTREAM_FILES_CACHE is None:
         if not UPSTREAM.is_dir():
-            raise FileNotFoundError(
-                f"Upstream qoblib checkout not found at {UPSTREAM}. "
-                f"Clone https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library "
-                f"into /tmp/qoblib_upstream (or set the path) before running this script."
-            )
-        _UPSTREAM_FILES_CACHE = {
-            f[:-4] for f in os.listdir(UPSTREAM) if f.endswith(".gph")
-        }
+            raise FileNotFoundError(f"Upstream qoblib checkout not found at {UPSTREAM}. Clone https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library into /tmp/qoblib_upstream (or set the path) before running this script.")
+        _UPSTREAM_FILES_CACHE = {f[:-4] for f in os.listdir(UPSTREAM) if f.endswith(".gph")}
     return _UPSTREAM_FILES_CACHE
 
 

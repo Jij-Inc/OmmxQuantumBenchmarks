@@ -17,9 +17,7 @@ def build_mis_problem() -> jm.Problem:
     @problem.update
     def _(problem: jm.DecoratedProblem):
         N = problem.Length("N", description="number of nodes")
-        E = problem.Natural(
-            "E", ndim=2, description="edge list as pairs (u,v), 0-based"
-        )
+        E = problem.Natural("E", ndim=2, description="edge list as pairs (u,v), 0-based")
 
         x = problem.BinaryVar("x", shape=(N,), description="1 if vertex i is selected")
 

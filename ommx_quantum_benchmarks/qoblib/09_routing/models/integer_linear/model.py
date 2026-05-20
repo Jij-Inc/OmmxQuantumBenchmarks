@@ -40,9 +40,7 @@ def build_vrp_ilp() -> jm.Problem:
         # (12) Flow conservation for non-depot nodes
         problem += problem.Constraint(
             "flow_conservation",
-            lambda h: jm.sum(x[i, h] for i in n if i != h)
-            - jm.sum(x[h, i] for i in n if i != h)
-            == 0,
+            lambda h: jm.sum(x[i, h] for i in n if i != h) - jm.sum(x[h, i] for i in n if i != h) == 0,
             domain=jm.set(n).filter(lambda h: h != DEPOT),
         )
 
@@ -55,11 +53,8 @@ def build_vrp_ilp() -> jm.Problem:
         # (14) Capacity propagation (MTZ-style), exclude depot and i=j
         problem += problem.Constraint(
             "capacity_limit",
-            lambda i, j: y[j]
-            >= y[i] + DEMAND[j] * x[i, j] - CAPACITY * (1 - x[i, j]),
-            domain=jm.product(n, n).filter(
-                lambda i, j: (j != DEPOT) & (j != i)
-            ),
+            lambda i, j: y[j] >= y[i] + DEMAND[j] * x[i, j] - CAPACITY * (1 - x[i, j]),
+            domain=jm.product(n, n).filter(lambda i, j: (j != DEPOT) & (j != i)),
         )
 
         # (15) Capacity bounds at nodes

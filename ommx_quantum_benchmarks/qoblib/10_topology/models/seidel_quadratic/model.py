@@ -44,31 +44,15 @@ def create_topology_model() -> jm.Problem:
         #                                              * dist[min(i,t),max(i,t),0]
         problem += problem.Constraint(
             "DistCalc",
-            lambda s, t, k: dist[s, t, k + 1]
-            <= dist[s, t, k]
-            + jm.sum(
-                dist[jm.min(s, i), jm.max(s, i), k]
-                * dist[jm.min(i, t), jm.max(i, t), 0]
-                for i in n
-                if (i != s) & (i != t)
-            ),
-            domain=jm.product(n, n, max_d).filter(
-                lambda s, t, k: (s < t) & (k != max_d - 1)
-            ),
+            lambda s, t, k: dist[s, t, k + 1] <= dist[s, t, k] + jm.sum(dist[jm.min(s, i), jm.max(s, i), k] * dist[jm.min(i, t), jm.max(i, t), 0] for i in n if (i != s) & (i != t)),
+            domain=jm.product(n, n, max_d).filter(lambda s, t, k: (s < t) & (k != max_d - 1)),
         )
 
         # C3 degreeButLast: sum_{i != j} dist[min(j,i),max(j,i),0] == d, j != n - 1
         problem += problem.Constraint(
             "degreeButLast",
-            lambda j_idx: jm.sum(
-                dist[jm.min(N_arr[j_idx], i), jm.max(N_arr[j_idx], i), 0]
-                for i in n
-                if i != N_arr[j_idx]
-            )
-            == d,
-            domain=jm.set(N_arr.len_at(0)).filter(
-                lambda j_idx: N_arr[j_idx] != n - 1
-            ),
+            lambda j_idx: jm.sum(dist[jm.min(N_arr[j_idx], i), jm.max(N_arr[j_idx], i), 0] for i in n if i != N_arr[j_idx]) == d,
+            domain=jm.set(N_arr.len_at(0)).filter(lambda j_idx: N_arr[j_idx] != n - 1),
         )
 
         # C4 degreeLast: sum_{i != n - 1} dist[i, n - 1, 0] == d - (n*d % 2)

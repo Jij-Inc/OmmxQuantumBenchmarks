@@ -32,6 +32,7 @@ MODEL = _load_module("net_model", NET_ROOT / "model.py").build_ip_formulation
 # Extract by importing the function (it's defined inside batch_process), so we
 # replicate it here. To stay accurate, copy the values from the source.
 import ast
+
 _src = (NET_ROOT / "ommx_create.py").read_text()
 # Parse for the `your_t_0based = [...]` assignment.
 _tree = ast.parse(_src)
@@ -42,16 +43,10 @@ for node in ast.walk(_tree):
             T_BASED = ast.literal_eval(node.value)
             break
 if T_BASED is None:
-    raise RuntimeError(
-        f"Failed to extract `your_t_0based` (24x24 demand matrix) from "
-        f"{NET_ROOT / 'ommx_create.py'}"
-    )
+    raise RuntimeError(f"Failed to extract `your_t_0based` (24x24 demand matrix) from {NET_ROOT / 'ommx_create.py'}")
 if len(T_BASED) != 24 or any(len(row) != 24 for row in T_BASED):
     bad_rows = [(i, len(row)) for i, row in enumerate(T_BASED) if len(row) != 24]
-    raise RuntimeError(
-        f"`your_t_0based` extracted from {NET_ROOT / 'ommx_create.py'} is not "
-        f"24x24: got {len(T_BASED)} rows; rows with wrong width: {bad_rows[:5]}"
-    )
+    raise RuntimeError(f"`your_t_0based` extracted from {NET_ROOT / 'ommx_create.py'} is not 24x24: got {len(T_BASED)} rows; rows with wrong width: {bad_rows[:5]}")
 
 
 def cut_matrix(t, n):
