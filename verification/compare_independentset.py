@@ -28,17 +28,35 @@ DAT_READER = _load("isgph_reader", ROOT / "binary_linear/dat_reader.py").read_di
 MODEL_BL = _load("is_bl", ROOT / "binary_linear/model.py").build_mis_problem
 MODEL_BU = _load("is_bu", ROOT / "binary_unconstrained/model.py").build_mis_unconstrained
 
-UPSTREAM_FILES = set(f[:-4] for f in os.listdir(UPSTREAM) if f.endswith(".gph"))
+_UPSTREAM_FILES_CACHE: set[str] | None = None
+
+
+def _upstream_files() -> set[str]:
+    """Lazily enumerate upstream .gph stems so an absent checkout produces a
+    clear error from main() rather than a FileNotFoundError at import."""
+    global _UPSTREAM_FILES_CACHE
+    if _UPSTREAM_FILES_CACHE is None:
+        if not UPSTREAM.is_dir():
+            raise FileNotFoundError(
+                f"Upstream qoblib checkout not found at {UPSTREAM}. "
+                f"Clone https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library "
+                f"into /tmp/qoblib_upstream (or set the path) before running this script."
+            )
+        _UPSTREAM_FILES_CACHE = {
+            f[:-4] for f in os.listdir(UPSTREAM) if f.endswith(".gph")
+        }
+    return _UPSTREAM_FILES_CACHE
 
 
 def resolve(name):
+    upstream = _upstream_files()
     for cand in (
         name,
         name.replace("_", "-"),
         name.replace(".", "-"),
         name.replace("_", "-").replace(".", "-"),
     ):
-        if cand in UPSTREAM_FILES:
+        if cand in upstream:
             return cand
     return None
 
