@@ -1,14 +1,15 @@
-import os
 import glob
-import jijmodeling as jm
-from ommx.artifact import ArtifactBuilder
-from model import build_mis_problem
+import os
+
 from dat_reader import read_dimacs_gph
+from model import build_mis_problem
+from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
+
 from ommx_quantum_benchmarks.qoblib.definitions import (
+    LICENSE,
     QOBLIB_AUTHORS,
     QOBLIB_AUTHORS_STR,
-    LICENSE,
 )
 
 
@@ -59,8 +60,7 @@ def batch_process(
             N, E = read_dimacs_gph(gph_path)
             instance_data = {"N": N, "E": E}
 
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            ommx_instance = problem.eval(instance_data)
 
             sol_path = _pick_solution_file(sol_root, base)
             solution = None
@@ -69,17 +69,10 @@ def batch_process(
                     print(f"  → Evaluating solution: {sol_path}")
                     obj_from_file, solution_dict = parse_sol_file(sol_path, N)
                     solution = ommx_instance.evaluate(solution_dict)
-                    if (
-                        solution.feasible
-                        and abs(solution.objective - obj_from_file["Energy"]) < 1e-6
-                    ):
-                        print(
-                            f"    objective={solution.objective}, feasible={solution.feasible}"
-                        )
+                    if solution.feasible and abs(solution.objective - obj_from_file["Energy"]) < 1e-6:
+                        print(f"    objective={solution.objective}, feasible={solution.feasible}")
                     else:
-                        print(
-                            "    ! Objective mismatch or infeasible; will save instance only."
-                        )
+                        print("    ! Objective mismatch or infeasible; will save instance only.")
                         solution = None
                 except Exception as sol_err:
                     print(f"    ! Solution evaluation failed: {sol_err}")
@@ -96,9 +89,7 @@ def batch_process(
             ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
-            ommx_instance.annotations["org.ommx.qoblib.url"] = (
-                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/07-independentset?ref_type=heads"
-            )
+            ommx_instance.annotations["org.ommx.qoblib.url"] = "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/07-independentset?ref_type=heads"
 
             builder = ArtifactBuilder.new_archive_unnamed(out_path)
             instance_desc = builder.add_instance(ommx_instance)

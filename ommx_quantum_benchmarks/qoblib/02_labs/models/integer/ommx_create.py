@@ -1,16 +1,17 @@
-import os
-import jijmodeling as jm
-import numpy as np
-import math
 import glob
+import math
+import os
+
+import numpy as np
+from model import create_problem
 from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
-from model import create_problem
 from solve_c_from_x import solve_c
+
 from ommx_quantum_benchmarks.qoblib.definitions import (
+    LICENSE,
     QOBLIB_AUTHORS,
     QOBLIB_AUTHORS_STR,
-    LICENSE,
 )
 
 
@@ -67,9 +68,7 @@ def batch_process_files(
             # Look for labsXXX.opt.sol or labsXXX.sol in the solutions directory
             sol_files = glob.glob(os.path.join(sol_directory, f"{base_name}*.sol"))
             if not sol_files:
-                print(
-                    f"Warning: Corresponding solution file for {base_name} not found."
-                )
+                print(f"Warning: Corresponding solution file for {base_name} not found.")
                 continue
             sol_file = sol_files[0]
             print(f"Processing solution file: {sol_file}")
@@ -77,9 +76,8 @@ def batch_process_files(
             # Generate instance_data using create_instance(n)
             instance_data = create_instance(n)
 
-            # Create an OMMX instance
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            # Create an OMMX instance via the JijModeling 2 Compiler API
+            ommx_instance = problem.eval(instance_data)
 
             # Read and evaluate the solution
             solution = None
@@ -87,26 +85,15 @@ def batch_process_files(
                 energy_dict, entries_dict, solution_dict = parse_sol_file(sol_file, n)
 
                 for i in range(0, n - 1):
-                    solution_dict[i] = solve_c(
-                        ommx_instance.constraints[i], solution_dict, target_var_id=i
-                    )
+                    solution_dict[i] = solve_c(ommx_instance.constraints[i], solution_dict, target_var_id=i)
                 solution = ommx_instance.evaluate(solution_dict)
-                if (
-                    math.isclose(
-                        energy_dict["Energy"], solution.objective, rel_tol=1e-6
-                    )
-                    and solution.feasible
-                ):
-                    print(
-                        f"  → objective={solution.objective}, feasible={solution.feasible}"
-                    )
+                if math.isclose(energy_dict["Energy"], solution.objective, rel_tol=1e-6) and solution.feasible:
+                    print(f"  → objective={solution.objective}, feasible={solution.feasible}")
                 else:
                     print("Objective or feasible Error")
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
-                print(
-                    "    Skipping solution evaluation and only saving the instance..."
-                )
+                print("    Skipping solution evaluation and only saving the instance...")
 
             # Write out the .ommx artifact
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
@@ -120,9 +107,7 @@ def batch_process_files(
             ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
-            ommx_instance.annotations["org.ommx.qoblib.url"] = (
-                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/02-labs?ref_type=heads"
-            )
+            ommx_instance.annotations["org.ommx.qoblib.url"] = "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/02-labs?ref_type=heads"
             # Build and save the artifact.
             builder = ArtifactBuilder.new_archive_unnamed(output_filename)
             instance_desc = builder.add_instance(ommx_instance)

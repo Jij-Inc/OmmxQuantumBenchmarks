@@ -1,9 +1,25 @@
+import ommx.v1
 import pytest
 
-from ommx_quantum_benchmarks.qoblib.qoblib import *
 from ommx_quantum_benchmarks.qoblib.definitions import BASE_URL, get_instance_tag
-from .mock import *
+from ommx_quantum_benchmarks.qoblib.qoblib import (
+    Birkhoff,
+    IndependentSet,
+    Labs,
+    Marketsplit,
+    Network,
+    Portfolio,
+    Routing,
+    Sports,
+    Steiner,
+    Topology,
+)
 
+from .mock import (
+    MockDataset,
+    MockDatasetWithEmptyModelNames,
+    MockDatasetWithEmptyName,
+)
 
 # Define the variable to limit the number of test cases (instances) for each instance test to reduce test time.
 # Set to None to test all instances. Don't push with a large number of instances like None otherwise github actions won't pass.
@@ -11,13 +27,15 @@ NUM_CASES = 1
 
 
 def test_base_dataset_creation():
-    """Create a mock BaseDataset instance and check its member variables.
-
-    Check if
-    - no assertion error is raised during the creation of the instance,
-    """
-    # - no assertion error is raised during the creation of the instance,
+    """Create a mock BaseDataset instance and check its member variables."""
     dataset = MockDataset()
+    assert dataset.name == "mock"
+    assert dataset.description == "This is a mock dataset."
+    assert dataset.model_names == ["model1", "model2"]
+    assert dataset.available_instances == {
+        "model1": ["instance1", "instance2"],
+        "model2": ["instanceA", "instanceB"],
+    }
 
 
 def test_base_dataset_creation_with_invalid_name():
@@ -56,9 +74,7 @@ def test_get_instance_url():
     result = dataset.get_instance_url(model_name, instance_name)
     assert isinstance(result, str)
     # - the returned value is f"{BASE_URL}:{instance_tag}".
-    expected_url = (
-        f"{BASE_URL}:{get_instance_tag(dataset.name, model_name, instance_name)}"
-    )
+    expected_url = f"{BASE_URL}:{get_instance_tag(dataset.name, model_name, instance_name)}"
     assert result == expected_url
 
 
@@ -163,11 +179,7 @@ def test_labs():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in Labs().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in Labs().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_labs_instance(model_name, instance_name):
     """Test individual Labs instance.
@@ -221,11 +233,7 @@ def test_birkhoff():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in Birkhoff().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in Birkhoff().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_birkhoff_instance(model_name, instance_name):
     """Test individual Birkhoff instance.
@@ -279,11 +287,7 @@ def test_steiner():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in Steiner().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in Steiner().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_steiner_instance(model_name, instance_name):
     """Test individual Steiner instance.
@@ -427,11 +431,7 @@ def test_independentset():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in IndependentSet().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in IndependentSet().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_independentset_instance(model_name, instance_name):
     """Test individual IndependentSet instance.
@@ -485,11 +485,7 @@ def test_network():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in Network().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in Network().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_network_instance(model_name, instance_name):
     """Test individual Network instance.
@@ -543,11 +539,7 @@ def test_routing():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in Routing().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in Routing().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_routing_instance(model_name, instance_name):
     """Test individual Routing instance.
@@ -609,11 +601,7 @@ def test_topology():
 
 @pytest.mark.parametrize(
     "model_name,instance_name",
-    [
-        (model_name, instance_name)
-        for model_name, instances in Topology().available_instances.items()
-        for instance_name in instances
-    ][:NUM_CASES],
+    [(model_name, instance_name) for model_name, instances in Topology().available_instances.items() for instance_name in instances][:NUM_CASES],
 )
 def test_topology_instance(model_name, instance_name):
     """Test individual Topology instance.

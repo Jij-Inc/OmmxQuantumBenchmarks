@@ -5,33 +5,30 @@ def create_problem() -> jm.Problem:
     """
     Create the JijModeling problem definition.
     """
-    # Placeholders for data from file
-    I_set = jm.Placeholder("I", ndim=1, description="Set I")
-    J_set = jm.Placeholder("J", ndim=1, description="Set J")
-    a = jm.Placeholder("a", ndim=2, description="Parameter a")
-    b = jm.Placeholder("b", ndim=1, description="Parameter b")
-
-    # Decision variables
-    x = jm.BinaryVar("x", shape=J_set.shape, description="Variable x")
-    s = jm.IntegerVar(
-        "s",
-        shape=I_set.shape,
-        lower_bound=0,
-        upper_bound=100000,
-        description="Variable s",
-    )
-
-    # Elements for indexing
-    i = jm.Element("i", belong_to=I_set)
-    j = jm.Element("j", belong_to=J_set)
-
-    # Problem definition
     problem = jm.Problem("SetCovering", sense=jm.ProblemSense.MINIMIZE)
 
-    # Objective function
-    problem += jm.sum([i], s[i])
+    @problem.update
+    def _(problem: jm.DecoratedProblem):
+        I = problem.Natural("I", ndim=1, description="Set I")
+        J = problem.Natural("J", ndim=1, description="Set J")
+        a = problem.Integer("a", ndim=2, description="Parameter a")
+        b = problem.Integer("b", ndim=1, description="Parameter b")
 
-    # Constraints
-    problem += jm.Constraint("c1", s[i] + jm.sum(j, a[i, j] * x[j]) == b[i], forall=i)
+        x = problem.BinaryVar("x", shape=J.shape, description="Variable x")
+        s = problem.IntegerVar(
+            "s",
+            shape=I.shape,
+            lower_bound=0,
+            upper_bound=100000,
+            description="Variable s",
+        )
+
+        problem += jm.sum(s[i] for i in I.len_at(0))
+
+        problem += problem.Constraint(
+            "c1",
+            lambda i: s[i] + jm.sum(a[i, j] * x[j] for j in J.len_at(0)) == b[i],
+            domain=I.len_at(0),
+        )
 
     return problem

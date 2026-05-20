@@ -1,16 +1,17 @@
-import os
 import glob
 import math
+import os
 from pathlib import Path
-import jijmodeling as jm
-from ommx.artifact import ArtifactBuilder
-from sol_reader import parse_sol_to_ordered_dict
+
 from dat_reader import read_qoblib_dat_file
 from model import create_problem
+from ommx.artifact import ArtifactBuilder
+from sol_reader import parse_sol_to_ordered_dict
+
 from ommx_quantum_benchmarks.qoblib.definitions import (
+    LICENSE,
     QOBLIB_AUTHORS,
     QOBLIB_AUTHORS_STR,
-    LICENSE,
 )
 
 
@@ -67,9 +68,7 @@ def batch_process_files(
                     break
 
             if sol_file is None:
-                print(
-                    "Warning: Corresponding solution file not found. Tried the following:"
-                )
+                print("Warning: Corresponding solution file not found. Tried the following:")
                 for possible_sol in possible_sol_files:
                     print(f"  - {possible_sol}")
                 continue
@@ -79,44 +78,26 @@ def batch_process_files(
             # Read the .dat file
             instance_data = read_qoblib_dat_file(dat_file)
 
-            # Create an OMMX instance
-            interpreter = jm.Interpreter(instance_data)
-            ommx_instance = interpreter.eval_problem(problem)
+            # Create an OMMX instance via the JijModeling 2 Compiler API
+            ommx_instance = problem.eval(instance_data)
 
             # Read and evaluate the solution
             solution = None
             try:
-                energy_dict, solution_dict = parse_sol_to_ordered_dict(
-                    sol_file, len(instance_data["I"])
-                )
+                energy_dict, solution_dict = parse_sol_to_ordered_dict(sol_file, len(instance_data["I"]))
                 solution = ommx_instance.evaluate(solution_dict)
 
-                if (
-                    math.isclose(
-                        energy_dict["Energy"], solution.objective, rel_tol=1e-6
-                    )
-                    and solution.feasible
-                ):
-                    print(
-                        f"  → Calculate objective={solution.objective:.6f}, "
-                        f"Solution objective={energy_dict['Energy']:.6f}"
-                    )
-                    print(
-                        f"  → objective={solution.objective:.6f}, feasible={solution.feasible}"
-                    )
+                if math.isclose(energy_dict["Energy"], solution.objective, rel_tol=1e-6) and solution.feasible:
+                    print(f"  → Calculate objective={solution.objective:.6f}, Solution objective={energy_dict['Energy']:.6f}")
+                    print(f"  → objective={solution.objective:.6f}, feasible={solution.feasible}")
                 else:
                     diff = solution.objective - energy_dict["Energy"]
                     print("Objective or feasible Error")
-                    print(
-                        f"  ✗ mismatch: calc={solution.objective:.6f}, sol={energy_dict['Energy']:.6f}, "
-                        f"Δ={diff:.6g}, feasible={solution.feasible}"
-                    )
+                    print(f"  ✗ mismatch: calc={solution.objective:.6f}, sol={energy_dict['Energy']:.6f}, Δ={diff:.6g}, feasible={solution.feasible}")
 
             except Exception as sol_error:
                 print(f"  ! Error evaluating solution: {sol_error}")
-                print(
-                    "    Skipping solution evaluation and only saving the instance..."
-                )
+                print("    Skipping solution evaluation and only saving the instance...")
 
             # Construct the output filename
             output_filename = os.path.join(output_directory, f"{base_name}.ommx")
@@ -132,9 +113,7 @@ def batch_process_files(
             ommx_instance.authors = QOBLIB_AUTHORS
             ommx_instance.num_variables = len(ommx_instance.decision_variables)
             ommx_instance.num_constraints = len(ommx_instance.constraints)
-            ommx_instance.annotations["org.ommx.qoblib.url"] = (
-                "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/01-marketsplit?ref_type=heads"
-            )
+            ommx_instance.annotations["org.ommx.qoblib.url"] = "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/01-marketsplit?ref_type=heads"
 
             # Create OMMX Artifact
             builder = ArtifactBuilder.new_archive_unnamed(output_filename)

@@ -5,58 +5,61 @@ def create_problem():
     """
     Create the JijModeling problem definition.
     """
-    # Define placeholders for model parameters
-    msize = jm.Placeholder("msize", description="Size of the square matrix (n x n)")
-    scale = jm.Placeholder("scale", description="Scaling factor for the decomposition")
+    problem = jm.Problem("Birkhoff Integer Decomposition", sense=jm.ProblemSense.MINIMIZE)
 
-    # Define sets and parameter placeholders
-    J = jm.Placeholder("J", ndim=1, description="Index set for matrix rows and columns")
-    A_mn = jm.Placeholder(
-        "A", ndim=2, description="Target matrix to decompose (scaled doubly stochastic)"
-    )
-    P_i = jm.Placeholder(
-        "P", ndim=3, description="Set of 3D permutation matrices (|I| x msize x msize)"
-    )
-    I = jm.Placeholder("I", ndim=1, description="Index set for permutations")
+    @problem.update
+    def _(problem: jm.DecoratedProblem):
+        # msize is intentionally declared but unreferenced: it is part of the
+        # qoblib_v2 instance_data contract (every published birkhoff instance
+        # carries an `msize` field), and dimensions are driven from the
+        # index set `J` and the matrices `A`/`P` instead. Keeping it as an
+        # explicit placeholder documents the contract and reserves it for a
+        # future shape-validation pass.
+        msize = problem.Natural(  # noqa: F841 -- contract-only placeholder
+            "msize", description="Size of the square matrix (n x n)"
+        )
+        scale = problem.Natural("scale", description="Scaling factor for the decomposition")
 
-    # Define decision variables
-    x = jm.IntegerVar(
-        "x",
-        shape=(I.shape[0],),
-        lower_bound=0,
-        upper_bound=scale,
-        description="Integer weights for each permutation matrix",
-    )
-    z = jm.BinaryVar(
-        "z",
-        shape=(I.shape[0],),
-        description="Binary activation variable for each permutation matrix",
-    )
+        J = problem.Natural("J", ndim=1, description="Index set for matrix rows and columns")
+        A_mn = problem.Integer(
+            "A",
+            ndim=2,
+            description="Target matrix to decompose (scaled doubly stochastic)",
+        )
+        P_i = problem.Integer(
+            "P",
+            ndim=3,
+            description="Set of 3D permutation matrices (|I| x msize x msize)",
+        )
+        I = problem.Natural("I", ndim=1, description="Index set for permutations")
 
-    # Create the optimization problem
-    problem = jm.Problem(
-        "Birkhoff Integer Decomposition", sense=jm.ProblemSense.MINIMIZE
-    )
+        x = problem.IntegerVar(
+            "x",
+            shape=(I.len_at(0),),
+            lower_bound=0,
+            upper_bound=scale,
+            description="Integer weights for each permutation matrix",
+        )
+        z = problem.BinaryVar(
+            "z",
+            shape=(I.len_at(0),),
+            description="Binary activation variable for each permutation matrix",
+        )
 
-    # Define index element i
-    i = jm.Element("i", belong_to=I)
+        problem += jm.sum(z[i] for i in I.len_at(0))
 
-    # Objective: minimize the number of permutation matrices used (i.e., number of active z[i])
-    problem += jm.sum(i, z[i])
+        problem += problem.Constraint("c1", jm.sum(x[i] for i in I.len_at(0)) == scale)
 
-    # Constraint c1: sum of all weights equals the given scale
-    problem += jm.Constraint("c1", jm.sum(i, x[i]) == scale)
+        problem += problem.Constraint(
+            "c2",
+            lambda m, n: jm.sum(x[i] * P_i[i, m, n] for i in I.len_at(0)) == A_mn[m, n],
+            domain=jm.product(J.len_at(0), J.len_at(0)),
+        )
 
-    # Constraint c2: for all matrix elements (m,n), the weighted sum of permutation matrices equals the target matrix a3
-    # This enforces A = sum_i x[i] * P_i[i]
-    m = jm.Element("m", belong_to=J)
-    n = jm.Element("n", belong_to=J)
-    problem += jm.Constraint(
-        "c2", jm.sum(i, x[i] * P_i[i, m, n]) == A_mn[m, n], forall=[m, n]
-    )
-
-    # Constraint c3: x[i] > 0 implies z[i] = 1 (linking integer variable with binary)
-    # Enforces: x[i] <= scale * z[i]
-    problem += jm.Constraint("c3", x[i] <= scale * z[i], forall=[i])
+        problem += problem.Constraint(
+            "c3",
+            lambda i: x[i] <= scale * z[i],
+            domain=I.len_at(0),
+        )
 
     return problem
