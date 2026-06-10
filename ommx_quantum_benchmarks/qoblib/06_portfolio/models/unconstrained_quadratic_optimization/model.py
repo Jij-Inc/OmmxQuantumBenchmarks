@@ -9,7 +9,9 @@ NUM_Y_SLACKS = 4
 NUM_S_SLACKS = 7
 
 
-@jm.Problem.define("Portfolio_unconstrained", sense=jm.ProblemSense.MINIMIZE)
+@jm.Problem.define(
+    "Portfolio_unconstrained_quadratic_optimization", sense=jm.ProblemSense.MINIMIZE
+)
 def _portfolio_uqo(problem: jm.DecoratedProblem):
     """QOBLIB portfolio unconstrained quadratic optimization (UQO) model.
 

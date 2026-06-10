@@ -62,7 +62,8 @@ def read_solution_lines(sol_directory: str, subdir: str, sol_name: str):
                 return None
             if member is None:
                 return None
-            return io.TextIOWrapper(member, encoding="utf-8").readlines()
+            with io.TextIOWrapper(member, encoding="utf-8") as text:
+                return text.readlines()
 
     return None
 
