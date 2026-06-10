@@ -1,13 +1,6 @@
 import re
 
-# Number of units per asset and position (ub in parameter_u3_c10.zpl).
-UB = 3
-# Number of position signs: tau = 1 (long, l = 0) and tau = -1 (short, l = 1).
-NUM_SIGNS = 2
-# Binary expansion widths of the two slack variables (CS1, CS2 in
-# parameter_u3_c10.zpl).
-NUM_Y_SLACKS = 4
-NUM_S_SLACKS = 7
+from constants import NUM_S_SLACKS, NUM_SIGNS, NUM_UNITS, NUM_Y_SLACKS
 
 _OBJECTIVE_RE = re.compile(
     r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", re.IGNORECASE
@@ -71,7 +64,7 @@ def parse_sol_file(
     x_decl = [
         (i, m, l, t)
         for i in range(len(symbols))
-        for m in range(UB)
+        for m in range(NUM_UNITS)
         for l in range(NUM_SIGNS)
         for t in range(num_periods)
     ]
@@ -147,7 +140,11 @@ def parse_sol_file(
                     raise ValueError(
                         f"Unrecognized x variable name in solution file: {name!r}"
                     ) from None
-                if tau not in (1, -1) or not 1 <= m <= UB or not 0 <= t < num_periods:
+                if (
+                    tau not in (1, -1)
+                    or not 1 <= m <= NUM_UNITS
+                    or not 0 <= t < num_periods
+                ):
                     raise ValueError(
                         f"Subscripts out of range in solution file variable {name!r}."
                     )
