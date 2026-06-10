@@ -13,6 +13,10 @@ NU = Fraction("0.0001")
 RHO = Fraction("0.000025")
 UB = 3
 C = CASH // UNIT
+# Binary expansion widths of the two slack variables (CS1, CS2 in
+# parameter_u3_c10.zpl); kept in sync with model.py / sol_reader.py.
+NUM_Y_SLACKS = 4
+NUM_S_SLACKS = 7
 
 # b_tot for each number of assets, defined in gen_archive.sh of the original
 # QOBLIB repository.
@@ -138,7 +142,9 @@ def read_portfolio_instance(
     short_cost = np.array(
         [[zimpl_round(RHO * p[i][t]) for t in range(T)] for i in range(A)]
     )
-    cash_interest = np.array([zimpl_round(NU * UNIT * 2**k) for k in range(4)])
+    cash_interest = np.array(
+        [zimpl_round(NU * UNIT * 2**k) for k in range(NUM_Y_SLACKS)]
+    )
 
     instance_data = {
         "A": A,
@@ -150,8 +156,8 @@ def read_portfolio_instance(
         "short_cost": short_cost.astype(np.float64),
         "cash_interest": cash_interest.astype(np.float64),
         "tau": np.array(tau, dtype=np.float64),
-        "pow2_y": 2.0 ** np.arange(4),
-        "pow2_s": 2.0 ** np.arange(7),
+        "pow2_y": 2.0 ** np.arange(NUM_Y_SLACKS),
+        "pow2_s": 2.0 ** np.arange(NUM_S_SLACKS),
         "C": float(C),
         "B": float(B_BY_ASSETS[num_assets]),
     }

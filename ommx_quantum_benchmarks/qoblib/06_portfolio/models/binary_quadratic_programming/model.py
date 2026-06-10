@@ -9,7 +9,9 @@ NUM_Y_SLACKS = 4
 NUM_S_SLACKS = 7
 
 
-@jm.Problem.define("Portfolio_binary_quadratic", sense=jm.ProblemSense.MINIMIZE)
+@jm.Problem.define(
+    "Portfolio_binary_quadratic_programming", sense=jm.ProblemSense.MINIMIZE
+)
 def _portfolio_bqp(problem: jm.DecoratedProblem):
     """QOBLIB portfolio binary quadratic programming (BQP) model.
 
