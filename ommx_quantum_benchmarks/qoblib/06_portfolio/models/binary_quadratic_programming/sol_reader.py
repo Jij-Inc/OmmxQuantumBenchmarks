@@ -23,9 +23,10 @@ def parse_sol_file(
     output:
 
     - `y#<k>#<t>` and `s2#<c>#<t>` for the slack variables,
-    - `x$<symbol>#<m>#<tau>#<t>` for the asset variables with tau = 1,
-    - mangled names like `x$AAPL#1#_1#0@a` for tau = -1.  ZIMPL replaces the
-      invalid character '-' and truncates long names, appending '@' and the
+    - `x$<symbol>#<m>#<tau>#<t>` for the asset variables, where ZIMPL replaces
+      the invalid character '-' with '_', so tau = -1 appears as `_1`,
+    - mangled names like `x$AAPL#1#_1#0@a` for long (truncated) names.  ZIMPL
+      truncates such names, appending '@' and the
       0-based variable index in declaration order
       (`var x[SX*TX]` with SX = S * {1..ub} * {1,-1}, day fastest), which we
       use to recover the subscripts.
@@ -78,7 +79,9 @@ def parse_sol_file(
                 subscripts = x_decl[decl_index]
             else:
                 _, symbol, m, tau, t = name.replace("$", "#").split("#")
-                l = 0 if int(tau) == 1 else 1
+                # ZIMPL replaces the invalid character '-' with '_', so a short
+                # (non-truncated) tau = -1 name carries "_1" rather than "-1".
+                l = 0 if int(tau.replace("_", "-")) == 1 else 1
                 subscripts = (sym_idx[symbol], int(m) - 1, l, int(t))
             values[("x", subscripts)] = value
         elif name.startswith("y#"):
