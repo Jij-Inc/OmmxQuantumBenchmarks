@@ -1,12 +1,6 @@
 import jijmodeling as jm
 
-# Fixed dimensions from parameter_u3_c10.zpl of the original QOBLIB repository:
-# units per asset and position (ub), position signs (long/short), and the
-# binary expansion widths of the two slack variables (CS1, CS2).
-NUM_UNITS = 3
-NUM_SIGNS = 2
-NUM_Y_SLACKS = 4
-NUM_S_SLACKS = 7
+from constants import NUM_S_SLACKS, NUM_SIGNS, NUM_UNITS, NUM_Y_SLACKS
 
 
 @jm.Problem.define(

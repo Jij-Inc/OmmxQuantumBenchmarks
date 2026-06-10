@@ -5,19 +5,16 @@ from fractions import Fraction
 
 import numpy as np
 
+from constants import NUM_S_SLACKS, NUM_Y_SLACKS
+
 # Model parameters fixed in parameter_u3_c10.zpl of the original QOBLIB repository.
 CASH = 1_000_000
 UNIT = 100_000
 DELTA = Fraction("0.001")
 NU = Fraction("0.0001")
 RHO = Fraction("0.000025")
-UB = 3
 PENALTY = 1e7  # `qubo, penalty7` in uqo_u3_c10.zpl
 C = CASH // UNIT
-# Binary expansion widths of the two slack variables (CS1, CS2 in
-# parameter_u3_c10.zpl); kept in sync with model.py / sol_reader.py.
-NUM_Y_SLACKS = 4
-NUM_S_SLACKS = 7
 
 # b_tot for each number of assets, defined in gen_archive.sh of the original
 # QOBLIB repository.

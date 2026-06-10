@@ -83,9 +83,10 @@ def batch_process_files(
     QS files, e.g. `uqo_a010_t10_orig_b004_l0.001`.
 
     An artifact is only written when the attached solution evaluates to the
-    objective declared in the solution file and satisfies all constraints (or
-    when no solution could be evaluated, in which case the instance is saved
-    alone and reported in the summary).
+    objective declared in the solution file and satisfies all constraints.
+    Instances whose solution file is missing are skipped entirely (with a
+    warning); instances whose solution file exists but cannot be parsed or
+    evaluated are saved without a solution and reported in the summary.
 
     Parameters:
     - dat_directory: Path to the directory containing the instance directories
