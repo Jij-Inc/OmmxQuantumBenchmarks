@@ -14,6 +14,22 @@ _OBJECTIVE_RE = re.compile(
 )
 
 
+def _slack_subscripts(name: str, width: int, num_periods: int) -> tuple[int, int]:
+    """Parse a slack variable name `y#<k>#<t>` / `s2#<c>#<t>` into subscripts."""
+    parts = name.split("#")
+    try:
+        if len(parts) != 3:
+            raise ValueError
+        k, t = int(parts[1]), int(parts[2])
+    except ValueError:
+        raise ValueError(
+            f"Unrecognized slack variable name in solution file: {name!r}"
+        ) from None
+    if not 0 <= k < width or not 0 <= t < num_periods:
+        raise ValueError(f"Subscripts out of range in solution file variable {name!r}.")
+    return (k, t)
+
+
 def parse_sol_file(
     lines, symbols: list[str], num_periods: int
 ) -> tuple[float, dict[tuple[str, tuple[int, ...]], float]]:
@@ -41,7 +57,9 @@ def parse_sol_file(
 
     Variables omitted by the solver are filled with 0, since Gurobi .sol
     writers commonly drop zero-valued variables; the returned dict therefore
-    always covers the full model.
+    always covers the full model.  Malformed lines, non-binary values, unknown
+    symbols, out-of-range subscripts, and duplicate variables raise ValueError
+    so that a corrupt solution file can never be mapped silently.
 
     Args:
         lines: iterable of text lines of the solution file.
@@ -76,14 +94,36 @@ def parse_sol_file(
                 objective = float(match.group(1))
             continue
 
-        name, value_str = line.rsplit(None, 1)
+        parts = line.rsplit(None, 1)
+        if len(parts) != 2:
+            raise ValueError(f"Malformed line in solution file: {line!r}")
+        name, value_str = parts
         name = name.strip()
-        value = float(value_str)
+        try:
+            value = float(value_str)
+        except ValueError:
+            raise ValueError(
+                f"Malformed value in solution file line: {line!r}"
+            ) from None
+        # All model variables are binary; tolerate solver output like
+        # 0.9999999996 but reject anything that is not a 0/1 within tolerance.
+        rounded = round(value)
+        if abs(value - rounded) > 1e-6 or rounded not in (0, 1):
+            raise ValueError(
+                f"Non-binary value {value} for variable {name!r} in solution file."
+            )
+        value = float(rounded)
 
         if name.startswith("x$"):
             if "@" in name:
                 # Mangled (truncated) name: decode via the declaration index.
-                decl_index = int(name.rsplit("@", 1)[1], 16)
+                try:
+                    decl_index = int(name.rsplit("@", 1)[1], 16)
+                except ValueError:
+                    raise ValueError(
+                        f"Unrecognized mangled variable name in solution file: "
+                        f"{name!r}"
+                    ) from None
                 if decl_index >= len(x_decl):
                     raise ValueError(
                         f"Declaration index {decl_index} from {name!r} is out of "
@@ -92,20 +132,43 @@ def parse_sol_file(
                     )
                 subscripts = x_decl[decl_index]
             else:
-                _, symbol, m, tau, t = name.replace("$", "#").split("#")
-                # ZIMPL replaces the invalid character '-' with '_', so a short
-                # (non-truncated) tau = -1 name carries "_1" rather than "-1".
-                l = 0 if int(tau.replace("_", "-")) == 1 else 1
-                subscripts = (sym_idx[symbol], int(m) - 1, l, int(t))
-            values[("x", subscripts)] = value
+                name_parts = name.replace("$", "#").split("#")
+                if len(name_parts) != 5:
+                    raise ValueError(
+                        f"Unrecognized x variable name in solution file: {name!r}"
+                    )
+                _, symbol, m_str, tau_str, t_str = name_parts
+                if symbol not in sym_idx:
+                    raise ValueError(
+                        f"Unknown symbol {symbol!r} in solution file variable "
+                        f"{name!r}."
+                    )
+                try:
+                    m = int(m_str)
+                    # ZIMPL replaces the invalid character '-' with '_', so a
+                    # short (non-truncated) tau = -1 name carries "_1".
+                    tau = int(tau_str.replace("_", "-"))
+                    t = int(t_str)
+                except ValueError:
+                    raise ValueError(
+                        f"Unrecognized x variable name in solution file: {name!r}"
+                    ) from None
+                if tau not in (1, -1) or not 1 <= m <= UB or not 0 <= t < num_periods:
+                    raise ValueError(
+                        f"Subscripts out of range in solution file variable {name!r}."
+                    )
+                subscripts = (sym_idx[symbol], m - 1, 0 if tau == 1 else 1, t)
+            key = ("x", subscripts)
         elif name.startswith("y#"):
-            _, k, t = name.split("#")
-            values[("y", (int(k), int(t)))] = value
+            key = ("y", _slack_subscripts(name, NUM_Y_SLACKS, num_periods))
         elif name.startswith("s2#"):
-            _, c, t = name.split("#")
-            values[("s", (int(c), int(t)))] = value
+            key = ("s", _slack_subscripts(name, NUM_S_SLACKS, num_periods))
         else:
             raise ValueError(f"Unrecognized variable name in solution file: {name}")
+
+        if key in values:
+            raise ValueError(f"Duplicate variable {name!r} in solution file.")
+        values[key] = value
 
     if objective is None:
         raise ValueError("No '# Objective value = ...' header found.")

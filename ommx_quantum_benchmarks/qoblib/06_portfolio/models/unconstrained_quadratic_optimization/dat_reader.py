@@ -77,8 +77,13 @@ def read_portfolio_instance(
     symbols: list[str] = []
     days: set[int] = set()
     raw_p: dict[tuple[str, int], Fraction] = {}
-    for day, symbol, price in price_rows:
-        day = int(day)
+    for row in price_rows:
+        if len(row) != 3:
+            raise ValueError(
+                f"Malformed stock price line in {instance_dir}: {' '.join(row)!r}"
+            )
+        day_str, symbol, price = row
+        day = int(day_str)
         days.add(day)
         if symbol not in symbols:
             symbols.append(symbol)
@@ -99,16 +104,43 @@ def read_portfolio_instance(
     T = len(days)
     if sorted(days) != list(range(T)):
         raise ValueError(f"Day indices in {instance_dir} are not contiguous from 0.")
+    missing = [(s, t) for s in symbols for t in range(T) if (s, t) not in raw_p]
+    if missing:
+        raise ValueError(
+            f"Missing stock price entries in {instance_dir}: {missing[:3]}"
+            + (" ..." if len(missing) > 3 else "")
+        )
     sym_idx = {s: i for i, s in enumerate(symbols)}
 
     # One unit is UNIT / raw_p[s, 0] shares of stock s; p is the exact rational
     # price of one unit of stock s on day t.
     p = [[raw_p[(s, t)] * UNIT / raw_p[(s, 0)] for t in range(T)] for s in symbols]
 
-    cov = {
-        (sym_idx[s1], sym_idx[s2], int(day)): Fraction(value)
-        for day, s1, s2, value in cov_rows
-    }
+    cov: dict[tuple[int, int, int], Fraction] = {}
+    for row in cov_rows:
+        if len(row) != 4:
+            raise ValueError(
+                f"Malformed covariance line in {instance_dir}: {' '.join(row)!r}"
+            )
+        day_str, s1, s2, value = row
+        if s1 not in sym_idx or s2 not in sym_idx:
+            unknown = s1 if s1 not in sym_idx else s2
+            raise ValueError(
+                f"Unknown symbol {unknown!r} in covariance data of {instance_dir}."
+            )
+        day = int(day_str)
+        if not 0 <= day < T:
+            raise ValueError(
+                f"Covariance day index {day} in {instance_dir} is outside 0..{T - 1}."
+            )
+        cov[(sym_idx[s1], sym_idx[s2], day)] = Fraction(value)
+    # The upstream files contain the full A x A matrix for every day; a partial
+    # file would otherwise silently leave risk coefficients at zero.
+    if len(cov) != A * A * T:
+        raise ValueError(
+            f"Covariance data in {instance_dir} has {len(cov)} unique entries, "
+            f"but expected {A * A * T} (full matrix for all days)."
+        )
 
     tau = (1, -1)
 

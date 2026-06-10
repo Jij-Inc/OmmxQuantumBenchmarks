@@ -3,6 +3,7 @@ import io
 import math
 import os
 import re
+import sys
 import tarfile
 from fractions import Fraction
 
@@ -72,7 +73,7 @@ def batch_process_files(
     dat_directory: str = "../../instances",
     sol_directory: str = "../../solutions",
     output_directory: str = "./ommx_output",
-):
+) -> int:
     """
     Batch process QOBLIB portfolio instance directories and the corresponding
     solution files, and convert them into .ommx files.
@@ -81,10 +82,19 @@ def batch_process_files(
     lambda value of LAMBDA_VALUES, producing instances named like the original
     QS files, e.g. `uqo_a010_t10_orig_b004_l0.001`.
 
+    An artifact is only written when the attached solution evaluates to the
+    objective declared in the solution file and satisfies all constraints (or
+    when no solution could be evaluated, in which case the instance is saved
+    alone and reported in the summary).
+
     Parameters:
     - dat_directory: Path to the directory containing the instance directories
     - sol_directory: Path to the directory containing the solutions (bqp/...)
     - output_directory: Path to the directory where .ommx files will be saved
+
+    Returns:
+    - the number of failed conversions (verification mismatches plus errors);
+      0 means every found instance was converted.
     """
 
     # Create output directory (if it does not exist)
@@ -96,7 +106,7 @@ def batch_process_files(
     instance_dirs = sorted(glob.glob(os.path.join(dat_directory, "po_*")))
     if not instance_dirs:
         print(f"No po_* instance directories found in {dat_directory}")
-        return
+        return 1
 
     print(f"Found {len(instance_dirs)} instance directories in {dat_directory}")
     print(f"Solution files directory: {sol_directory}")
@@ -104,6 +114,8 @@ def batch_process_files(
     print("-" * 50)
 
     processed_count = 0
+    saved_without_solution_count = 0
+    mismatch_count = 0
     error_count = 0
 
     for instance_dir in instance_dirs:
@@ -168,7 +180,17 @@ def batch_process_files(
                         for (name, subscripts), value in sol_values.items()
                     }
                     solution = ommx_instance.evaluate(state)
+                except Exception as sol_error:
+                    print(f"  ! Error evaluating solution: {sol_error}")
+                    print(
+                        "    Skipping solution evaluation and only saving the instance..."
+                    )
+                    solution = None
 
+                # Verify the evaluated solution; an artifact with a solution
+                # that does not reproduce the declared objective (or violates
+                # a constraint) must never be written, or it could be uploaded.
+                if solution is not None:
                     if (
                         math.isclose(
                             sol_objective,
@@ -192,19 +214,9 @@ def batch_process_files(
                             f"  ✗ mismatch: calc={solution.objective:.6f}, sol={sol_objective:.6f}, "
                             f"Δ={diff:.6g}, feasible={solution.feasible}"
                         )
-
-                except Exception as sol_error:
-                    print(f"  ! Error evaluating solution: {sol_error}")
-                    print(
-                        "    Skipping solution evaluation and only saving the instance..."
-                    )
-
-                # Construct the output filename
-                output_filename = os.path.join(output_directory, f"{base_name}.ommx")
-
-                # If the file already exists, remove it
-                if os.path.exists(output_filename):
-                    os.remove(output_filename)
+                        print(f"    Not writing {base_name}.ommx.")
+                        mismatch_count += 1
+                        continue
 
                 # Add annotations to the instance.
                 ommx_instance.title = base_name
@@ -217,19 +229,32 @@ def batch_process_files(
                     "https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/06-portfolio?ref_type=heads"
                 )
 
-                # Create OMMX Artifact
-                builder = ArtifactBuilder.new_archive_unnamed(output_filename)
-                instance_desc = builder.add_instance(ommx_instance)
-                if solution is not None:
-                    solution.instance = instance_desc.digest
-                    solution.annotations["org.ommx.qoblib.authors"] = (
-                        QOBLIB_AUTHORS_STR
-                    )
-                    builder.add_solution(solution)
-                builder.build()
+                # Create the OMMX Artifact in a temporary file and atomically
+                # replace the final .ommx, so that a failure can never leave a
+                # partial artifact behind (the uploader picks up *.ommx).
+                output_filename = os.path.join(output_directory, f"{base_name}.ommx")
+                tmp_filename = f"{output_filename}.tmp"
+                if os.path.exists(tmp_filename):
+                    os.remove(tmp_filename)
+                try:
+                    builder = ArtifactBuilder.new_archive_unnamed(tmp_filename)
+                    instance_desc = builder.add_instance(ommx_instance)
+                    if solution is not None:
+                        solution.instance = instance_desc.digest
+                        solution.annotations["org.ommx.qoblib.authors"] = (
+                            QOBLIB_AUTHORS_STR
+                        )
+                        builder.add_solution(solution)
+                    builder.build()
+                    os.replace(tmp_filename, output_filename)
+                finally:
+                    if os.path.exists(tmp_filename):
+                        os.remove(tmp_filename)
 
                 print(f"Successfully created: {output_filename}")
                 print("-" * 50)
+                if solution is None:
+                    saved_without_solution_count += 1
                 processed_count += 1
 
             except Exception as e:
@@ -239,10 +264,13 @@ def batch_process_files(
 
     print(f"\nBatch processing complete!")
     print(f"Successfully processed: {processed_count} files")
+    print(f"Saved without a solution: {saved_without_solution_count} files")
+    print(f"Verification mismatches (not written): {mismatch_count} files")
     print(f"Number of errors: {error_count} files")
     print(f"OMMX files saved in: {output_directory}")
     print("-" * 50)
+    return mismatch_count + error_count
 
 
 if __name__ == "__main__":
-    batch_process_files()
+    sys.exit(1 if batch_process_files() else 0)
