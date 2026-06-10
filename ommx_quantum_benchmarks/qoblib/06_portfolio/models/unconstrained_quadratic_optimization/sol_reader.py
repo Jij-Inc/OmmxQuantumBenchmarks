@@ -4,6 +4,10 @@ import re
 UB = 3
 # Number of position signs: tau = 1 (long, l = 0) and tau = -1 (short, l = 1).
 NUM_SIGNS = 2
+# Binary expansion widths of the two slack variables (CS1, CS2 in
+# parameter_u3_c10.zpl).
+NUM_Y_SLACKS = 4
+NUM_S_SLACKS = 7
 
 _OBJECTIVE_RE = re.compile(r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)")
 
@@ -31,6 +35,10 @@ def parse_sol_file(
     (ZIMPL .tbl files) was not published.  The BQP solutions use the same
     variable space and satisfy both equality constraints, so they evaluate on
     the UQO model with vanishing penalty terms.
+
+    Variables omitted by the solver are filled with 0, since Gurobi .sol
+    writers commonly drop zero-valued variables; the returned dict therefore
+    always covers the full model.
 
     Args:
         lines: iterable of text lines of the solution file.
@@ -90,9 +98,23 @@ def parse_sol_file(
 
     if objective is None:
         raise ValueError("No '# Objective value = ...' header found.")
-    expected = len(x_decl) + 4 * num_periods + 7 * num_periods
-    if len(values) != expected:
+
+    # Gurobi .sol writers may omit zero-valued variables, so fewer entries than
+    # the full model is valid; only more than expected (e.g. a wrong
+    # num_periods or an unexpected variable) is an error. Fill the omitted
+    # variables with 0 so the returned assignment covers the whole model.
+    expected = len(x_decl) + NUM_Y_SLACKS * num_periods + NUM_S_SLACKS * num_periods
+    if len(values) > expected:
         raise ValueError(
-            f"Expected {expected} variables in solution file, but got {len(values)}."
+            f"Expected at most {expected} variables in solution file, "
+            f"but got {len(values)}."
         )
+    for subscripts in x_decl:
+        values.setdefault(("x", subscripts), 0.0)
+    for k in range(NUM_Y_SLACKS):
+        for t in range(num_periods):
+            values.setdefault(("y", (k, t)), 0.0)
+    for c in range(NUM_S_SLACKS):
+        for t in range(num_periods):
+            values.setdefault(("s", (c, t)), 0.0)
     return objective, values
