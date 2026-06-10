@@ -9,7 +9,9 @@ NUM_SIGNS = 2
 NUM_Y_SLACKS = 4
 NUM_S_SLACKS = 7
 
-_OBJECTIVE_RE = re.compile(r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)")
+_OBJECTIVE_RE = re.compile(
+    r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", re.IGNORECASE
+)
 
 
 def parse_sol_file(
@@ -82,6 +84,12 @@ def parse_sol_file(
             if "@" in name:
                 # Mangled (truncated) name: decode via the declaration index.
                 decl_index = int(name.rsplit("@", 1)[1], 16)
+                if decl_index >= len(x_decl):
+                    raise ValueError(
+                        f"Declaration index {decl_index} from {name!r} is out of "
+                        f"range for {len(x_decl)} x variables; the symbol list or "
+                        f"num_periods ({num_periods}) is likely wrong."
+                    )
                 subscripts = x_decl[decl_index]
             else:
                 _, symbol, m, tau, t = name.replace("$", "#").split("#")

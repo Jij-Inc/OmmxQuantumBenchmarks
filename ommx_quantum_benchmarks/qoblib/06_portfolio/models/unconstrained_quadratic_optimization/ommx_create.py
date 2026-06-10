@@ -115,6 +115,12 @@ def batch_process_files(
         num_assets = int(match.group(1))
         num_periods = int(match.group(2))
         seed = match.group(3)
+        if num_assets not in B_BY_ASSETS:
+            print(
+                f"Skipping {dir_name}: unsupported number of assets "
+                f"({num_assets}); known values are {sorted(B_BY_ASSETS)}."
+            )
+            continue
         b_total = B_BY_ASSETS[num_assets]
         subdir = f"a{num_assets:03d}_t{num_periods:02d}_{seed}_b{b_total:03d}"
 
@@ -137,6 +143,12 @@ def batch_process_files(
                 instance_data, symbols = read_portfolio_instance(
                     instance_dir, lam, num_assets
                 )
+                if instance_data["T"] != num_periods:
+                    raise ValueError(
+                        f"Number of days read from {dir_name} is "
+                        f"{instance_data['T']}, but the directory name implies "
+                        f"{num_periods}."
+                    )
 
                 # Create an OMMX instance
                 ommx_instance = problem.eval(instance_data)
@@ -159,7 +171,10 @@ def batch_process_files(
 
                     if (
                         math.isclose(
-                            sol_objective, solution.objective, rel_tol=1e-6
+                            sol_objective,
+                            solution.objective,
+                            rel_tol=1e-6,
+                            abs_tol=1e-6,
                         )
                         and solution.feasible
                     ):
