@@ -1575,10 +1575,16 @@ class Portfolio(BaseDataset):
         "Portfolio dataset in ommx format, originally provided by https://git.zib.de/qopt/qoblib-quantum-optimization-benchmarking-library/-/tree/main/06-portfolio?ref_type=heads."
     )
     model_names: list[str] = field(
-        default_factory=lambda: ["binary_quadratic", "quadratic_unconstrained"]
+        default_factory=lambda: [
+            "binary_quadratic_programming",
+            "unconstrained_quadratic_optimization",
+        ]
     )
     available_instances: dict[str, list[str]] = field(
-        default_factory=lambda: {"binary_quadratic": [], "quadratic_unconstrained": []}
+        default_factory=lambda: {
+            "binary_quadratic_programming": [],
+            "unconstrained_quadratic_optimization": [],
+        }
     )
 
 
