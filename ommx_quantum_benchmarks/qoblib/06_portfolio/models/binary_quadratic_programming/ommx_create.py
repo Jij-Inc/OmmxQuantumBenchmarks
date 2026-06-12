@@ -9,7 +9,12 @@ from fractions import Fraction
 
 from ommx.artifact import ArtifactBuilder
 from sol_reader import parse_sol_file
-from dat_reader import B_BY_ASSETS, read_portfolio_instance
+from dat_reader import (
+    B_BY_ASSETS,
+    compute_coefficients,
+    read_covariance_matrix,
+    read_stock_prices,
+)
 from model import create_problem
 from ommx_quantum_benchmarks.qoblib.definitions import (
     QOBLIB_AUTHORS,
@@ -141,6 +146,22 @@ def batch_process_files(
         b_total = B_BY_ASSETS[num_assets]
         subdir = f"a{num_assets:03d}_t{num_periods:02d}_{seed}_b{b_total:03d}"
 
+        # Read the instance files once per directory; only the lambda-dependent
+        # coefficients are recomputed inside the lambda loop below.
+        try:
+            symbols, prices = read_stock_prices(instance_dir, num_assets)
+            num_days = len(prices[0])
+            if num_days != num_periods:
+                raise ValueError(
+                    f"Number of days read from {dir_name} is {num_days}, "
+                    f"but the directory name implies {num_periods}."
+                )
+            cov = read_covariance_matrix(instance_dir, symbols, num_periods)
+        except Exception as e:
+            print(f"Error reading instance directory {dir_name}: {str(e)}")
+            error_names.append(dir_name)
+            continue
+
         for lam_suffix, sol_suffix in LAMBDA_VALUES:
             lam = Fraction(lam_suffix)
             base_name = f"bqp_{subdir}_l{lam_suffix}"
@@ -157,16 +178,8 @@ def batch_process_files(
 
                 print(f"Processing {base_name}")
 
-                # Read the instance data
-                instance_data, symbols = read_portfolio_instance(
-                    instance_dir, lam, num_assets
-                )
-                if instance_data["T"] != num_periods:
-                    raise ValueError(
-                        f"Number of days read from {dir_name} is "
-                        f"{instance_data['T']}, but the directory name implies "
-                        f"{num_periods}."
-                    )
+                # Build the lambda-dependent coefficient arrays
+                instance_data = compute_coefficients(lam, prices, cov, num_assets)
 
                 # Create an OMMX instance
                 ommx_instance = problem.eval(instance_data)
