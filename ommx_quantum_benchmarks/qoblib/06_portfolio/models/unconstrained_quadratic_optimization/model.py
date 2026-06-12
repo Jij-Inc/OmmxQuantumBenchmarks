@@ -40,7 +40,9 @@ def _portfolio_uqo(problem: jm.DecoratedProblem):
     - x[i, m, l, t]: hold the m-th unit of asset i with position tau[l]
                      (l = 0: long, l = 1: short) on day t
     - y[k, t]:       binary expansion slack of the capital limit constraint
-    - s[c, t]:       binary expansion slack of the asset limit constraint
+    - s2[c, t]:      binary expansion slack of the asset limit constraint
+                     (same name as the original ZIMPL model; OMMX subscripts
+                     are 0-based)
     """
     # Placeholders for data from file
     A = problem.Length("A", description="Number of assets")
@@ -61,7 +63,7 @@ def _portfolio_uqo(problem: jm.DecoratedProblem):
     )
     tau = problem.Float("tau", ndim=1, description="Position sign (1: long, -1: short)")
     pow2_y = problem.Float("pow2_y", ndim=1, description="Powers of two for y slack")
-    pow2_s = problem.Float("pow2_s", ndim=1, description="Powers of two for s slack")
+    pow2_s = problem.Float("pow2_s", ndim=1, description="Powers of two for s2 slack")
     penalty = problem.Float("penalty", description="Penalty weight")
     C = problem.Float("C", description="Capital limit in units")
     B = problem.Float("B", description="Maximum number of assets")
@@ -71,7 +73,9 @@ def _portfolio_uqo(problem: jm.DecoratedProblem):
         "x", shape=(A, NUM_UNITS, NUM_SIGNS, T), description="Variable x"
     )
     y = problem.BinaryVar("y", shape=(NUM_Y_SLACKS, T), description="Slack variable y")
-    s = problem.BinaryVar("s", shape=(NUM_S_SLACKS, T), description="Slack variable s")
+    s2 = problem.BinaryVar(
+        "s2", shape=(NUM_S_SLACKS, T), description="Slack variable s2"
+    )
 
     # Risk term
     objective = jm.sum(
@@ -145,7 +149,7 @@ def _portfolio_uqo(problem: jm.DecoratedProblem):
                 for m in jm.range(NUM_UNITS)
                 for l in jm.range(NUM_SIGNS)
             )
-            + jm.sum(pow2_s[c] * s[c, t] for c in jm.range(NUM_S_SLACKS))
+            + jm.sum(pow2_s[c] * s2[c, t] for c in jm.range(NUM_S_SLACKS))
             - B
         )
         ** 2

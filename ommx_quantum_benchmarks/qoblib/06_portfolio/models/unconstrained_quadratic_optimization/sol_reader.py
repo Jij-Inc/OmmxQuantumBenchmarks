@@ -1,10 +1,11 @@
 import re
 
-from constants import NUM_S_SLACKS, NUM_SIGNS, NUM_UNITS, NUM_Y_SLACKS
+from constants import NUM_S_SLACKS, NUM_SIGNS, NUM_UNITS, NUM_Y_SLACKS, TAU
 
 _OBJECTIVE_RE = re.compile(
     r"#\s*Objective value\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", re.IGNORECASE
 )
+BINARY_FEASIBILITY_TOLERANCE = 1e-5
 
 
 def _slack_subscripts(name: str, width: int, num_periods: int) -> tuple[int, int]:
@@ -23,9 +24,16 @@ def _slack_subscripts(name: str, width: int, num_periods: int) -> tuple[int, int
     return (k, t)
 
 
+def _zimpl_x_name(symbols: list[str], subscripts: tuple[int, int, int, int]) -> str:
+    """Reconstruct the unmangled ZIMPL LP name for an x variable."""
+    i, m, l, t = subscripts
+    tau_name = str(TAU[l]).replace("-", "_")
+    return f"x${symbols[i]}#{m + 1}#{tau_name}#{t}"
+
+
 def parse_sol_file(
     lines, symbols: list[str], num_periods: int
-) -> tuple[float, dict[tuple[str, tuple[int, ...]], float]]:
+) -> tuple[float, dict[tuple[str, tuple[int, ...]], int]]:
     """Parse a QOBLIB portfolio solution file in Gurobi .sol format.
 
     The solution files under `solutions/bqp` of the original QOBLIB repository
@@ -36,11 +44,13 @@ def parse_sol_file(
     - `y#<k>#<t>` and `s2#<c>#<t>` for the slack variables,
     - `x$<symbol>#<m>#<tau>#<t>` for the asset variables, where ZIMPL replaces
       the invalid character '-' with '_', so tau = -1 appears as `_1`,
-    - mangled names like `x$AAPL#1#_1#0@a` for long (truncated) names.  ZIMPL
-      truncates such names, appending '@' and the
-      0-based variable index in declaration order
-      (`var x[SX*TX]` with SX = S * {1..ub} * {1,-1}, day fastest), which we
-      use to recover the subscripts.
+    - mangled names like `x$AAPL#1#_1#0@a` for long (truncated) names.  When
+      LP variable names exceed ZIMPL's output-name limit, ZIMPL keeps a prefix
+      and appends `@<hex declaration index>`.  The declaration order is
+      `var x[SX*TX]` with SX = S * {1..ub} * {1,-1}, followed by day, so it is
+      asset -> unit -> sign -> day (day fastest).  We reproduce that order in
+      `x_decl`, recover the subscripts from the hex index, then verify that the
+      full reconstructed ZIMPL name starts with the retained prefix.
 
     Note that the solution files under `solutions/uqo` are NOT parseable: they
     are written in the abs2 solver's internal variable numbering whose mapping
@@ -62,8 +72,9 @@ def parse_sol_file(
     Returns:
         A tuple of:
         - the objective value declared in the file header,
-        - dict mapping (variable name, subscripts) to the variable value,
-          with subscripts (i, m, l, t) for "x" and (k, t) for "y" / "s".
+        - dict mapping (variable name, subscripts) to the integer variable
+          value, with subscripts (i, m, l, t) for "x" and (k, t) for
+          "y" / "s2".
     """
     sym_idx = {s: i for i, s in enumerate(symbols)}
     # Declaration order of x[SX*TX]: asset, unit, sign, day (day fastest).
@@ -76,7 +87,7 @@ def parse_sol_file(
     ]
 
     objective = None
-    values: dict[tuple[str, tuple[int, ...]], float] = {}
+    values: dict[tuple[str, tuple[int, ...]], int] = {}
     for raw in lines:
         line = raw.strip()
         if not line:
@@ -98,18 +109,25 @@ def parse_sol_file(
             raise ValueError(
                 f"Malformed value in solution file line: {line!r}"
             ) from None
-        # All model variables are binary; tolerate solver output like
-        # 0.9999999996 but reject anything that is not a 0/1 within tolerance.
+        # All model variables are binary. Use Gurobi's default IntFeasTol so
+        # valid .sol output is not rejected before ommx_create.py performs the
+        # objective and feasibility checks that gate artifact writing.
         rounded = round(value)
-        if abs(value - rounded) > 1e-6 or rounded not in (0, 1):
+        if (
+            abs(value - rounded) > BINARY_FEASIBILITY_TOLERANCE
+            or rounded not in (0, 1)
+        ):
             raise ValueError(
                 f"Non-binary value {value} for variable {name!r} in solution file."
             )
-        value = float(rounded)
+        value = int(rounded)
 
         if name.startswith("x$"):
             if "@" in name:
                 # Mangled (truncated) name: decode via the declaration index.
+                # The retained prefix is checked below against the reconstructed
+                # full name, so a stale symbol list or wrong declaration-order
+                # assumption is caught instead of silently remapping variables.
                 try:
                     decl_index = int(name.rsplit("@", 1)[1], 16)
                 except ValueError:
@@ -117,13 +135,20 @@ def parse_sol_file(
                         f"Unrecognized mangled variable name in solution file: "
                         f"{name!r}"
                     ) from None
-                if decl_index >= len(x_decl):
+                if not 0 <= decl_index < len(x_decl):
                     raise ValueError(
                         f"Declaration index {decl_index} from {name!r} is out of "
                         f"range for {len(x_decl)} x variables; the symbol list or "
                         f"num_periods ({num_periods}) is likely wrong."
                     )
                 subscripts = x_decl[decl_index]
+                prefix = name.rsplit("@", 1)[0]
+                full_name = _zimpl_x_name(symbols, subscripts)
+                if not full_name.startswith(prefix):
+                    raise ValueError(
+                        f"Mangled variable name {name!r} decodes to {full_name!r}, "
+                        f"which does not match the retained prefix {prefix!r}."
+                    )
             else:
                 name_parts = name.replace("$", "#").split("#")
                 if len(name_parts) != 5:
@@ -147,19 +172,19 @@ def parse_sol_file(
                         f"Unrecognized x variable name in solution file: {name!r}"
                     ) from None
                 if (
-                    tau not in (1, -1)
+                    tau not in TAU
                     or not 1 <= m <= NUM_UNITS
                     or not 0 <= t < num_periods
                 ):
                     raise ValueError(
                         f"Subscripts out of range in solution file variable {name!r}."
                     )
-                subscripts = (sym_idx[symbol], m - 1, 0 if tau == 1 else 1, t)
+                subscripts = (sym_idx[symbol], m - 1, TAU.index(tau), t)
             key = ("x", subscripts)
         elif name.startswith("y#"):
             key = ("y", _slack_subscripts(name, NUM_Y_SLACKS, num_periods))
         elif name.startswith("s2#"):
-            key = ("s", _slack_subscripts(name, NUM_S_SLACKS, num_periods))
+            key = ("s2", _slack_subscripts(name, NUM_S_SLACKS, num_periods))
         else:
             raise ValueError(f"Unrecognized variable name in solution file: {name}")
 
@@ -181,11 +206,11 @@ def parse_sol_file(
             f"but got {len(values)}."
         )
     for subscripts in x_decl:
-        values.setdefault(("x", subscripts), 0.0)
+        values.setdefault(("x", subscripts), 0)
     for k in range(NUM_Y_SLACKS):
         for t in range(num_periods):
-            values.setdefault(("y", (k, t)), 0.0)
+            values.setdefault(("y", (k, t)), 0)
     for c in range(NUM_S_SLACKS):
         for t in range(num_periods):
-            values.setdefault(("s", (c, t)), 0.0)
+            values.setdefault(("s2", (c, t)), 0)
     return objective, values

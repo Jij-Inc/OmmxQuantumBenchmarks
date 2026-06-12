@@ -37,6 +37,12 @@ LAMBDA_VALUES = [
 _INSTANCE_DIR_RE = re.compile(r"^po_a(0\d{2})_t(\d{2})_(s\d{2}|orig)$")
 
 
+def _print_name_summary(label: str, names: list[str]) -> None:
+    print(f"{label}: {len(names)} files")
+    for name in names:
+        print(f"  - {name}")
+
+
 def read_solution_lines(sol_directory: str, subdir: str, sol_name: str):
     """Read the lines of a solution file from solutions/bqp.
 
@@ -115,15 +121,18 @@ def batch_process_files(
     print("-" * 50)
 
     processed_count = 0
-    saved_without_solution_count = 0
-    mismatch_count = 0
-    error_count = 0
+    unsupported_instance_dirs: list[str] = []
+    missing_solution_names: list[str] = []
+    saved_without_solution_names: list[str] = []
+    mismatch_names: list[str] = []
+    error_names: list[str] = []
 
     for instance_dir in instance_dirs:
         dir_name = os.path.basename(instance_dir)
         match = _INSTANCE_DIR_RE.match(dir_name)
         if match is None:
             print(f"Skipping {dir_name}: no UQO model for this instance upstream.")
+            unsupported_instance_dirs.append(dir_name)
             continue
         num_assets = int(match.group(1))
         num_periods = int(match.group(2))
@@ -133,6 +142,7 @@ def batch_process_files(
                 f"Skipping {dir_name}: unsupported number of assets "
                 f"({num_assets}); known values are {sorted(B_BY_ASSETS)}."
             )
+            unsupported_instance_dirs.append(dir_name)
             continue
         b_total = B_BY_ASSETS[num_assets]
         subdir = f"a{num_assets:03d}_t{num_periods:02d}_{seed}_b{b_total:03d}"
@@ -148,6 +158,7 @@ def batch_process_files(
                         f"Warning: Solution file {sol_name} not found in "
                         f"{os.path.join(sol_directory, 'bqp')}. Skipping {base_name}."
                     )
+                    missing_solution_names.append(base_name)
                     continue
 
                 print(f"Processing {base_name}")
@@ -216,7 +227,7 @@ def batch_process_files(
                             f"Δ={diff:.6g}, feasible={solution.feasible}"
                         )
                         print(f"    Not writing {base_name}.ommx.")
-                        mismatch_count += 1
+                        mismatch_names.append(base_name)
                         continue
 
                 # Add annotations to the instance.
@@ -255,22 +266,26 @@ def batch_process_files(
                 print(f"Successfully created: {output_filename}")
                 print("-" * 50)
                 if solution is None:
-                    saved_without_solution_count += 1
+                    saved_without_solution_names.append(base_name)
                 processed_count += 1
 
             except Exception as e:
                 print(f"Error processing {base_name}: {str(e)}")
-                error_count += 1
+                error_names.append(base_name)
                 continue
 
-    print(f"\nBatch processing complete!")
+    print("\nBatch processing complete!")
     print(f"Successfully processed: {processed_count} files")
-    print(f"Saved without a solution: {saved_without_solution_count} files")
-    print(f"Verification mismatches (not written): {mismatch_count} files")
-    print(f"Number of errors: {error_count} files")
+    _print_name_summary(
+        "Unsupported instance directories skipped", unsupported_instance_dirs
+    )
+    _print_name_summary("Missing solution files skipped", missing_solution_names)
+    _print_name_summary("Saved without a solution", saved_without_solution_names)
+    _print_name_summary("Verification mismatches (not written)", mismatch_names)
+    _print_name_summary("Errors", error_names)
     print(f"OMMX files saved in: {output_directory}")
     print("-" * 50)
-    return mismatch_count + error_count
+    return len(mismatch_names) + len(error_names)
 
 
 if __name__ == "__main__":
