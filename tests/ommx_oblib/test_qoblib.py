@@ -356,8 +356,8 @@ def test_portfolio():
 
     Check if
     - its name is "06_portfolio",
-    - its model_names is ["binary_quadratic", "quadratic_unconstrained"],
-    - its available_instances is dict whose key are "binary_quadratic" and "quadratic_unconstrained",
+    - its model_names is ["binary_quadratic_programming", "unconstrained_quadratic_optimization"],
+    - its available_instances is dict whose key are "binary_quadratic_programming" and "unconstrained_quadratic_optimization",
     - each value of its available_instances is a list of str,
     - the returned value of __call__ is a tuple of (ommx.v1.instance, ommx.v1.solution) using each values of its available_instances,
     - the evaluated solution with its instance and solution is the same as the original solution.
@@ -365,12 +365,15 @@ def test_portfolio():
     # - its name is "06_portfolio",
     dataset = Portfolio()
     assert dataset.name == "06_portfolio"
-    # - its model_names is ["binary_quadratic", "quadratic_unconstrained"],
-    assert dataset.model_names == ["binary_quadratic", "quadratic_unconstrained"]
-    # - its available_instances is dict whose key are "binary_quadratic" and "quadratic_unconstrained",
+    # - its model_names is ["binary_quadratic_programming", "unconstrained_quadratic_optimization"],
+    assert dataset.model_names == [
+        "binary_quadratic_programming",
+        "unconstrained_quadratic_optimization",
+    ]
+    # - its available_instances is dict whose key are "binary_quadratic_programming" and "unconstrained_quadratic_optimization",
     assert isinstance(dataset.available_instances, dict)
-    assert "binary_quadratic" in dataset.available_instances
-    assert "quadratic_unconstrained" in dataset.available_instances
+    assert "binary_quadratic_programming" in dataset.available_instances
+    assert "unconstrained_quadratic_optimization" in dataset.available_instances
     # - each value of its available_instances is a list of str,
     for model_name, instances in dataset.available_instances.items():
         assert isinstance(instances, list)
