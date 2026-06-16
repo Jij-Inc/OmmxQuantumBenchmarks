@@ -379,6 +379,12 @@ def test_portfolio():
         assert isinstance(instances, list)
         for instance in instances:
             assert isinstance(instance, str)
+    uqo_instances = dataset.available_instances["unconstrained_quadratic_optimization"]
+    assert len(uqo_instances) == 128
+    assert all(
+        instance.startswith(("uqo_a010_", "uqo_a050_"))
+        for instance in uqo_instances
+    )
     for model_name, instances in dataset.available_instances.items():
         if instances:  # Only test if instances are available
             instance_name = instances[0]  # Test with first instance
