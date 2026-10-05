@@ -16,8 +16,20 @@ dependencies = [
     "requests>=2.32.4",
 ]
 
-[tool.setuptools]
-packages = ["ommx_quantum_benchmarks"]
+[project.optional-dependencies]
+pbo = ["ioh==0.3.22"]
+
+[tool.setuptools.packages.find]
+include = ["ommx_quantum_benchmarks*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"ommx_quantum_benchmarks.blackbox" = [
+    "COMBO-LICENSE.txt",
+    "sources.lock.json",
+    "data/*.json",
+    "data/prepared/*.npz",
+]
 
 [tool.setuptools_scm]
 version_file = "ommx_quantum_benchmarks/_version.py"

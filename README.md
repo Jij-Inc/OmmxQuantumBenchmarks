@@ -34,7 +34,7 @@ Objective: 1.0, Feasible: True
 The `instance` is `ommx.v1.Instance`. OMMX (Open Mathematical prograMming eXchange) is an open data format and SDK designed to simplify data exchange between software and people when applying mathematical optimization to real-world problems. For more details about OMMX, please have a look at the documentation: [Documentation](https://jij-inc.github.io/ommx/en/introduction.html).
 
 ## Datasets
-Note that, although this repository currently contains only one dataset, QOBLIB, we are planning to add more datasets for quantum optimisation in OMMX format.
+The collection includes QOBLIB OMMX instances and discrete blackbox optimization settings.
 
 ### QOBLIB
 QOBLIB stands for Quantum Optimization Benchmarking Library. In this repository we provide instance data given in the original QOBLIB repository in `ommx` format leveraging the power of Github Container Registry. Note that currently, this directory does not provide all datasets, such as the fourth dataset Steiner Tree Packing pointed out in [issue 8](https://github.com/Jij-Inc/OMMX-OBLIB/issues/8). One can see which instance data are available accessing `available_instances` property.
@@ -52,3 +52,28 @@ Please refer to the original [contribution guidelines](https://git.zib.de/qopt/q
 #### Best-practice for hardware implementation
 A collection of guidelines to run quantum optimization algorithms with Qiskit on hardware that is based on superconducting qubits can be found [here](https://github.com/qiskit-community/qopt-best-practices).
 
+
+### Discrete blackbox optimization
+
+The `blackbox` collection provides 189 catalog settings: 6 LABS, 9 QUBO controls,
+9 contamination, 3 pest control, 9 Ising sparsification, 150 IOH/PBO, and 3 FMIRA
+fitness tables. 36 settings are included offline. PBO needs
+`pip install 'ommx-quantum-benchmarks[pbo]'`; FMIRA data is excluded from the
+package and requires explicit local acquisition because redistribution permission
+has not been established. COMBO-derived evaluators retain their BSD notice.
+
+```python
+from ommx_quantum_benchmarks.blackbox import DiscreteBlackbox
+
+benchmarks = DiscreteBlackbox()
+material = benchmarks("labs-16-negative-merit")
+score = material.evaluate([0] * 16)
+data = benchmarks.initial_data("labs-16-negative-merit", seed=0)
+qubo = benchmarks("qubo-16-s0").to_ommx()
+```
+
+All blackbox scores minimize a scalar objective. Only QUBO controls support
+`to_ommx()`; simulation and lookup objectives remain external evaluators.
+See the [English guide](https://jij-inc.github.io/OmmxQuantumBenchmarks/en/tutorial/usage/blackbox.html)
+or [Japanese guide](https://jij-inc.github.io/OmmxQuantumBenchmarks/ja/tutorial/usage/blackbox.html)
+for sources, variants, shared evaluation budgets and acquisition instructions.
