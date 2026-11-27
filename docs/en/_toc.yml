@@ -18,6 +18,7 @@ parts:
     - file: tutorial/usage/index_usage
       sections:
         - file: tutorial/usage/qoblib
+        - file: tutorial/usage/blackbox
 
   - caption: Examples
     chapters:

@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "retrieved_on": "2026-10-02",
+  "files": [
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "FMIRA.py",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/FMIRA.py",
+      "bytes": 5753,
+      "sha256": "64a63321b358bc341a9565548695645748ffacdaa53aa93f40fc87cf222f9f66"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/README.md",
+      "bytes": 1989,
+      "sha256": "8566d565649e984e7532dce4497970dfb429ef09256901798dae42e5f9145712"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "data/fitness_Fluorescence.txt",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/data/fitness_Fluorescence.txt",
+      "bytes": 105616,
+      "sha256": "c88cbc0408b48e230cc732176912367423749746aaa60469d03d15b5c224ec49"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "data/fitness_Influenza_fluB.txt",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/data/fitness_Influenza_fluB.txt",
+      "bytes": 1179978,
+      "sha256": "663054ab73d94e154681032449437147aa7e5dbd0ab629c0bfad0cbe9e58d05b"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "data/fitness_Ribozyme.txt",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/data/fitness_Ribozyme.txt",
+      "bytes": 779009,
+      "sha256": "220fc8e357fa83309953a933fdec87ef56aa4f43f0db2332075be8e7a8c4b205"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "data/vectors_Fluorescence.txt",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/data/vectors_Fluorescence.txt",
+      "bytes": 212992,
+      "sha256": "798802b0fa6c5a45eaffb4fcaff16905f614c186b0b1caf493fef4dc45d879b1"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "data/vectors_Influenza_fluB.txt",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/data/vectors_Influenza_fluB.txt",
+      "bytes": 2097152,
+      "sha256": "2d89f6b816eac73f7f872c089e22fe5dedca6cd1aa33fa0986ccae4520ee495b"
+    },
+    {
+      "source": "fmira",
+      "repo": "tucs7/FMIRA",
+      "commit": "7d20bb6754aed252adb5343d0552a8b791c83e98",
+      "path": "data/vectors_Ribozyme.txt",
+      "url": "https://raw.githubusercontent.com/tucs7/FMIRA/7d20bb6754aed252adb5343d0552a8b791c83e98/data/vectors_Ribozyme.txt",
+      "bytes": 2097152,
+      "sha256": "6a7a6cb3491e180076b14df2c484254809c1f9d60522c3832c63d68b4b214503"
+    },
+    {
+      "source": "combo",
+      "repo": "QUVA-Lab/COMBO",
+      "commit": "9529eabb86365ce3a2ca44fff08291a09a853ca2",
+      "path": "COMBO/experiments/test_functions/binary_categorical.py",
+      "url": "https://raw.githubusercontent.com/QUVA-Lab/COMBO/9529eabb86365ce3a2ca44fff08291a09a853ca2/COMBO/experiments/test_functions/binary_categorical.py",
+      "bytes": 9499,
+      "sha256": "dc5be01e80fc4b6d0dbfdcc4fecce2e8b39ee6767c56e350dfd03f8045858780"
+    },
+    {
+      "source": "combo",
+      "repo": "QUVA-Lab/COMBO",
+      "commit": "9529eabb86365ce3a2ca44fff08291a09a853ca2",
+      "path": "COMBO/experiments/test_functions/experiment_configuration.py",
+      "url": "https://raw.githubusercontent.com/QUVA-Lab/COMBO/9529eabb86365ce3a2ca44fff08291a09a853ca2/COMBO/experiments/test_functions/experiment_configuration.py",
+      "bytes": 3865,
+      "sha256": "13ce82e5af9131e3baf23f5c54b9e953dc9c464c88693ba91a17a9f282e9d6c1"
+    },
+    {
+      "source": "combo",
+      "repo": "QUVA-Lab/COMBO",
+      "commit": "9529eabb86365ce3a2ca44fff08291a09a853ca2",
+      "path": "COMBO/experiments/test_functions/multiple_categorical.py",
+      "url": "https://raw.githubusercontent.com/QUVA-Lab/COMBO/9529eabb86365ce3a2ca44fff08291a09a853ca2/COMBO/experiments/test_functions/multiple_categorical.py",
+      "bytes": 7712,
+      "sha256": "55d85221c1fee41c33dcbaa7f6ac0ee75e858927c6bccca88a9bff39206e4334"
+    },
+    {
+      "source": "combo",
+      "repo": "QUVA-Lab/COMBO",
+      "commit": "9529eabb86365ce3a2ca44fff08291a09a853ca2",
+      "path": "LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/QUVA-Lab/COMBO/9529eabb86365ce3a2ca44fff08291a09a853ca2/LICENSE.txt",
+      "bytes": 1533,
+      "sha256": "447c65eaa1bbd5a4c9ef81deb294a4a854c5e43108c39a2fb23a9ff63ba047c0"
+    }
+  ],
+  "ioh": {
+    "version": "0.3.22",
+    "project_url": "https://github.com/IOHprofiler/IOHexperimenter",
+    "artifacts": [
+      {
+        "filename": "ioh-0.3.22-cp310-cp310-macosx_10_15_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/8c/32/c8610720b0637d2c434fc20d2aad49c487ab49a72ff82abf2e07f451c9a8/ioh-0.3.22-cp310-cp310-macosx_10_15_x86_64.whl",
+        "sha256": "0167de2d408bddb50dbf73531088c9c8714ff8ec30a105104050c14f9dcbf706"
+      },
+      {
+        "filename": "ioh-0.3.22-cp310-cp310-macosx_11_0_arm64.whl",
+        "url": "https://files.pythonhosted.org/packages/92/cc/a4c4db4a4ef6fcef9694d7ffd8bc392a977519eb8a7c4a5653920c202036/ioh-0.3.22-cp310-cp310-macosx_11_0_arm64.whl",
+        "sha256": "1cd99c4277a5d47c6dbc94c4843acb88298deb1526c4c9e8bf7e6bac0f172f55"
+      },
+      {
+        "filename": "ioh-0.3.22-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "url": "https://files.pythonhosted.org/packages/0d/0a/1be377af30f8d3dd2ab71e2f0126c617d8ab14fa497cf363e19d2bf0c41a/ioh-0.3.22-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "sha256": "95e3c2fa2065585615de403c2bef2c67cf8e5d3e6356f42203a92526fc5e2ac7"
+      },
+      {
+        "filename": "ioh-0.3.22-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/91/32/f9bf92007e5d68816ee01d1c40ad00679a7c021dbc652aafa4ca8f1652f2/ioh-0.3.22-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "sha256": "2dc5246582890ed081ab8843018ae005da971a2076fc8ce5b630c797b53dbf56"
+      },
+      {
+        "filename": "ioh-0.3.22-cp310-cp310-win32.whl",
+        "url": "https://files.pythonhosted.org/packages/03/88/56559300746b1ae1f76d250a2bb2be91d1541ff31cdff7235cc2646a0e7a/ioh-0.3.22-cp310-cp310-win32.whl",
+        "sha256": "8db681246b1fd5029fc5a7db747dbff59333c09824caaf1ae4abc61315ba4e2e"
+      },
+      {
+        "filename": "ioh-0.3.22-cp310-cp310-win_amd64.whl",
+        "url": "https://files.pythonhosted.org/packages/ca/16/2ef7a77a522701112feaf1e61a09ef86190bb4b009d5c1046cba2c58ac96/ioh-0.3.22-cp310-cp310-win_amd64.whl",
+        "sha256": "42b998f0c30edc90c8555a94af7643ae7a1c57c3c1b9a9756534271cc3fd6b72"
+      },
+      {
+        "filename": "ioh-0.3.22-cp311-cp311-macosx_10_15_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/a9/d9/7021427a7f88fb022aa68498a212b797ab3d6d732edbca886c3d8bd93e40/ioh-0.3.22-cp311-cp311-macosx_10_15_x86_64.whl",
+        "sha256": "40379cb573abbc721331eeadf28599c0a2e8d8e148d8395e631adf4558b48451"
+      },
+      {
+        "filename": "ioh-0.3.22-cp311-cp311-macosx_11_0_arm64.whl",
+        "url": "https://files.pythonhosted.org/packages/5c/3e/24108a84bc4fd8fb992a915b3e43fafef313344fe0778c80d3ddc6979b31/ioh-0.3.22-cp311-cp311-macosx_11_0_arm64.whl",
+        "sha256": "35c13ffbb64d4cc105969e492cda983efea95faa35b7656d5f5e3f9b12297e5d"
+      },
+      {
+        "filename": "ioh-0.3.22-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "url": "https://files.pythonhosted.org/packages/e4/c1/36180ec7775874794eb4d2c45a4576e7939ee39a880be6af7d420e699df9/ioh-0.3.22-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "sha256": "c99f0cd2eeec43872b5ad79066a925b81c0f5e59500b7e1b9622a9bdf9542de2"
+      },
+      {
+        "filename": "ioh-0.3.22-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/bd/7f/4cd6ebc55bc7ad7ed32aa2f0c772d9b4aaf416bf35fe0ee0939bc6e90c0b/ioh-0.3.22-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "sha256": "9dfbd44d942877737188f161333219a5f18797507f907e2ce1060444fd41fde1"
+      },
+      {
+        "filename": "ioh-0.3.22-cp311-cp311-win32.whl",
+        "url": "https://files.pythonhosted.org/packages/1c/1d/ac4c0b20efe9835b8ff72c53a607fbdb58ab75332a02950296faccbe1a65/ioh-0.3.22-cp311-cp311-win32.whl",
+        "sha256": "75aca60dc7f6512311bc5e246e4cffa604e0c86fd3e610804e8545bbe898ec2a"
+      },
+      {
+        "filename": "ioh-0.3.22-cp311-cp311-win_amd64.whl",
+        "url": "https://files.pythonhosted.org/packages/30/e2/a26652d417cc9dd240e3e3e38d44759ec6158313fea1534f56d3abb8af9c/ioh-0.3.22-cp311-cp311-win_amd64.whl",
+        "sha256": "0b287eb763c17e6b0b55d0fd815e4b1af339d40476521e43e9500523d764b9a1"
+      },
+      {
+        "filename": "ioh-0.3.22-cp312-cp312-macosx_10_15_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/d7/67/16a124984a141a40edaa1f9776f5fe2021e40e51214751fafa7140e6f465/ioh-0.3.22-cp312-cp312-macosx_10_15_x86_64.whl",
+        "sha256": "6810fb39661a9d3ed8f77771de68acbf778305e2e9b92949017472f9ac2aabdc"
+      },
+      {
+        "filename": "ioh-0.3.22-cp312-cp312-macosx_11_0_arm64.whl",
+        "url": "https://files.pythonhosted.org/packages/a6/d0/fc8011418c00b50f7bd85cc63e289387e46d5fa01077d3749e64feee10d1/ioh-0.3.22-cp312-cp312-macosx_11_0_arm64.whl",
+        "sha256": "4e03145f319af32c4ab3552524f751fe1ccc71a369cbc1552ae88c64215dee15"
+      },
+      {
+        "filename": "ioh-0.3.22-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "url": "https://files.pythonhosted.org/packages/58/e1/4ec2e70d456be99a819e7544a5a5ac954b6918d289a7656663d7cc8e4486/ioh-0.3.22-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "sha256": "88273fab9126a4d1299fd145319f701658dc786a8253fba6ae4c13fb5e8f4fc7"
+      },
+      {
+        "filename": "ioh-0.3.22-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/e2/35/949fc370594e9bb9c937888c92ea53e9e04dbcf1fa80c7e6a60a00ad0e78/ioh-0.3.22-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "sha256": "2b56d033d2efe0501cb76851eb4bf6f7031bf01512350006cf25026e3f036add"
+      },
+      {
+        "filename": "ioh-0.3.22-cp312-cp312-win32.whl",
+        "url": "https://files.pythonhosted.org/packages/84/87/3fa26e99673244d811d10b45b0e1d48209ec8c8e2721fc1ca29186226002/ioh-0.3.22-cp312-cp312-win32.whl",
+        "sha256": "31e16a60044a7473433ce64439e1388691b3f701ca39d89cfe939ede11ba260f"
+      },
+      {
+        "filename": "ioh-0.3.22-cp312-cp312-win_amd64.whl",
+        "url": "https://files.pythonhosted.org/packages/f5/05/c1983f506511d45e950f5212d37a57ec8587f54b2d11abd8acd7a3a83e4f/ioh-0.3.22-cp312-cp312-win_amd64.whl",
+        "sha256": "4a1da06186428cbb3ed0afb9db6dbb3bf771a3e0f4e90c4a5d564dc5158cec14"
+      },
+      {
+        "filename": "ioh-0.3.22-cp39-cp39-macosx_10_15_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/15/21/1a9960b8b860dbd99d6346a0366a217edb8c86f79b03c0b4aeb8cb5b77f6/ioh-0.3.22-cp39-cp39-macosx_10_15_x86_64.whl",
+        "sha256": "e190db0db5f2ca71a0b97469bc37820d11944d77f346a97f8bd3415f34344e41"
+      },
+      {
+        "filename": "ioh-0.3.22-cp39-cp39-macosx_11_0_arm64.whl",
+        "url": "https://files.pythonhosted.org/packages/d1/72/600e58b57e85ba10238c9d2aa268fa06944bd846195286e05e96b6ce5815/ioh-0.3.22-cp39-cp39-macosx_11_0_arm64.whl",
+        "sha256": "451a2d8a6a37f7c1e40ef8824899875eb8fa883a5bde4ba4726be2f4f8203dd6"
+      },
+      {
+        "filename": "ioh-0.3.22-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "url": "https://files.pythonhosted.org/packages/87/7a/7cabc45ba8cde198fef3e24382a6659968da1502ed62d33c15ea89da3395/ioh-0.3.22-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl",
+        "sha256": "7c8e08a1674b70d2e7eb63bd5c887bb05ae443c19d3ae22418752078ea80e5bd"
+      },
+      {
+        "filename": "ioh-0.3.22-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/8f/30/769f41ea89a94e138eda917223fd72f0397684a9446355f2e451bac77586/ioh-0.3.22-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "sha256": "0e0df952e9e462c440ed6cce6ce42405a666b0a120c9d0d997cad5c0cd1e2e37"
+      },
+      {
+        "filename": "ioh-0.3.22-cp39-cp39-win32.whl",
+        "url": "https://files.pythonhosted.org/packages/48/6e/a93e8ce6dcd1c0c3f93b93ae3c1922997e1a9f5c194a1ce7be5d6f0885ff/ioh-0.3.22-cp39-cp39-win32.whl",
+        "sha256": "779b0f4759f3af062893d15568c187e2d59daf4c39c0e873f40252f20befaebc"
+      },
+      {
+        "filename": "ioh-0.3.22-cp39-cp39-win_amd64.whl",
+        "url": "https://files.pythonhosted.org/packages/5a/82/8f3be9d0037ca90d77c5f54e6d22fd6251d22b231718a244a3f9c7a6bb73/ioh-0.3.22-cp39-cp39-win_amd64.whl",
+        "sha256": "7e9b252ada251580e1120ff87a0d72fa963e0eb1099f96001979864bbe259744"
+      },
+      {
+        "filename": "ioh-0.3.22.tar.gz",
+        "url": "https://files.pythonhosted.org/packages/36/fd/001e327e4d1eb36227c7a84bc819f9c760b616592f0da38a81c259fe0937/ioh-0.3.22.tar.gz",
+        "sha256": "b482d1c26e358d5ff1127b69dbbf8b53b2284362359f8c66b997a4390fb6b9d3"
+      }
+    ]
+  }
+}

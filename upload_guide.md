@@ -40,3 +40,28 @@ The data on `qoblib_v2` was produced as a one-time in-place migration from the e
 The migration tooling (`scripts/upload_qoblib.py` and `.github/workflows/upload-qoblib-v2.yml`) was intentionally removed after the migration completed. If the same operation ever needs to be performed again (for example to recreate `qoblib_v2` from scratch), refer to git history on the `fix/support-minto-v2` branch (commits `0bb2102`, `ab50aac`, `0f213ee`) to recover the script and workflow.
 
 Future regenerations from the upstream QOBLIB source (not from the existing GHCR data) should go through the model definitions (`model.py` / `ommx_create.py`). This path is currently broken under jijmodeling 2.x because the model files still use the 1.x API; that migration will be addressed in a follow-up PR.
+
+## Discrete blackbox collection
+
+The discrete collection is distributed as package data rather than GHCR artifacts.
+QUBO controls can be converted to OMMX with `Material.to_ommx()`; other objectives
+remain external evaluators. FMIRA tables and observations are not redistributed.
+
+To regenerate the committed data from the reviewed JijZeptWorkflow prepared suite:
+
+```bash
+python scripts/import_discrete_blackbox.py /path/to/JijZeptWorkflow/benchmark_results/discrete
+```
+
+The importer verifies the source lock, reviewed evaluator hash and included asset
+hashes. It copies only non-FMIRA assets and observations, preserves the original
+catalog provenance, and updates identities to the packaged evaluator. Review an
+upstream evaluator change before changing the pinned source hash or formulas.
+After editing `blackbox/materials.py`, regenerate so implementation identities and
+shared initial observations remain consistent. Never add `fitness-*.npz`, raw FMIRA
+tables, or FMIRA candidate/score observations to this repository.
+
+Validate with `uv sync --all-extras --group docs`, `uv run pytest tests`,
+`uv run jupyter-book build docs/en`, `uv run jupyter-book build docs/ja`, and
+`uv build`. Check that both the wheel and sdist include the blackbox catalog,
+non-FMIRA assets, initial observations, source lock and COMBO license notice.
